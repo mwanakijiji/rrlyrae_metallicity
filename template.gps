@@ -1,0 +1,23 @@
+set grid
+unset key
+set multiplot
+set size 0.8,0.4
+set tmargin 0
+set bmargin 0
+set lmargin 0
+set rmargin 0
+set origin 0.13,0.55
+set format x ""
+set ylabel "Flux"
+set label 1 "STAR" at graph 0.33,0.13 font ",13"
+plot "FILENAME" u 1:2 w li lc 1, \
+  "FILENAME" u 1:3 w li lc -1
+unset label
+set origin 0.13,0.15
+set format x
+set xlabel "Wavelength"
+set ylabel "Normalized Flux"
+plot "FILENAME" u 1:($2/$3) w li lc 3
+unset multiplot
+pause TIME
+exit
