@@ -6,13 +6,14 @@
 
 from setuptools import setup, Extension
 
-module1 = Extension('test_c', sources = ['wrapper/test.cc'])
+module1 = Extension('hello_module', sources = ['hello_module.cc'])
 
-setup(name='Metallicity wrapper',
+setup(name='RRab metallicity wrapper',
       version='1.0',
       description='For finding FeH from low-res survey spectra',
       author='Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell',
-      author_email='spalding@email.arizona.edu',
+      author_email='spalding at email dot arizona dot edu',
+      url='https://github.com/mwanakijiji/rrlyrae_metallicity',
       license='MIT',
       ext_modules=[module1],
       zip_safe=False)
