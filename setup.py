@@ -6,7 +6,7 @@
 
 from setuptools import setup, Extension
 
-module1 = Extension('hello_module', sources = ['hello_module.cc'])
+module1 = Extension('hello_module', sources = ['wrapper/hello_module.cc'])
 
 setup(name='RRab metallicity wrapper',
       version='1.0',
