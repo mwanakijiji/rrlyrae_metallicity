@@ -5,12 +5,15 @@
 # maybe Fortran (for RW's code)
 
 from setuptools import setup, Extension
+#from numpy.distutils.core import setup, Extension
 
 module1 = Extension('bkgrnd_module', sources = ['bkgrnd.cc'])
+#module2 = Extension('hello_fortran', sources = ['wrapper/hello_fortran.f'])
 
-setup(name='RRab metallicity wrapper',
+
+setup(name='RRab metallicity',
       version='1.0',
-      description='For finding FeH from low-res survey spectra',
+      description='For finding FeH from low-res survey spectra of RRab stars',
       author='Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell',
       author_email='spalding at email dot arizona dot edu',
       url='https://github.com/mwanakijiji/rrlyrae_metallicity',
