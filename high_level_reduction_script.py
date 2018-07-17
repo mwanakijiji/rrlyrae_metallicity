@@ -9,26 +9,31 @@ from modules2 import create_spec_realizations, run_robo, scrape_ew_and_errew, ma
 #mamluk = norm_spec.norm_spec("in.list") # create instance 
 #mamluk() # call instance
 
+'''
 # take empirical spectra and generate_synthetic_spec
 create_spec_realizations.create_spec_realizations_main("spec_names.list", synthetic_out_dir)
 
 # run_robospect on synthetic spectra
 run_robo.run_robospect()
+'''
 
 # scrape_ew_from_robo and calculate EWs + err_EW
 mamluk2 = scrape_ew_and_errew.scraper() # create scraper instance
-mamluk2() # call instance
+print('----')
+scrapedEWdataFilename = mamluk2.get_list()
+#scrapedEWdataFilename = mamluk2() # call instance
+print("Yodelehihoo")
+
 
 # findHK
-mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
-mamluk3() # call instance
+mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
+#mamluk3() # call instance
 
 # apply_interstellar_ca_absorption
 ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
-# read_lit_metallicities
-mamluk4 = make_high_res_feh_basis.lit_metallicities()
-mamluk4()
+# make FeH basis
+make_high_res_feh_basis.make_basis()
 
 # assign phase values to spectra, put remaining data into giant table
 data_table = graft_phases.graft_phases("spec_phases.list") # not made yet

@@ -7,36 +7,37 @@ class scraper():
     def __init__(self):
         
         # directory containing the directory containing *.c.dat files
-        self.stem = '/home/../../media/unasemaje/Seagate Expansion Drive/rrlyrae_data_reduction/'
+        self.stem = '/home/../../media/unasemaje/Seagate Expansion Drive/rrlyrae_data_reduction/' ## ##
         # subdirectory containing the *.c.dat files
-        self.subdir = 'McDrealiz'
+        self.subdir = 'McDrealiz' ## ##
         
         # get list of filenames without the path
         fileListLong = glob.glob(stem+subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         fileList = sorted(fileListUnsorted)
-        
+    '''
     def __call__(self):
         
         # sanity check: are the lines listed in order?
         def line_check(lineCenters):
+            print('Tada')
             if ((lineCenters[0] < 3933.660-10) or (lineCenters[0] > 3933.660+10)): # CaIIK
-            print('Lines not matching!')
-            sys.exit  # ... and abort
-        elif ((lineCenters[1] < 3970.075-10) or (lineCenters[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[2] < 4101.7100-10) or (lineCenters[2] > 4101.7100+10)): # H-delta
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[3] < 4340.472-10) or (lineCenters[3] > 4340.472+10)): # H-gamma
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
-            print('Lines not matching!')
-            sys.exit
+                print('Lines not matching!')
+                sys.exit  # ... and abort
+            elif ((lineCenters[1] < 3970.075-10) or (lineCenters[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[2] < 4101.7100-10) or (lineCenters[2] > 4101.7100+10)): # H-delta
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[3] < 4340.472-10) or (lineCenters[3] > 4340.472+10)): # H-gamma
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
+                print('Lines not matching!')
+                sys.exit
         return
-    
+    '''
     
         # loop over all filenames, extract line data
         for t in range(0,len(fileList)):
@@ -81,7 +82,7 @@ class scraper():
         
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
-        dfMaster_reset_dropBadSpectra.to_csv(subdir+'_largeTable_bad_spectra_removed_test.csv') # this is effectively the same, but gets written out
+        dfMaster_reset_dropBadSpectra.to_csv(subdir+'_test.csv') # this is effectively the same, but gets written out
 
 
 class findHK():
@@ -302,9 +303,9 @@ class findHK():
 
 
 ## ## test: run the scraper 
-do_scrape = scraper() # initialize class instance
-do_scrape() # call it
+#do_scrape = scraper() # initialize class instance
+#do_scrape() # call it
 
 ## ## test: run the findHK
-do_HK = findHK() # initialize class instance
-do_HK() # call it
+#do_HK = findHK() # initialize class instance
+#do_HK() # call it
