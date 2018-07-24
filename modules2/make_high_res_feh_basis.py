@@ -1,3 +1,5 @@
+import pandas as pd
+
 class lit_metallicities():
     
     ##############################################################################
@@ -9,7 +11,7 @@ class lit_metallicities():
         stem = "~/Documents/PythonPrograms/all_Python_code/2018_03_31_rrlyrae_rescale_a_la_chadid/"
         
         # Fe/H from Layden+ 1994
-        layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
+        self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
         # RES: "rather low"
         
         # Fe/H Clementini+ 1995
@@ -96,7 +98,12 @@ class lit_metallicities():
         
         # make a list of all UNIQUE, EMPIRICAL spectrum names
         uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
-        
+
+        ## ##
+        #self.stem = "~/Documents/PythonPrograms/all_Python_code/2018_03_31_rrlyrae_rescale_a_la_chadid/"
+        # log(eps) from Lambert+ 1996
+        #lambert_logeps = pd.read_csv(self.stem + "lambert_1996_abundances.dat")
+        # RES: ~23,000, FeII + photometric models, 3600-9000 A
         
     # fcn: find stars that overlap with Layden 1994, and return (x,y,z)=(FeH_Lay94,FeH_input-FeH_Lay94,starname)
     def find_match_Layden(input_table, layden_table, plot_name, offset=False):
@@ -164,51 +171,55 @@ class lit_metallicities():
         return d
 
 
-# now actually find the matches between datasets and apply the offsets
-
-# find matches: Fernley 1996 ## ## WAIT-- FERNLEY 97 INCLUDES THESE
-#dict_Fernley_96 = lit_metallicities.find_match_Layden(fernley_feh,layden_feh,'Fernley_96', offset=True)
-
-# find matches: Lambert 1996
-dict_Lambert_96 = lit_metallicities.find_match_Layden(lambert_logeps,layden_feh,'Lambert_96', offset=True)
-
-# find matches: Nemec 2013
-dict_Nemec_2013  = lit_metallicities.find_match_Layden(nemec_feh,layden_feh,'Nemec_2013', offset=True)
-
-# find matches: Liu 2013
-liu_feh2 = liu_feh.groupby(liu_feh['name'], axis=0, as_index=False).mean()
-dict_Liu_2013  = lit_metallicities.find_match_Layden(liu_feh2,layden_feh,'Liu_2013', offset=True)
-
-# find matches: Chadid 2017
-dict_Chadid_2017  = lit_metallicities.find_match_Layden(chadid_feh,layden_feh,'Chadid_2017', offset=True)
-
-# find matches: Fernley 1997
-dict_Fernley_1997  = lit_metallicities.find_match_Layden(fernley97_feh,layden_feh,'Fernley_1997', offset=True)
-
-# find matches: Solano 1997
-dict_Solano_1997  = lit_metallicities.find_match_Layden(solano_feh,layden_feh,'Solano_1997', offset=True)
-
-## ## SNEDEN_17 DOES NOT OVERLAP WITH LAYDEN! FIX THIS
-
-# find matches: Wallerstein+ 2010
-dict_Wallerstein_2010  = lit_metallicities.find_match_Layden(wallerstein_feh,layden_feh,'Wallerstein_2010', offset=True)
-
-## ## IS THE BELOW NEEDED?
-# find matches between Wallerstein and Chadid
-# Chadid stars that appear in Wallerstein
-#chadid_winnow = lit_metallicities.chadid_feh[chadid_feh['star'].isin(wallerstein_feh['star'])]
-# Wallerstein stars that appear in Chadid
-#wallerstein_winnow = lit_metallicities.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
-
-
-# merge the metallicity dictionaries
-
-dict_collect = [dict_Lambert_96, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017, 
-            dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
-dict_merged = {}
-for k in dict_Lambert_96.iterkeys():
-    dict_merged[k] = tuple(dict_merged[k] for dict_merged in dict_collect)
+def make_basis():
     
-## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
+    # find the matches between datasets and apply the offsets
 
-# rescale_lit_metallicities to find high-res Fe/H
+    # find matches: Fernley 1996 ## ## WAIT-- FERNLEY 97 INCLUDES THESE
+    #dict_Fernley_96 = lit_metallicities.find_match_Layden(fernley_feh,layden_feh,'Fernley_96', offset=True)
+
+    x = lit_metallicities() # instantiate the class
+
+    # find matches: Lambert 1996
+    dict_Lambert_96 = x.find_match_Layden(x.lambert_logeps,x.layden_feh,'Lambert_96', offset=True)
+
+    # find matches: Nemec 2013
+    dict_Nemec_2013  = x.find_match_Layden(x.nemec_feh,x.layden_feh,'Nemec_2013', offset=True)
+
+    # find matches: Liu 2013
+    liu_feh2 = liu_feh.groupby(x.liu_feh['name'], axis=0, as_index=False).mean()
+    dict_Liu_2013  = x.find_match_Layden(x.liu_feh2,x.layden_feh,'Liu_2013', offset=True)
+
+    # find matches: Chadid 2017
+    dict_Chadid_2017  = x.find_match_Layden(x.chadid_feh,x.layden_feh,'Chadid_2017', offset=True)
+
+    # find matches: Fernley 1997
+    dict_Fernley_1997  = x.find_match_Layden(x.fernley97_feh,x.layden_feh,'Fernley_1997', offset=True)
+
+    # find matches: Solano 1997
+    dict_Solano_1997  = x.find_match_Layden(x.solano_feh,x.layden_feh,'Solano_1997', offset=True)
+
+    ## ## SNEDEN_17 DOES NOT OVERLAP WITH LAYDEN! FIX THIS
+
+    # find matches: Wallerstein+ 2010
+    dict_Wallerstein_2010  = x.find_match_Layden(x.wallerstein_feh,x.layden_feh,'Wallerstein_2010', offset=True)
+
+    ## ## IS THE BELOW NEEDED?
+    # find matches between Wallerstein and Chadid
+    # Chadid stars that appear in Wallerstein
+    #chadid_winnow = x.chadid_feh[chadid_feh['star'].isin(wallerstein_feh['star'])]
+    # Wallerstein stars that appear in Chadid
+    #wallerstein_winnow = x.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
+
+
+    # merge the metallicity dictionaries
+
+    dict_collect = [dict_Lambert_96, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017, 
+            dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
+    dict_merged = {}
+    for k in dict_Lambert_96.iterkeys():
+        dict_merged[k] = tuple(dict_merged[k] for dict_merged in dict_collect)
+    
+        ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
+
+    # rescale_lit_metallicities to find high-res Fe/H

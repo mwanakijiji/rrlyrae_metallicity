@@ -13,7 +13,9 @@ from astropy.io import fits
 
 def graft_phases():
     ## ## TACK PHASES ONTO LIST OF EWS FROM SPECTRA
+    pass
 
 
-def winnowed()
+def winnowed():
     ## ## NOW REMOVE THE LINES IN BAD PHASE REGIONS
+    pass

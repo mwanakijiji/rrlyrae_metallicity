@@ -1,3 +1,7 @@
+import glob
+import pandas as pd
+import os
+
 class scraper():
 
     ##############################################################################
@@ -12,52 +16,54 @@ class scraper():
         self.subdir = 'McDrealiz'
         
         # get list of filenames without the path
-        fileListLong = glob.glob(stem+subdir+'/'+'*.fits.robolines')
+        fileListLong = glob.glob(self.stem+self.subdir+'/'+'*.dat.robolines')
+        print('-------------')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
-        fileList = sorted(fileListUnsorted)
+        self.fileList = sorted(fileListUnsorted)
         
     def __call__(self):
         
         # sanity check: are the lines listed in order?
         def line_check(lineCenters):
             if ((lineCenters[0] < 3933.660-10) or (lineCenters[0] > 3933.660+10)): # CaIIK
-            print('Lines not matching!')
-            sys.exit  # ... and abort
-        elif ((lineCenters[1] < 3970.075-10) or (lineCenters[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[2] < 4101.7100-10) or (lineCenters[2] > 4101.7100+10)): # H-delta
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[3] < 4340.472-10) or (lineCenters[3] > 4340.472+10)): # H-gamma
-            print('Lines not matching!')
-            sys.exit
-        elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
-            print('Lines not matching!')
-            sys.exit
+                print('Lines not matching!')
+                sys.exit  # ... and abort
+            elif ((lineCenters[1] < 3970.075-10) or (lineCenters[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[2] < 4101.7100-10) or (lineCenters[2] > 4101.7100+10)): # H-delta
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[3] < 4340.472-10) or (lineCenters[3] > 4340.472+10)): # H-gamma
+                print('Lines not matching!')
+                sys.exit
+            elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
+                print('Lines not matching!')
+                sys.exit
         return
     
     
         # loop over all filenames, extract line data
-        for t in range(0,len(fileList)):
-        
+        for t in range(0,len(self.fileList)):
+
+            print(self.subdir)
             # read in Robospect output
-            df = pd.read_csv(stem+subdir+'/'+fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+            df = pd.read_csv(stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
             # check lines are in the right order
             line_check(df['#x0'])
     
             # add two cols on the left: the filename, and the name of the line
             sLength = len(df['mean']) # number of lines (should be 5)
-            df['file_name'] = pd.Series(fileList[t], index=df.index)
-            df['synth_spec_name'] = pd.Series(fileList[t].split(".")[0], index=df.index) # multiple synthetic spectra correspond to one empirical spectrum
-            df['empir_spec_name'] = pd.Series(fileList[t].split(".")[0][0:-4], index=df.index) # empirical spectrum
-            #df['star_name'] = pd.Series(fileList[t].split("__")[0], index=df.index)
+            df['file_name'] = pd.Series(self.fileList[t], index=df.index)
+            df['synth_spec_name'] = pd.Series(self.fileList[t].split(".")[0], index=df.index) # multiple synthetic spectra correspond to one empirical spectrum
+            df['empir_spec_name'] = pd.Series(self.fileList[t].split(".")[0][0:-4], index=df.index) # empirical spectrum
+            #df['star_name'] = pd.Series(self.fileList[t].split("__")[0], index=df.index)
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
     
             # get an idea of the progress
             clear_output(wait=True)
-            print('Out of '+str(len(fileList))+' files, '+str(t)+' scraped...')
+            print('Out of '+str(len(self.fileList))+' files, '+str(t)+' scraped...')
     
             # if this is the first list, start a master copy from it to concatenate stuff to it
             if (t==0):
@@ -69,7 +75,7 @@ class scraper():
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         dfMaster_reset = dfMaster.reset_index(drop=True).copy() # this gets shown further down in this notebook
-        dfMaster.reset_index(drop=True).to_csv(stem+subdir+'/'+subdir+'_largeTable_test.csv') # this is effectively the same, but gets written out
+        dfMaster.reset_index(drop=True).to_csv(stem+self.subdir+'/'+self.subdir+'_largeTable_test.csv') # this is effectively the same, but gets written out
         
         ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
         # identify the synthetic spectrum names which have at least one line with a bad fit
@@ -81,7 +87,12 @@ class scraper():
         
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
-        dfMaster_reset_dropBadSpectra.to_csv(subdir+'_largeTable_bad_spectra_removed_test.csv') # this is effectively the same, but gets written out
+        dfMaster_reset_dropBadSpectra.to_csv(self.subdir+'_largeTable_bad_spectra_removed_test.csv') # this is effectively the same, but gets written out
+
+        print(self.subdir+'_largeTable_bad_spectra_removed_test.csv')
+
+    def get_list(self):
+        return self.subdir+'_largeTable_bad_spectra_removed_test.csv'
 
 
 class findHK():
@@ -90,10 +101,15 @@ class findHK():
     # STEP 4: READ IN ROBOSPECT EWS OF SYNTHETIC SPECTRA, RESCALE THEM, AVERAGE THEM, PLOT H-K SPACE (applicable to A and B)
     ##############################################################################
     
-    def __init__(self):
+    def __init__(self, scrapedEWfilename):
+
+        print('fdsfdsfsd')
+        print(scrapedEWfilename)
+        self.scrapedEWfilename = scrapedEWfilename
     
         # read in line data
-        line_data = pd.read_csv('McDrealiz_largeTable_2017jan21_bad_spectra_removed.csv', delim_whitespace=False)
+        print(self.scrapedEWfilename)
+        line_data = pd.read_csv(self.scrapedEWfilename, delim_whitespace=False)
         
         # initialize arrays: essential info
         empir_spec_name_array = []
@@ -302,9 +318,9 @@ class findHK():
 
 
 ## ## test: run the scraper 
-do_scrape = scraper() # initialize class instance
-do_scrape() # call it
+#do_scrape = scraper() # initialize class instance
+#do_scrape() # call it
 
 ## ## test: run the findHK
-do_HK = findHK() # initialize class instance
-do_HK() # call it
+#do_HK = findHK() # initialize class instance
+#do_HK() # call it
