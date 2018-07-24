@@ -20,9 +20,10 @@ run_robo.run_robospect()
 # scrape_ew_from_robo and calculate EWs + err_EW
 mamluk2 = scrape_ew_and_errew.scraper() # create scraper instance
 print('----')
+test = mamluk2() # call instance
 scrapedEWdataFilename = mamluk2.get_list()
-#scrapedEWdataFilename = mamluk2() # call instance
 print("Yodelehihoo")
+print(scrapedEWdataFilename)
 
 
 # findHK

@@ -38,6 +38,8 @@ class norm_spec:
         #normzn_compile2 = subprocess.Popen(normzn_compile1) # run
         
         # run the normalization routine on the data
+        ## ##
+        print('NOTE: RUN COMMAND NEEDS LINE LIST; OTHERWISE ROBOSPECT RETURNS TOO MANY LINES')
         normzn_run1 = shlex.split("./bkgrnd --smooth "+str(self.smoothing)+" "+self.input_file) # self.input_file can be 'in.data'
         normzn_run2 = subprocess.Popen(normzn_run1, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # run and capture output
                                   
