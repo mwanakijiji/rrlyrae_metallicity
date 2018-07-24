@@ -211,9 +211,13 @@ def make_basis():
     # Wallerstein stars that appear in Chadid
     #wallerstein_winnow = x.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
 
+    # plot merged data and fit linreg line
+    m_merged,b_merged = np.polyfit(dict_merged['laydenFeH'], dict_merged['residuals_shifted'], 1)
+    plt.scatter(dict_merged['laydenFeH'], dict_merged['residuals_shifted'])
+    plt.plot(dict_merged['laydenFeH'], np.add(np.multiply(dict_merged['laydenFeH'],m_merged),b_merged))
+    plt.show()
 
     # merge the metallicity dictionaries
-
     dict_collect = [dict_Lambert_96, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017, 
             dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
     dict_merged = {}
@@ -223,3 +227,19 @@ def make_basis():
         ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
 
     # rescale_lit_metallicities to find high-res Fe/H
+
+    ## APPLY OFFSETS to all datasets and overlap
+    plt.plot(dict_Lambert_96['laydenFeH'], dict_Lambert_96['residuals_shifted'])
+    plt.plot(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['residuals_shifted'])
+    plt.plot(dict_Liu_2013['laydenFeH'], dict_Liu_2013['residuals_shifted'])
+    plt.plot(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['residuals_shifted'])
+    plt.plot(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['residuals_shifted'])
+    plt.plot(dict_Solano_1997['laydenFeH'], dict_Solano_1997['residuals_shifted'])
+    plt.plot(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['residuals_shifted'])
+    plt.show()
+
+    # plot merged data and fit linreg line
+    m_merged,b_merged = np.polyfit(dict_merged['laydenFeH'], dict_merged['residuals_shifted'], 1)
+    plt.scatter(dict_merged['laydenFeH'], dict_merged['residuals_shifted'])
+    plt.plot(dict_merged['laydenFeH'], np.add(np.multiply(dict_merged['laydenFeH'],m_merged),b_merged))
+    plt.show()

@@ -1,6 +1,8 @@
 import glob
 import pandas as pd
 import os
+import numpy as np
+import sys
 
 class scraper():
 
@@ -20,9 +22,10 @@ class scraper():
         print('-------------')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
+        self.writeOutFilename = self.stem+self.subdir+'/McD_largeTable_bad_spectra_removed_test.csv' # EW info will get scraped into this
         
     def __call__(self):
-        
+
         # sanity check: are the lines listed in order?
         def line_check(lineCenters):
             if ((lineCenters[0] < 3933.660-10) or (lineCenters[0] > 3933.660+10)): # CaIIK
@@ -38,17 +41,16 @@ class scraper():
                 print('Lines not matching!')
                 sys.exit
             elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
-                print('Lines not matching!')
+                print('Lines not matching5!')
                 sys.exit
-        return
-    
+            return
     
         # loop over all filenames, extract line data
         for t in range(0,len(self.fileList)):
 
             print(self.subdir)
             # read in Robospect output
-            df = pd.read_csv(stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+            df = pd.read_csv(self.stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
             # check lines are in the right order
             line_check(df['#x0'])
@@ -62,7 +64,6 @@ class scraper():
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
     
             # get an idea of the progress
-            clear_output(wait=True)
             print('Out of '+str(len(self.fileList))+' files, '+str(t)+' scraped...')
     
             # if this is the first list, start a master copy from it to concatenate stuff to it
@@ -75,9 +76,16 @@ class scraper():
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         dfMaster_reset = dfMaster.reset_index(drop=True).copy() # this gets shown further down in this notebook
-        dfMaster.reset_index(drop=True).to_csv(stem+self.subdir+'/'+self.subdir+'_largeTable_test.csv') # this is effectively the same, but gets written out
         
+        #dfMaster.reset_index(drop=True).to_csv(stem+self.subdir+'/McD_largeTable_test.csv') # this is effectively the same, but gets written out
+
         ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
+        # remove all rows with a flag ending with something other than zero (i.e., the fit is bad)
+        # make an array consisting of the last character in each spectrum's flag
+        redFlagArray = ([u[-1] for u in dfMaster_reset.flags])
+        # consider bad flags to be of any flag with a nonzero last character
+        whereRedFlag = np.where(np.array(redFlagArray) != '0')
+        
         # identify the synthetic spectrum names which have at least one line with a bad fit
         badSynthSpectra = dfMaster_reset['synth_spec_name'][np.squeeze(whereRedFlag)]
         # remove duplicate names
@@ -87,12 +95,13 @@ class scraper():
         
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
-        dfMaster_reset_dropBadSpectra.to_csv(self.subdir+'_largeTable_bad_spectra_removed_test.csv') # this is effectively the same, but gets written out
+        dfMaster_reset_dropBadSpectra.to_csv(self.writeOutFilename) # this is effectively the same, but gets written out
 
-        print(self.subdir+'_largeTable_bad_spectra_removed_test.csv')
+        print(self.writeOutFilename)
+        print('--o--')
 
     def get_list(self):
-        return self.subdir+'_largeTable_bad_spectra_removed_test.csv'
+        return self.writeOutFilename
 
 
 class findHK():
