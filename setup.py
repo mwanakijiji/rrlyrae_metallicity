@@ -9,7 +9,6 @@ import shlex
 import subprocess
 #from numpy.distutils.core import setup, Extension
 
-'''
 class CustomInstall(install):
     def run(self):
         command = "g++ -o bkgrnd7 bkgrnd.cc"
@@ -22,7 +21,6 @@ class CustomInstall(install):
         print('_')
         print('_')
         install.run(self)
-'''               
         
 module1 = Extension("bkgrnd", sources = ["bkgrnd.cc"])
 
