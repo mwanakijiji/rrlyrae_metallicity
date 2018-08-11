@@ -21,7 +21,6 @@ class CustomInstall(install):
         print('_')
         print('_')
         install.run(self)
-
         
 module1 = Extension("bkgrnd", sources = ["bkgrnd.cc"])
 
