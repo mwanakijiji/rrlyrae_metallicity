@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'rrlyrae_metallicity'
+project = 'RR Lyrae Metallicity'
 copyright = '2018, Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell'
 author = 'Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell'
 
