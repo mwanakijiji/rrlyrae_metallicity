@@ -196,7 +196,7 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
 
     #Run bckgrnd
-    bkgrnd = Popen(["./bkgrnd","--smooth 20","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
+    bkgrnd = Popen(["./bkgrnd","--smooth 22","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     (out,err) = bkgrnd.communicate()
     
     if verb == True:
