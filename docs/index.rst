@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Guide for RR Lyrae metallicity calibration
+Documentation for RR Lyrae metallicity calibration
 ===============================================
 
 .. toctree::
@@ -14,6 +14,11 @@ Guide for RR Lyrae metallicity calibration
    install-rrlyrae_metallicity
    modules
    acknowledgements
+
+
+Introduction
+=================
+Yada yada yada
 
 
 Indices and tables
