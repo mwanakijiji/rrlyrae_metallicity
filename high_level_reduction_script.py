@@ -1,3 +1,4 @@
+import sys
 from modules2 import *  # import stuff in init file
 from modules2 import create_spec_realizations, run_robo, scrape_ew_and_errew, make_high_res_feh_basis, ca_correction, graft_phases, run_emcee
 
@@ -13,7 +14,7 @@ def main():
 
 
     # take empirical spectra and generate_synthetic_spec
-    create_spec_realizations.create_spec_realizations_main("spec_names.list", synthetic_out_dir) # add phase?
+    create_spec_realizations.create_spec_realizations_main("spec_phases.list", synthetic_out_dir) # add phase?
 
     '''
     # run_robospect on synthetic spectra
