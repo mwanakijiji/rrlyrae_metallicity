@@ -122,7 +122,7 @@ def read_list(input_list):
        Numpy array of filenames
     '''   
        
-    filenames_arr = np.genfromtxt(input_list,'str')
+    filenames_arr = np.genfromtxt(input_list,'str',usecols = (0)) # col 0 contains the file names
     return(filenames_arr)
 
 def read_spec(spec_name):
@@ -196,6 +196,7 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
 
     #Run bckgrnd
+    ## ## NOTE SMOOTHING IS HARDCODED HERE; MAKE THIS VALUE AN INHERITED DEFAULT OF 22
     bkgrnd = Popen(["./bkgrnd","--smooth 22","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     (out,err) = bkgrnd.communicate()
     
