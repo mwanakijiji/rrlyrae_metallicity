@@ -12,14 +12,14 @@ class scraper():
     
     def __init__(self):
         
-        # directory containing the directory containing *.c.dat files
-        self.stem = '/home/../../media/unasemaje/Seagate Expansion Drive/rrlyrae_data_reduction/'
+        # directory containing the directory containing the *.fits.robolines files containing the EW info
+        self.stem = '.' ## ##
         # subdirectory containing the *.c.dat files
-        self.subdir = 'McDrealiz'
+        self.subdir = '/robospect_output' ## ##
         
         # get list of filenames without the path
-        fileListLong = glob.glob(self.stem+self.subdir+'/'+'*.dat.robolines')
-        print('-------------')
+        ## ## ADD CHECK TO MAKE SURE THESE FILES ARE THE SAME AS SPIT OUT BY NDLS MODULE
+        fileListLong = glob.glob(self.stem+self.subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
         self.writeOutFilename = self.stem+self.subdir+'/McD_largeTable_bad_spectra_removed_test.csv' # EW info will get scraped into this
