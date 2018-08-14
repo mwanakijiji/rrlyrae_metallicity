@@ -16,7 +16,7 @@ def main():
     # take list of unnormalized empirical spectra and generate synthetic spectra
     # (/norm/ contains bkgrnd output)
     # (/final/ contains normalized spectra)
-    create_spec_realizations.create_spec_realizations_main("spec_phases.list", synthetic_out_dir) # add phase?
+    create_spec_realizations.create_spec_realizations_main("spec_phases.list", synthetic_out_dir)
 
     '''
     # run_robospect on normalized synthetic spectra
@@ -27,10 +27,8 @@ def main():
     mamluk2 = scrape_ew_and_errew.scraper() # create scraper instance
     print('----')
     test = mamluk2() # call instance
-    '''
     scrapedEWdataFilename = mamluk2.get_list()
-    print("Yodelehihoo")
-    print(scrapedEWdataFilename)
+    '''
 
 
     # findHK
