@@ -28,13 +28,13 @@ def main():
     print('----')
     test = mamluk2() # call instance
     scrapedEWdataFilename = mamluk2.get_list()
-    '''
-
+    
 
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
-    #mamluk3() # call instance
-
+    mamluk3() # call instance
+    '''
+    
     # apply_interstellar_ca_absorption
     ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 

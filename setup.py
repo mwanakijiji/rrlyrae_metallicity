@@ -25,8 +25,9 @@ class CustomInstall(install):
         print('_')
         install.run(self)
 '''
-        
-module1 = Extension("bkgrnd11", sources = ["bkgrnd.cc"])
+
+# NEEDED? 
+module1 = Extension("bkgrnd13", sources = ["bkgrnd.cc"]) # if extension were to be converted into a *.so file on Mac OSX
 
 setup(name="RRab metallicity",
       version="1.0.0",
