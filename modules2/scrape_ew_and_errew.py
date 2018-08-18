@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 class scraper():
 
@@ -114,42 +115,42 @@ class findHK():
     
     def __init__(self, scrapedEWfilename):
 
-        print('fdsfdsfsd')
-        print(scrapedEWfilename)
+        ## ## print('fdsfdsfsd')
+        ## ## print(scrapedEWfilename)
         self.scrapedEWfilename = scrapedEWfilename
     
         # read in line data
         print(self.scrapedEWfilename)
-        line_data = pd.read_csv(self.scrapedEWfilename, delim_whitespace=False)
+        self.line_data = pd.read_csv(self.scrapedEWfilename, delim_whitespace=False)
         
         # initialize arrays: essential info
-        empir_spec_name_array = []
-        star_name_array = []
-        H_data_array = []
-        K_data_array = []
-        err_H_data_array = [] 
-        err_K_data_array = []
+        self.empir_spec_name_array = []
+        self.star_name_array = []
+        self.H_data_array = []
+        self.K_data_array = []
+        self.err_H_data_array = [] 
+        self.err_K_data_array = []
 
         # initialize arrays: other info
-        Hbet_data_array = []
-        err_Hbet_data_array = []
-        Hgam_data_array = []
-        err_Hgam_data_array = []
-        rHgam_data_array = [] # rescaled Hgamma
-        err_rHgam_data_array = []
-        Hdel_data_array = []
-        err_Hdel_data_array = []
-        Heps_data_array = []
-        err_Heps_data_array = []
+        self.Hbet_data_array = []
+        self.err_Hbet_data_array = []
+        self.Hgam_data_array = []
+        self.err_Hgam_data_array = []
+        self.rHgam_data_array = [] # rescaled Hgamma
+        self.err_rHgam_data_array = []
+        self.Hdel_data_array = []
+        self.err_Hdel_data_array = []
+        self.Heps_data_array = []
+        self.err_Heps_data_array = []
         
     def __call__(self):
         
         # make a list of all UNIQUE, EMPIRICAL spectrum names
-        uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
+        uniqueSpecNames = self.line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
         
         # fit a straight line to Hgam vs Hdel
-        x_data = line_data['EQW'].where(line_data['line_name'] == 'Hdel').dropna() # Hdel
-        y_data = line_data['EQW'].where(line_data['line_name'] == 'Hgam').dropna() # Hgam
+        x_data = self.line_data['EQW'].where(self.line_data['line_name'] == 'Hdel').dropna() # Hdel
+        y_data = self.line_data['EQW'].where(self.line_data['line_name'] == 'Hgam').dropna() # Hgam
         Hgam = np.copy(y_data)
         m,b = np.polyfit(x_data, y_data, 1) # might want errors later, too 
         
@@ -164,14 +165,14 @@ class findHK():
             print(np.array(uniqueSpecNames)[p])
     
             # extract all synthetic data corresponding to this empirical spectrum
-            data_for_this_empir_spectrum = line_data.where(line_data['empir_spec_name'][0:-4] == np.array(uniqueSpecNames)[p])
+            data_for_this_empir_spectrum = self.line_data.where(self.line_data['empir_spec_name'][0:-4] == np.array(uniqueSpecNames)[p])
     
             # scrape data
-            raw_Hbet_data = data_for_this_empir_spectrum['EQW'].where(line_data['line_name'] == 'Hbet')
-            raw_Hgam_data = data_for_this_empir_spectrum['EQW'].where(line_data['line_name'] == 'Hgam')
-            raw_Hdel_data = data_for_this_empir_spectrum['EQW'].where(line_data['line_name'] == 'Hdel')
-            raw_Heps_data = data_for_this_empir_spectrum['EQW'].where(line_data['line_name'] == 'Heps')
-            raw_K_data = data_for_this_empir_spectrum['EQW'].where(line_data['line_name'] == 'CaIIK')
+            raw_Hbet_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hbet')
+            raw_Hgam_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hgam')
+            raw_Hdel_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hdel')
+            raw_Heps_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Heps')
+            raw_K_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'CaIIK')
     
             # rescale and remove nans
             Hbet_data_wnans = np.array(np.copy(raw_Hbet_data))
@@ -214,24 +215,24 @@ class findHK():
             #plt.errorbar(balmer_data_pt, K_data_pt, yerr=err_K_data, xerr=err_balmer_data)
 
             # append data to arrays: essential info
-            empir_spec_name_array = np.append(empir_spec_name_array,np.array(uniqueSpecNames)[p])
-            star_name_array = np.append(star_name_array,str(np.array(uniqueSpecNames)[p])[0:-3])
-            H_data_array = np.append(H_data_array,balmer_data_pt)
-            err_H_data_array = np.append(err_H_data_array,err_balmer_data)
-            K_data_array = np.append(K_data_array,K_data_pt)
-            err_K_data_array = np.append(err_K_data_array,err_K_data)
+            empir_spec_name_array = np.append(self.empir_spec_name_array,np.array(uniqueSpecNames)[p])
+            star_name_array = np.append(self.star_name_array,str(np.array(uniqueSpecNames)[p])[0:-3])
+            H_data_array = np.append(self.H_data_array,balmer_data_pt)
+            err_H_data_array = np.append(self.err_H_data_array,err_balmer_data)
+            K_data_array = np.append(self.K_data_array,K_data_pt)
+            err_K_data_array = np.append(self.err_K_data_array,err_K_data)
     
             # append data to arrays: other info
-            Hbet_data_array = np.append(Hbet_data_array,Hbet_data_pt)
-            err_Hbet_data_array = np.append(err_Hbet_data_array,err_Hbet_data)
-            Hgam_data_array = np.append(Hgam_data_array,Hgam_data_pt)
-            err_Hgam_data_array = np.append(err_Hgam_data_array,err_Hgam_data)
-            rHgam_data_array = np.append(rHgam_data_array,err_rHgam_data) # rescaled Hgamma
-            err_rHgam_data_array = np.append(err_rHgam_data_array,err_rHgam_data)
-            Hdel_data_array = np.append(Hdel_data_array,Hdel_data_pt)
-            err_Hdel_data_array = np.append(err_Hdel_data_array,err_Hdel_data)
-            Heps_data_array = np.append(Heps_data_array,Heps_data_pt)
-            err_Heps_data_array = np.append(err_Heps_data_array,err_Heps_data)
+            Hbet_data_array = np.append(self.Hbet_data_array,Hbet_data_pt)
+            err_Hbet_data_array = np.append(self.err_Hbet_data_array,err_Hbet_data)
+            Hgam_data_array = np.append(self.Hgam_data_array,Hgam_data_pt)
+            err_Hgam_data_array = np.append(self.err_Hgam_data_array,err_Hgam_data)
+            rHgam_data_array = np.append(self.rHgam_data_array,err_rHgam_data) # rescaled Hgamma
+            err_rHgam_data_array = np.append(self.err_rHgam_data_array,err_rHgam_data)
+            Hdel_data_array = np.append(self.Hdel_data_array,Hdel_data_pt)
+            err_Hdel_data_array = np.append(self.err_Hdel_data_array,err_Hdel_data)
+            Heps_data_array = np.append(self.Heps_data_array,Heps_data_pt)
+            err_Heps_data_array = np.append(self.err_Heps_data_array,err_Heps_data)
     
             # clear some variables
             balmer_data_allsynthetic_spec=None 
@@ -241,27 +242,27 @@ class findHK():
             
         # put everything into a dataframe
 
-        d = {'empir_spec_name': empir_spec_name_array, 
-             'star_name': star_name_array,
-             'Hbet': Hbet_data_array,
-             'err_Hbet': err_Hbet_data_array,
-             'Hgam': Hgam_data_array,
-             'err_Hgam': err_Hgam_data_array,
-             'Hdel': Hdel_data_array,
-             'err_Hdel': err_Hdel_data_array,
-             'Heps': Heps_data_array,
-             'err_Heps': err_Heps_data_array, 
-             'rHgam': rHgam_data_array,
-             'err_rHgam': err_rHgam_data_array,  
-             'balmer': H_data_array,
-             'err_balmer': err_H_data_array,
-             'K': K_data_array,
-             'err_K': err_K_data_array
+        d = {'empir_spec_name': self.empir_spec_name_array, 
+             'star_name': self.star_name_array,
+             'Hbet': self.Hbet_data_array,
+             'err_Hbet': self.err_Hbet_data_array,
+             'Hgam': self.Hgam_data_array,
+             'err_Hgam': self.err_Hgam_data_array,
+             'Hdel': self.Hdel_data_array,
+             'err_Hdel': self.err_Hdel_data_array,
+             'Heps': self.Heps_data_array,
+             'err_Heps': self.err_Heps_data_array, 
+             'rHgam': self.rHgam_data_array,
+             'err_rHgam': self.err_rHgam_data_array,  
+             'balmer': self.H_data_array,
+             'err_balmer': self.err_H_data_array,
+             'K': self.K_data_array,
+             'err_K': self.err_K_data_array
             }     
         df_collation = pd.DataFrame(data=d)
         
-        # read in a text file containing phase information
-        phase_info = pd.read_csv("~/Documents/PythonPrograms/all_Python_code/2016_08_27_rrlyrae_metal_fit_emcee_wrapper/eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv")
+        # read in a text file containing phase information ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
+        phase_info = pd.read_csv("eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv")
         
         # paste phase info into the table of EWs
         phase_array = []
@@ -287,7 +288,7 @@ class findHK():
         df_collation_real.to_csv('more_realistic_EWs_w_phase_test.csv')
         
         # make plot: each color is a different star, open circles are bad phase region
-        data_to_plot = pd.read_csv('more_realistic_EWs_w_phase.csv') # read data back in
+        data_to_plot = pd.read_csv('more_realistic_EWs_w_phase_test.csv') # read data back in
         
         # make list of unique star names 
         unique_star_names = data_to_plot.drop_duplicates(subset=['star_name'])['star_name'].values
@@ -325,13 +326,3 @@ class findHK():
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.show()
-        
-
-
-## ## test: run the scraper 
-#do_scrape = scraper() # initialize class instance
-#do_scrape() # call it
-
-## ## test: run the findHK
-#do_HK = findHK() # initialize class instance
-#do_HK() # call it

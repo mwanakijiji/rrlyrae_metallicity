@@ -20,6 +20,7 @@ import argparse
 import os
 from subprocess import Popen,PIPE
 import sys
+## ## import test.so # experimenting with C extensions
 # -------------------
 # Third-party imports
 # -------------------
@@ -198,6 +199,12 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
     #Run bckgrnd
     ## ## NOTE SMOOTHING IS HARDCODED HERE; MAKE THIS VALUE AN INHERITED DEFAULT OF 22
     bkgrnd = Popen(["./bkgrnd","--smooth 22","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
+
+    ## ## start attempt to use *.so file as executable
+    #gcc -o yourexecutable objects/yourobject1.o objects/yourobject2.o -lLibrary
+    #bkgrnd = Popen(["./bin/RRab-metallicity/bkgrnd13.cpython-35m-darwin.so","--smooth 22","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
+    ## ## end attempt
+    
     (out,err) = bkgrnd.communicate()
     
     if verb == True:
