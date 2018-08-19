@@ -8,7 +8,7 @@ class lit_metallicities():
     
     def __init__(self):
     
-        stem = "~/Documents/PythonPrograms/all_Python_code/2018_03_31_rrlyrae_rescale_a_la_chadid/"
+        stem = "./src/high_res_feh/"
         
         # Fe/H from Layden+ 1994
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
