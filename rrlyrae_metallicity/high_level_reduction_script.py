@@ -1,4 +1,5 @@
 import sys
+import os
 from modules2 import *  # import stuff in init file
 from modules2 import create_spec_realizations, run_robo, scrape_ew_and_errew, make_high_res_feh_basis, ca_correction, graft_phases, run_emcee
 from subprocess import Popen,PIPE
@@ -10,13 +11,9 @@ from subprocess import Popen,PIPE
 def main():
 
     # compile Carrell's normalizations script
-    bkgrnd_compile = Popen(["g++","-o","bkgrnd351","bkgrnd.cc"],stdout=PIPE,stderr=PIPE)
+    bkgrnd_compile = Popen(["g++","-o","./bin/bkgrnd","./src/bkgrnd.cc"],stdout=PIPE,stderr=PIPE)
+
     
-    # normalize spectra for making the calibration in the first place (no! not first step! first we need to generate synthetic spectra, and THEN normalize)
-    #mamluk = norm_spec.norm_spec("in.list") # create instance 
-    #mamluk() # call instance
-
-
     # take list of unnormalized empirical spectra and generate synthetic spectra
     # (/norm/ contains bkgrnd output)
     # (/final/ contains normalized spectra)
@@ -37,14 +34,15 @@ def main():
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
     mamluk3() # call instance
-    '''
+    
     
     # apply_interstellar_ca_absorption
-    ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
+    ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
     # make FeH basis
     make_high_res_feh_basis.make_basis()
 
+    '''
     # assign phase values to spectra, put remaining data into giant table
     data_table = graft_phases.graft_phases("spec_phases.list") # not made yet
 
