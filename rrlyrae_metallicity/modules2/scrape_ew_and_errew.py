@@ -45,7 +45,9 @@ class scraper():
                 print('Lines not matching5!')
                 sys.exit
             return
-    
+
+        dfMaster = pd.DataFrame() # initialize
+        
         # loop over all filenames, extract line data
         for t in range(0,len(self.fileList)):
 
@@ -73,7 +75,7 @@ class scraper():
             else:
                 dfMaster = pd.concat([dfMaster,df])
                 del df # clear variable
-                
+
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         dfMaster_reset = dfMaster.reset_index(drop=True).copy() # this gets shown further down in this notebook
@@ -102,6 +104,7 @@ class scraper():
         print('Scraped Robospect output written to')
         print(self.writeOutFilename)
         print('------')
+
 
     def get_list(self):
         return self.writeOutFilename
@@ -262,7 +265,7 @@ class findHK():
         df_collation = pd.DataFrame(data=d)
         
         # read in a text file containing phase information ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
-        phase_info = pd.read_csv("eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv")
+        phase_info = pd.read_csv("./src/eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv")
         
         # paste phase info into the table of EWs
         phase_array = []
@@ -285,10 +288,10 @@ class findHK():
         df_collation_real['eFeH'] = err_feh_array
         
         # write to csv
-        df_collation_real.to_csv('more_realistic_EWs_w_phase_test.csv')
+        df_collation_real.to_csv('./src/more_realistic_EWs_w_phase_test.csv')
         
         # make plot: each color is a different star, open circles are bad phase region
-        data_to_plot = pd.read_csv('more_realistic_EWs_w_phase_test.csv') # read data back in
+        data_to_plot = pd.read_csv('./src/more_realistic_EWs_w_phase_test.csv') # read data back in
         
         # make list of unique star names 
         unique_star_names = data_to_plot.drop_duplicates(subset=['star_name'])['star_name'].values

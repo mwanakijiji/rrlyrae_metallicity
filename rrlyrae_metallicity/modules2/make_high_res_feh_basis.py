@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 class lit_metallicities():
     
@@ -8,63 +10,63 @@ class lit_metallicities():
     
     def __init__(self):
     
-        stem = "./src/high_res_feh/"
+        stem = "../src/high_res_feh/"
         
         # Fe/H from Layden+ 1994
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
         # RES: "rather low"
         
         # Fe/H Clementini+ 1995
-        clementini_feh = pd.read_csv(stem + "clementini_1995_abundances.dat")
+        self.clementini_feh = pd.read_csv(stem + "clementini_1995_abundances.dat")
 
         # Fe/H Fernley+ 1996
-        fernley_feh = pd.read_csv(stem + "fernley_1996_abundances.dat")
+        self.fernley_feh = pd.read_csv(stem + "fernley_1996_abundances.dat")
         # RES: 60,000, FeI & FeII, 5900-8100 A
         
         # log(eps) from Lambert+ 1996
-        lambert_logeps = pd.read_csv(stem + "lambert_1996_abundances.dat")
+        self.lambert_logeps = pd.read_csv(stem + "lambert_1996_abundances.dat")
         # RES: ~23,000, FeII + photometric models, 3600-9000 A
         
         # Fe/H from Wallerstein and Huang 2010, arXiv 1004.2017
-        wallerstein_feh = pd.read_csv(stem + "wallerstein_huang_2010_abundances.dat")
+        self.wallerstein_feh = pd.read_csv(stem + "wallerstein_huang_2010_abundances.dat")
         # RES: ~30,000, FeII
         
         # Fe/H from Chadid+ 2017 (FeI and II lines)
-        chadid_feh = pd.read_csv(stem + "chadid_2017_abundances.dat")
+        self.chadid_feh = pd.read_csv(stem + "chadid_2017_abundances.dat")
         # RES: 38000, FeI & FeII, 3400-9900 A
 
         # Fe/H from Liu+ 2013
-        liu_feh = pd.read_csv(stem + "liu_2013_abundances.dat")
+        self.liu_feh = pd.read_csv(stem + "liu_2013_abundances.dat")
         # RES: ~60,000, FeI (& FeII?), 5100-6400 A
 
         # Fe/H from Nemec+ 2013
-        nemec_feh = pd.read_csv(stem + "nemec_2013_abundances.dat")
+        self.nemec_feh = pd.read_csv(stem + "nemec_2013_abundances.dat")
         # RES: ~65,000 or 36,000, FeI & FeII, 5150-5200 A
 
         # Fe/H from Fernley+ 1997
-        fernley97_feh = pd.read_csv(stem + "fernley_1997_abundances.dat",delimiter=';')
+        self.fernley97_feh = pd.read_csv(stem + "fernley_1997_abundances.dat",delimiter=';')
         # RES: 60,000, two FeII lines, 5900-8100 A
 
         # Fe/H from Solano+ 1997
-        solano_feh = pd.read_csv(stem + "solano_1997_abundances.dat",delimiter=';')
+        self.solano_feh = pd.read_csv(stem + "solano_1997_abundances.dat",delimiter=';')
         # RES: 22,000 & 19,000, strong FeI lines, 4160-4390 & 4070-4490 A
         
         # Fe/H from Pacino+ 2015
-        pacino_feh = pd.read_csv(stem + "pacino_2015_abundances.dat") 
+        self.pacino_feh = pd.read_csv(stem + "pacino_2015_abundances.dat") 
         # RES: >30,000, FeI (weighted average), 4000-8500 A
 
         # Fe/H from Sneden+ 2017
-        sneden_feh = pd.read_csv(stem + "sneden_2017_abundances.dat")
+        self.sneden_feh = pd.read_csv(stem + "sneden_2017_abundances.dat")
         # RES: ~27,000 (at 5000 A), FeI & FeII, 3400-9000 A
         
         # convert Lambert's values, which are in terms of log(eps)
         # FeH = log(epsFe) - log(epsFe,sol)
         #     = log(epsFe) - log(NFe,sol/NH,sol)
         #     = log(epsFe) - 7.51 # value of 7.51 from Anstee+ 1997, MNRAS
-        lambert_logeps['feh'] = np.subtract(lambert_logeps['log_eps_fe_spec'], 7.51) 
+        self.lambert_logeps['feh'] = np.subtract(self.lambert_logeps['log_eps_fe_spec'], 7.51) 
         
         # average the values in Chadid from FeI and FeII lines
-        chadid_feh['feh'] = np.mean([chadid_feh[' fehI'].values,chadid_feh[' fehII'].values],axis=0)
+        self.chadid_feh['feh'] = np.mean([self.chadid_feh[' fehI'].values,self.chadid_feh[' fehII'].values],axis=0)
         
         ## ## INCLUDE SINGLE DATA PT FROM KOLENBERG+ 2010? (SEE CHADID+ 2017, FIG. 7)
         
@@ -106,7 +108,7 @@ class lit_metallicities():
         # RES: ~23,000, FeII + photometric models, 3600-9000 A
         
     # fcn: find stars that overlap with Layden 1994, and return (x,y,z)=(FeH_Lay94,FeH_input-FeH_Lay94,starname)
-    def find_match_Layden(input_table, layden_table, plot_name, offset=False):
+    def find_match_Layden(self, input_table, layden_table, plot_name, offset=False):
     
         inputFeH = []
         laydenFeH = []
@@ -137,6 +139,7 @@ class lit_metallicities():
         line_offset = np.add(line,net_offset)
     
         # save a plot
+        '''
         plt.scatter(laydenFeH, np.subtract(inputFeH,laydenFeH))
         plt.plot([-3.0,0.5], [0., 0.], linestyle='--')
         plt.plot(limits, line)
@@ -149,6 +152,7 @@ class lit_metallicities():
         plt.savefig(plot_name+'_test_180708.png')
         #plt.show()
         plt.clf()
+        '''
             
         # return 
         # 1. overlapping Layden94 values
@@ -186,8 +190,11 @@ def make_basis():
     # find matches: Nemec 2013
     dict_Nemec_2013  = x.find_match_Layden(x.nemec_feh,x.layden_feh,'Nemec_2013', offset=True)
 
+    print(x.nemec_feh)
+    print(x.liu_feh['name'])
+    
     # find matches: Liu 2013
-    liu_feh2 = liu_feh.groupby(x.liu_feh['name'], axis=0, as_index=False).mean()
+    x.liu_feh2 = x.liu_feh.groupby(x.liu_feh['name'], axis=0, as_index=False).mean()
     dict_Liu_2013  = x.find_match_Layden(x.liu_feh2,x.layden_feh,'Liu_2013', offset=True)
 
     # find matches: Chadid 2017
@@ -211,35 +218,20 @@ def make_basis():
     # Wallerstein stars that appear in Chadid
     #wallerstein_winnow = x.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
 
-    # plot merged data and fit linreg line
-    m_merged,b_merged = np.polyfit(dict_merged['laydenFeH'], dict_merged['residuals_shifted'], 1)
-    plt.scatter(dict_merged['laydenFeH'], dict_merged['residuals_shifted'])
-    plt.plot(dict_merged['laydenFeH'], np.add(np.multiply(dict_merged['laydenFeH'],m_merged),b_merged))
-    plt.show()
-
     # merge the metallicity dictionaries
     dict_collect = [dict_Lambert_96, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017, 
             dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
     dict_merged = {}
-    for k in dict_Lambert_96.iterkeys():
-        dict_merged[k] = tuple(dict_merged[k] for dict_merged in dict_collect)
+    for key in dict_Lambert_96:
+        dict_merged[key] = tuple(dict_merged[key] for dict_merged in dict_collect)
+    
+    # plot merged data and fit linreg line
+    m_merged, b_merged = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
+    plt.clf()
+    [plt.scatter(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]) for p in range(0,len(dict_merged['laydenFeH']))]
+    plt.plot(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged),b_merged))
+    plt.show()
     
         ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
 
     # rescale_lit_metallicities to find high-res Fe/H
-
-    ## APPLY OFFSETS to all datasets and overlap
-    plt.plot(dict_Lambert_96['laydenFeH'], dict_Lambert_96['residuals_shifted'])
-    plt.plot(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['residuals_shifted'])
-    plt.plot(dict_Liu_2013['laydenFeH'], dict_Liu_2013['residuals_shifted'])
-    plt.plot(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['residuals_shifted'])
-    plt.plot(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['residuals_shifted'])
-    plt.plot(dict_Solano_1997['laydenFeH'], dict_Solano_1997['residuals_shifted'])
-    plt.plot(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['residuals_shifted'])
-    plt.show()
-
-    # plot merged data and fit linreg line
-    m_merged,b_merged = np.polyfit(dict_merged['laydenFeH'], dict_merged['residuals_shifted'], 1)
-    plt.scatter(dict_merged['laydenFeH'], dict_merged['residuals_shifted'])
-    plt.plot(dict_merged['laydenFeH'], np.add(np.multiply(dict_merged['laydenFeH'],m_merged),b_merged))
-    plt.show()
