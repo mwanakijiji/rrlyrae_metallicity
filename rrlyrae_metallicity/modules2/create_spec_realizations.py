@@ -39,7 +39,8 @@ from modules2 import *
 # --------------------
 def create_norm_spec(name_list,normdir,finaldir):
     '''
-    Create final normalized spectra
+    Create final normalized spectra, using the output from the bkgrnd routine (which puts out wavelength, flux, and continuum flux, but
+    not the actual normalized flux)
     
     Arguments:
         name_list: List of Realization file names (no path info)
@@ -51,18 +52,20 @@ def create_norm_spec(name_list,normdir,finaldir):
     
     new_name_list = list()
     
-    for spec in name_list:
-        spec_name = os.path.join(normdir,spec)
-        spec_tab = read_bkgrnd_spec(spec_name)
-        new_name = os.path.join(finaldir,spec)
-        new_name_list.append(new_name)
+    for spec in name_list: # loop through spectrum realizations
+        
+        spec_name = os.path.join(normdir,spec) # spectrum realization file name (as output by bkgrnd), with relative path info
+        spec_tab = read_bkgrnd_spec(spec_name) # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
+        new_name = os.path.join(finaldir,spec) # output file name of final, normalized spectrum, with relative path info
+        new_name_list.append(new_name) # add to list
+
         try:
-            outfile = open(new_name,'w')
+            outfile = open(new_name,'w') # open file to write normalized spectrum to
         except IOError:
             print("File {} could not be opened!".format(new_name))
         for j in range(len(spec_tab['wavelength'])):
-            outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j],spec_tab['flux'][j]/spec_tab['bckgrnd_flux'][j]))
-    
+            outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j],spec_tab['flux'][j]/spec_tab['bckgrnd_flux'][j])) # do the division to normalize and write out
+        
         outfile.close()
     
     return(new_name_list)  
@@ -78,17 +81,17 @@ def generate_realizations(spec_name,outdir,num):
     Returns:
        A list of filenames for the realization spectra.
     '''
-    spec_tab = read_spec(spec_name)
+    spec_tab = read_spec(spec_name) # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
+    
+    basename = os.path.basename(spec_name) # shave off path stem
 
-    basename = os.path.basename(spec_name)
-
+    # generate realizations
     new_name_list = list()
-    #Generate Realizations
     for i in range(num):
-        new_name = "{}_{:03d}".format(basename,i)
-        new_name_list.append(new_name) #I don't need path info in spec_name list
-        new_name = os.path.join(outdir,new_name)
-        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux']
+        new_name = "{}_{:03d}".format(basename,i) # basename of spectrum realization
+        new_name_list.append(new_name) # don't need path info in spec_name list
+        new_name = os.path.join(outdir,new_name) # name of spectrum realization, with path
+        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux'] # add Gaussian error to the empirical flux
         try:
             outfile = open(new_name,'w')
         except IOError:
@@ -130,7 +133,7 @@ def read_list(input_list):
 
 def read_spec(spec_name):
     '''
-    Reads in ascii spectra and returns numpy arrays of wavelength, flux, and error.
+    Reads in ascii empirical spectra and returns numpy arrays of wavelength, flux, and error.
     
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, error no headers
@@ -140,7 +143,7 @@ def read_spec(spec_name):
        flux: Numpy array of fluxes
        error: Numpy array of flux error
     '''
-    
+
     spec_tab = Table.read(spec_name,format='ascii.no_header',names=['wavelength','flux','error'])
         
     return(spec_tab)
@@ -180,6 +183,7 @@ def write_bckgrnd_input(name_list,indir,normdir):
 def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
     
     # Read list of empirical spectra
+    #stem = './src/empirical_spectra/'
     list_arr = read_list(input_list)
     
     # Check to make sure outdir (to receive realizations of spectra) exists
@@ -198,8 +202,8 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
         
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
-    
-    # Normalize each spectrum realization
+    ipdb.set_trace()
+    # Normalize each spectrum realization (smoothing parameter is set in __init__)
     bkgrnd = Popen(["./bin/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
@@ -213,7 +217,7 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
         os.mkdir(finaldir)
 
     # Normalize spectrum realizations
-    final_list = create_norm_spec(name_list, normdir, finaldir)
+    final_list = create_norm_spec(name_list, normdir, finaldir) # write files of normalized fluxes, and return list of those filenames
     ipdb.set_trace()
     
 if __name__ == '__main__':
