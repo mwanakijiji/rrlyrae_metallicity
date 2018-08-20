@@ -27,6 +27,8 @@ import sys
 from astropy.io import fits
 from astropy.table import Table
 import numpy as np
+import ipdb
+from modules2 import *
 
 # -----------------
 # Class Definitions
@@ -176,45 +178,44 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # Main Function
 # -------------
 def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
-    #Read list of spectra
+    
+    # Read list of empirical spectra
     list_arr = read_list(input_list)
-    #Check to make sure outdir exists
+    
+    # Check to make sure outdir (to receive realizations of spectra) exists
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
            
-    #Create realizations for each spectrum
-    name_list = list()
-    for i in range(len(list_arr)):
+    # Create realizations for each spectrum
+    name_list = list() # initialize
+    for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
         name_list.extend(generate_realizations(list_arr[i],outdir,num))
-
-    #Check to see if outdir/norm exits
+    
+    # Check to see if outdir/norm exists (for receiving output of binary bkgrnd, which includes the data and continuum trace) 
     normdir = os.path.join(outdir,'norm')
     if not os.path.isdir(normdir):
         os.mkdir(normdir)
-
-    #Normalize each realization spectrum
-    #Create input file
+        
+    # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
-
-    #Run bckgrnd
-    ## ## NOTE SMOOTHING IS HARDCODED HERE; MAKE THIS VALUE AN INHERITED DEFAULT OF 22
-    print(os.getcwd())
-    bkgrnd = Popen(["./bin/bkgrnd","--smooth 22","--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     
-    (out,err) = bkgrnd.communicate()
+    # Normalize each spectrum realization
+    bkgrnd = Popen(["./bin/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     
-    if verb == True:
+    (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
+    if verb == True: ## ## decode messages; are they used later? why take this step?
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
     
-    #Normalize spectrum
-    #Check to see if outdir/final exists
+    # Check to see if outdir/final exists (for receiving normalized output) exists
     finaldir = os.path.join(outdir,'final')
     if not os.path.isdir(finaldir):
         os.mkdir(finaldir)
-        
-    final_list = create_norm_spec(name_list, normdir, finaldir)
 
+    # Normalize spectrum realizations
+    final_list = create_norm_spec(name_list, normdir, finaldir)
+    ipdb.set_trace()
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
     parser.add_argument('input_list',help='List of spectra to process.')

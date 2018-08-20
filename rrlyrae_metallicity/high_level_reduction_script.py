@@ -10,14 +10,25 @@ from subprocess import Popen,PIPE
 
 def main():
 
-    # compile Carrell's normalizations script
+    '''
+    Compile spectral normalization script
+    '''
     bkgrnd_compile = Popen(["g++","-o","./bin/bkgrnd","./src/bkgrnd.cc"],stdout=PIPE,stderr=PIPE)
 
     
-    # take list of unnormalized empirical spectra and generate synthetic spectra
-    # (/norm/ contains bkgrnd output)
-    # (/final/ contains normalized spectra)
-    create_spec_realizations.create_spec_realizations_main("spec_phases.list", synthetic_out_dir)
+    '''
+    Take list of unnormalized empirical spectra and generate synthetic spectra
+    '''
+    
+    # [outdir]/norm/ contains bkgrnd output
+    # [outdir]/final/ contains normalized spectra
+    
+    # the input_list of spectra requires
+    # col [0]: spectrum filename
+    # col [1]: RR type (ab, c)
+    # col [2]: phase (0. to 1.)
+    
+    create_spec_realizations.create_spec_realizations_main(input_list="./src/spec_phases.list", outdir="./synthetic_output")
 
     '''
     # run_robospect on normalized synthetic spectra
