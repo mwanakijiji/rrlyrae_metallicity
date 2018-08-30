@@ -20,10 +20,10 @@ class scraper():
         
         # get list of filenames without the path
         ## ## ADD CHECK TO MAKE SURE THESE FILES ARE THE SAME AS SPIT OUT BY NDLS MODULE
-        fileListLong = glob.glob(self.stem+self.subdir+'/'+'*.fits.robolines')
+        fileListLong = glob.glob('rrlyrae_metallicity/'+self.stem+self.subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
-        self.writeOutFilename = self.stem+self.subdir+'/McD_largeTable_bad_spectra_removed_test.csv' # EW info will get scraped into this
+        self.writeOutFilename = 'rrlyrae_metallicity/'+self.stem+self.subdir+'/McD_largeTable_bad_spectra_removed_test.csv' # EW info will get scraped into this
         
     def __call__(self):
 
@@ -53,7 +53,7 @@ class scraper():
 
             print(self.subdir)
             # read in Robospect output
-            df = pd.read_csv(self.stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+            df = pd.read_csv('rrlyrae_metallicity/'+self.stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
             # check lines are in the right order
             line_check(df['#x0'])
@@ -79,7 +79,6 @@ class scraper():
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         dfMaster_reset = dfMaster.reset_index(drop=True).copy() # this gets shown further down in this notebook
-        
         #dfMaster.reset_index(drop=True).to_csv(stem+self.subdir+'/McD_largeTable_test.csv') # this is effectively the same, but gets written out
 
         ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
@@ -212,30 +211,31 @@ class findHK():
             err_Hdel_data = np.nanstd(Hdel_data)
             err_Heps_data = np.nanstd(Heps_data)
             err_balmer_data = np.nanstd(balmer_data_allsynthetic_spec)
+            import ipdb; ipdb.set_trace() # why is Balmer data so screwy? appears to be coming from rHgam_data values (but probably not the raw_Hgam_data)
             err_K_data = np.nanstd(K_data_allsynthetic_spec)
     
             #plt.plot(balmer_data_pt,K_data_pt)
             #plt.errorbar(balmer_data_pt, K_data_pt, yerr=err_K_data, xerr=err_balmer_data)
 
             # append data to arrays: essential info
-            empir_spec_name_array = np.append(self.empir_spec_name_array,np.array(uniqueSpecNames)[p])
-            star_name_array = np.append(self.star_name_array,str(np.array(uniqueSpecNames)[p])[0:-3])
-            H_data_array = np.append(self.H_data_array,balmer_data_pt)
-            err_H_data_array = np.append(self.err_H_data_array,err_balmer_data)
-            K_data_array = np.append(self.K_data_array,K_data_pt)
-            err_K_data_array = np.append(self.err_K_data_array,err_K_data)
+            self.empir_spec_name_array = np.append(self.empir_spec_name_array,np.array(uniqueSpecNames)[p])
+            self.star_name_array = np.append(self.star_name_array,str(np.array(uniqueSpecNames)[p])[0:-3])
+            self.H_data_array = np.append(self.H_data_array,balmer_data_pt)
+            self.err_H_data_array = np.append(self.err_H_data_array,err_balmer_data)
+            self.K_data_array = np.append(self.K_data_array,K_data_pt)
+            self.err_K_data_array = np.append(self.err_K_data_array,err_K_data)
     
             # append data to arrays: other info
-            Hbet_data_array = np.append(self.Hbet_data_array,Hbet_data_pt)
-            err_Hbet_data_array = np.append(self.err_Hbet_data_array,err_Hbet_data)
-            Hgam_data_array = np.append(self.Hgam_data_array,Hgam_data_pt)
-            err_Hgam_data_array = np.append(self.err_Hgam_data_array,err_Hgam_data)
-            rHgam_data_array = np.append(self.rHgam_data_array,err_rHgam_data) # rescaled Hgamma
-            err_rHgam_data_array = np.append(self.err_rHgam_data_array,err_rHgam_data)
-            Hdel_data_array = np.append(self.Hdel_data_array,Hdel_data_pt)
-            err_Hdel_data_array = np.append(self.err_Hdel_data_array,err_Hdel_data)
-            Heps_data_array = np.append(self.Heps_data_array,Heps_data_pt)
-            err_Heps_data_array = np.append(self.err_Heps_data_array,err_Heps_data)
+            self.Hbet_data_array = np.append(self.Hbet_data_array,Hbet_data_pt)
+            self.err_Hbet_data_array = np.append(self.err_Hbet_data_array,err_Hbet_data)
+            self.Hgam_data_array = np.append(self.Hgam_data_array,Hgam_data_pt)
+            self.err_Hgam_data_array = np.append(self.err_Hgam_data_array,err_Hgam_data)
+            self.rHgam_data_array = np.append(self.rHgam_data_array,err_rHgam_data) # rescaled Hgamma
+            self.err_rHgam_data_array = np.append(self.err_rHgam_data_array,err_rHgam_data)
+            self.Hdel_data_array = np.append(self.Hdel_data_array,Hdel_data_pt)
+            self.err_Hdel_data_array = np.append(self.err_Hdel_data_array,err_Hdel_data)
+            self.Heps_data_array = np.append(self.Heps_data_array,Heps_data_pt)
+            self.err_Heps_data_array = np.append(self.err_Heps_data_array,err_Heps_data)
     
             # clear some variables
             balmer_data_allsynthetic_spec=None 
@@ -265,7 +265,7 @@ class findHK():
         df_collation = pd.DataFrame(data=d)
         
         # read in a text file containing phase information ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
-        phase_info = pd.read_csv("./src/eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv")
+        phase_info = pd.read_csv('rrlyrae_metallicity/src/eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv')
         
         # paste phase info into the table of EWs
         phase_array = []
@@ -273,6 +273,8 @@ class findHK():
         err_feh_array = []
         name_array = []
 
+        import ipdb; ipdb.set_trace()
+        
         for q in range(0,len(df_collation)):
             name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
             phase_this_one = phase_info['phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
@@ -288,10 +290,10 @@ class findHK():
         df_collation_real['eFeH'] = err_feh_array
         
         # write to csv
-        df_collation_real.to_csv('./src/more_realistic_EWs_w_phase_test.csv')
+        df_collation_real.to_csv('rrlyrae_metallicity/src/more_realistic_EWs_w_phase_test.csv')
         
         # make plot: each color is a different star, open circles are bad phase region
-        data_to_plot = pd.read_csv('./src/more_realistic_EWs_w_phase_test.csv') # read data back in
+        data_to_plot = pd.read_csv('rrlyrae_metallicity/src/more_realistic_EWs_w_phase_test.csv') # read data back in
         
         # make list of unique star names 
         unique_star_names = data_to_plot.drop_duplicates(subset=['star_name'])['star_name'].values
@@ -301,6 +303,8 @@ class findHK():
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
+        import ipdb; ipdb.set_trace()
+        
         # loop over every star, overlay the set of points for that star on the plot
         for y in range(0,len(unique_star_names)):
     
@@ -324,7 +328,9 @@ class findHK():
             ax.annotate(unique_star_names[y], xy=(np.array(x_data.dropna())[0], 
                                           np.array(y_data.dropna())[0]), 
                 xytext=(np.array(x_data.dropna())[0], np.array(y_data.dropna())[0]))
-    
+
+            
+            
         plt.title('KH plot, using synthetic spectra')
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')

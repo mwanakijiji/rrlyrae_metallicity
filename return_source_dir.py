@@ -19,8 +19,10 @@ def get_setuptools_script_dir():
     command = dist.get_command_obj('install')
     command.ensure_finalized()
     command.run()
-    return dist.install_scripts
+    print(dist.install_scripts)
+    return 
 
 # shutil.copy('ferre',get_setuptools_script_dir()) ## copy [arg1] to directory [arg2]
 
-import ipdb; ipdb.set_trace()
+if __name__ == "__main__":
+    get_setuptools_script_dir()

@@ -202,23 +202,22 @@ def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
         
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
-    ipdb.set_trace()
-    # Normalize each spectrum realization (smoothing parameter is set in __init__)
-    bkgrnd = Popen(["./bin/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     
+    # Normalize each spectrum realization (smoothing parameter is set in __init__)
+    bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
+    
     if verb == True: ## ## decode messages; are they used later? why take this step?
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
-    
+
     # Check to see if outdir/final exists (for receiving normalized output) exists
     finaldir = os.path.join(outdir,'final')
     if not os.path.isdir(finaldir):
         os.mkdir(finaldir)
-
+        
     # Normalize spectrum realizations
     final_list = create_norm_spec(name_list, normdir, finaldir) # write files of normalized fluxes, and return list of those filenames
-    ipdb.set_trace()
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
