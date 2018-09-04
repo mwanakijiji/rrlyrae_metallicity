@@ -10,7 +10,7 @@ class lit_metallicities():
     
     def __init__(self):
     
-        stem = "../src/high_res_feh/"
+        stem = "./rrlyrae_metallicity/src/high_res_feh/"
         
         # Fe/H from Layden+ 1994
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
@@ -31,11 +31,11 @@ class lit_metallicities():
         self.wallerstein_feh = pd.read_csv(stem + "wallerstein_huang_2010_abundances.dat")
         # RES: ~30,000, FeII
         
-        # Fe/H from Chadid+ 2017 (FeI and II lines)
+        # Fe/H from Chadid+ 2017 ApJ 835.2:187 (FeI and II lines)
         self.chadid_feh = pd.read_csv(stem + "chadid_2017_abundances.dat")
         # RES: 38000, FeI & FeII, 3400-9900 A
 
-        # Fe/H from Liu+ 2013
+        # Fe/H from Liu+ 2013 Res Ast Astroph 13:1307
         self.liu_feh = pd.read_csv(stem + "liu_2013_abundances.dat")
         # RES: ~60,000, FeI (& FeII?), 5100-6400 A
 
@@ -51,7 +51,7 @@ class lit_metallicities():
         self.solano_feh = pd.read_csv(stem + "solano_1997_abundances.dat",delimiter=';')
         # RES: 22,000 & 19,000, strong FeI lines, 4160-4390 & 4070-4490 A
         
-        # Fe/H from Pacino+ 2015
+        # Fe/H from Pancino+ 2015 MNRAS 447:2404
         self.pacino_feh = pd.read_csv(stem + "pacino_2015_abundances.dat") 
         # RES: >30,000, FeI (weighted average), 4000-8500 A
 
@@ -132,7 +132,7 @@ class lit_metallicities():
         chadid_y_125 = -0.10583621694962 # from Chadid line at Fe/H=-1.25
         this_y_125 = np.multiply(coeff[0],-1.25)+coeff[1] # y-value of this line at Fe/H=-1.25
         net_offset = chadid_y_125 - this_y_125 # offset needed to move line
-        print('Y_offset to overlap with Chadid+ 2017 at Fe/H=-1.25:')
+        print('Y_offset to add to residuals in order to overlap with Chadid+ 2017 at Fe/H=-1.25:')
         print(net_offset)
         print('Number of overlapping stars:')
         print(len(residuals))
@@ -157,7 +157,7 @@ class lit_metallicities():
         # return 
         # 1. overlapping Layden94 values
         # 2. FeH values from lit source
-        # 3. Residuals between 1. and 2.(see Chadid+ 2017 Figs. 5, 6, 7)
+        # 3. Residuals between 1. and 2. (see Chadid+ 2017 ApJ 835:187, Figs. 5, 6, 7)
         # 4. coefficients of best-fit line
         # 5. offset in y to bring lit FeH values to match Chadid+ 2017 at FeH=-1.25 (see Chadid+ 2017 Figs. 5, 6)
         # 6. Residuals (from 3.) minus the offset (from 5.)  (see Chadid+ 2017 Fig. 7)
@@ -168,8 +168,8 @@ class lit_metallicities():
         d['inputFeH'] = inputFeH
         d['residuals'] = residuals
         d['coeff'] = coeff
-        d['net_offset'] = net_offset
-        d['residuals_shifted'] = np.subtract(inputFeH,residuals)
+        d['net_offset'] = net_offset # this needs to be ADDED to high-res study data to make it match Chadid
+        d['residuals_shifted'] = np.add(residuals,net_offset)
         d['name'] = nameArray
         
         return d
@@ -189,14 +189,11 @@ def make_basis():
 
     # find matches: Nemec 2013
     dict_Nemec_2013  = x.find_match_Layden(x.nemec_feh,x.layden_feh,'Nemec_2013', offset=True)
-
-    print(x.nemec_feh)
-    print(x.liu_feh['name'])
     
     # find matches: Liu 2013
     x.liu_feh2 = x.liu_feh.groupby(x.liu_feh['name'], axis=0, as_index=False).mean()
     dict_Liu_2013  = x.find_match_Layden(x.liu_feh2,x.layden_feh,'Liu_2013', offset=True)
-
+    
     # find matches: Chadid 2017
     dict_Chadid_2017  = x.find_match_Layden(x.chadid_feh,x.layden_feh,'Chadid_2017', offset=True)
 
@@ -217,21 +214,162 @@ def make_basis():
     #chadid_winnow = x.chadid_feh[chadid_feh['star'].isin(wallerstein_feh['star'])]
     # Wallerstein stars that appear in Chadid
     #wallerstein_winnow = x.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
-
+    
     # merge the metallicity dictionaries
     dict_collect = [dict_Lambert_96, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017, 
             dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
     dict_merged = {}
     for key in dict_Lambert_96:
         dict_merged[key] = tuple(dict_merged[key] for dict_merged in dict_collect)
-    
+        
     # plot merged data and fit linreg line
     m_merged, b_merged = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
-    plt.clf()
-    [plt.scatter(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]) for p in range(0,len(dict_merged['laydenFeH']))]
-    plt.plot(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged),b_merged))
-    plt.show()
+
     
-        ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
+    ### make a plot like Chadid+ 2017 Fig. 5 (residuals between high res study FeHs and Layden94 FeH vs. Layden94 FeH)
+    
+    plt.clf() # clear plot space
+    f, (ax1, ax2, ax3, ax4, ax5, ax6, ax7) = plt.subplots(7, 1, figsize=(10,25), sharex=True)
+    #
+    quantx = np.array(dict_Fernley_1997['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Fernley_1997['residuals'], dtype=float)
+    ax1.scatter(quantx, quanty)
+    ax1.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax1_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax1.plot(quantx, np.add(np.multiply(quantx,ax1_coeff[0]),ax1_coeff[1]), linestyle='--') # regression line
+    ax1.set_title('Fernley 97')
+    #
+    quantx = np.array(dict_Lambert_96['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Lambert_96['residuals'], dtype=float)
+    ax2.scatter(quantx, quanty)
+    ax2.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax2_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax2.plot(quantx, np.add(np.multiply(quantx,ax2_coeff[0]),ax2_coeff[1]), linestyle='--') # regression line
+    ax2.set_title('Lambert 96')
+    #
+    quantx = np.array(dict_Nemec_2013['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Nemec_2013['residuals'], dtype=float)
+    ax3.scatter(quantx, quanty)
+    ax3.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax3_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax3.plot(quantx, np.add(np.multiply(quantx,ax3_coeff[0]),ax3_coeff[1]), linestyle='--') # regression line
+    ax3.set_title('Nemec 13')
+    #
+    quantx = np.array(dict_Liu_2013['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Liu_2013['residuals'], dtype=float)
+    ax4.scatter(quantx, quanty)
+    ax4.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax4_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax4.plot(quantx, np.add(np.multiply(quantx,ax4_coeff[0]),ax4_coeff[1]), linestyle='--') # regression line
+    ax4.set_title('Liu 13')
+    #
+    quantx = np.array(dict_Chadid_2017['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Chadid_2017['residuals'], dtype=float)
+    ax5.scatter(quantx, quanty)
+    ax5.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax5_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax5.plot(quantx, np.add(np.multiply(quantx,ax5_coeff[0]),ax5_coeff[1]), linestyle='--') # regression line
+    ax5.set_title('Chadid 17')
+    #
+    quantx = np.array(dict_Solano_1997['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Solano_1997['residuals'], dtype=float)
+    ax6.scatter(quantx, quanty)
+    ax6.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax6_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax6.plot(quantx, np.add(np.multiply(quantx,ax6_coeff[0]),ax6_coeff[1]), linestyle='--') # regression line
+    ax6.set_title('Solano 97')
+    #
+    quantx = np.array(dict_Wallerstein_2010['laydenFeH'],dtype=float)
+    quanty = np.array(dict_Wallerstein_2010['residuals'], dtype=float)
+    ax7.scatter(quantx, quanty)
+    ax7.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
+    ax7_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
+    ax7.plot(quantx, np.add(np.multiply(quantx,ax7_coeff[0]),ax7_coeff[1]), linestyle='--') # regression line
+    ax7.set_title('Wallerstein 10')
+    ax7.set_xlabel('FeH_Layden94')
+    #
+    ax1.set_xlim([-2.9,0.4])
+    ax1.set_ylim([-0.6,0.6])
+    ax2.set_ylim([-0.6,0.6])
+    ax3.set_ylim([-0.6,0.6])
+    ax4.set_ylim([-0.6,0.6])
+    ax5.set_ylim([-0.6,0.6])
+    ax6.set_ylim([-0.6,0.6])
+    ax7.set_ylim([-0.6,0.6])
+    
+    plt.ylabel('FeH_highres')
+    #plt.title('chadid_fig5')
+    plt.tight_layout()
+    plt.savefig('chadid_fig5_imitation_test.pdf')
+    
+    plt.clf()
+
+    ### make a plot like Chadid+ 2017 Fig. 6 (same as Fig. 5, but by shifting in y to match Chadid at FeH_Layden94=-1.25; except that Chadid+ 17 also
+    ### reprocesses Clementini and Pancino FeH, which we dont do)
+    plt.clf() # clear plot space
+    f, (ax1, ax2, ax3, ax4, ax5, ax6, ax7) = plt.subplots(7, 1, figsize=(10,25), sharex=True)
+    ax1.scatter(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['residuals_shifted'])
+    ax1.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax1.set_title('Fernley 97')
+    ax2.scatter(dict_Lambert_96['laydenFeH'], dict_Lambert_96['residuals_shifted'])
+    ax2.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax2.set_title('Lambert 96')
+    ax3.scatter(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['residuals_shifted'])
+    ax3.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax3.set_title('Nemec 13')
+    ax4.scatter(dict_Liu_2013['laydenFeH'], dict_Liu_2013['residuals_shifted'])
+    ax4.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax4.set_title('Liu 13')
+    ax5.scatter(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['residuals_shifted'])
+    ax5.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax5.set_title('Chadid 17')
+    ax6.scatter(dict_Solano_1997['laydenFeH'], dict_Solano_1997['residuals_shifted'])
+    ax6.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax6.set_title('Solano 97')
+    ax7.scatter(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['residuals_shifted'])
+    ax7.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
+    ax7.set_title('Wallerstein 10')
+    ax7.set_xlabel('FeH_Layden94')
+    ax1.set_xlim([-2.9,0.4])
+    ax1.set_ylim([-0.6,0.6])
+    ax2.set_ylim([-0.6,0.6])
+    ax3.set_ylim([-0.6,0.6])
+    ax4.set_ylim([-0.6,0.6])
+    ax5.set_ylim([-0.6,0.6])
+    ax6.set_ylim([-0.6,0.6])
+    ax7.set_ylim([-0.6,0.6])
+    plt.ylabel('FeH_highres_residuals_shifted')
+    #plt.title('chadid_fig6')
+    plt.tight_layout()
+    plt.savefig('chadid_fig6_imitation_test.pdf')
+    plt.clf()
+
+    ### make a plot like Chadid+ 2017 Fig. 7
+    plt.clf() # clear plot space
+    f, (ax1, ax2) = plt.subplots(2, 1, figsize=(6,9), sharex=True)
+    # subplot 1
+    to_plot_x_all = dict_merged['laydenFeH'] # consolidate stuff to find regression coefficients
+    to_plot_y_all = np.add(dict_merged['residuals_shifted'],dict_merged['laydenFeH'])
+    [ax1.scatter(dict_merged['laydenFeH'][p], np.add(dict_merged['residuals_shifted'][p],dict_merged['laydenFeH'][p])) for p in range(0,len(dict_merged['laydenFeH']))]
+    coeff2 = np.polyfit(np.concatenate(to_plot_x_all).ravel(), np.concatenate(to_plot_y_all).ravel(), 1)
+    ax1.plot(np.arange(-3,1,step=0.1),np.arange(-3,1,step=0.1),linestyle='--') # one-to-one
+    ax1.set_xlim([-2.9,0.4])
+    ax1.set_ylim([-2.9,0.4])
+    ax1.set_ylabel('FeH_highres_shifted')
+    ax1.set_title('m = '+str(coeff2[0])+', b = '+str(coeff2[1]))
+    # subplot 2
+    [ax2.scatter(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]) for p in range(0,len(dict_merged['laydenFeH']))]
+    reg_x, reg_y = zip(*sorted(zip(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged),b_merged)))) # sort values in x, so that plot line doesn't zigzag
+    ax2.plot(reg_x, reg_y, linestyle='--') # regression line
+    ax2.plot(reg_x, np.zeros(np.shape(reg_y)), linestyle=':') # zero line
+    ax2.set_ylim([-0.6,0.6])
+    ax2.set_xlabel('FeH_Layden94')
+    ax2.set_ylabel('FeH_highres_residuals_shifted')
+    plt.suptitle('chadid_fig7')
+    plt.savefig('chadid_fig7_imitation_test.pdf')
+    plt.clf()
+
+    
+    ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
 
     # rescale_lit_metallicities to find high-res Fe/H

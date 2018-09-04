@@ -11,6 +11,7 @@ def compile_bkgrnd():
     _COMPILE_BKGRND = True
     if _COMPILE_BKGRND:
         if True:
+            print("Compiling background normalization script...")
             bkgrnd_compile = Popen(["g++","-o","./rrlyrae_metallicity/bin/bkgrnd","./rrlyrae_metallicity/src/bkgrnd.cc"],stdout=PIPE,stderr=PIPE)
             # now move the executable to the right path... but what if I'm not using a conda environment? I won't know where to move it, beyond just get_setuptools_script_dir()
             shutil.copy("./rrlyrae_metallicity/bin/bkgrnd",get_setuptools_script_dir()) # put copy of executable in Python setup tools path

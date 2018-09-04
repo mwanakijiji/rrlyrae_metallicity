@@ -47,11 +47,10 @@ class scraper():
             return
 
         dfMaster = pd.DataFrame() # initialize
-        
+
         # loop over all filenames, extract line data
         for t in range(0,len(self.fileList)):
 
-            print(self.subdir)
             # read in Robospect output
             df = pd.read_csv('rrlyrae_metallicity/'+self.stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
@@ -117,8 +116,6 @@ class findHK():
     
     def __init__(self, scrapedEWfilename):
 
-        ## ## print('fdsfdsfsd')
-        ## ## print(scrapedEWfilename)
         self.scrapedEWfilename = scrapedEWfilename
     
         # read in line data
@@ -148,7 +145,9 @@ class findHK():
     def __call__(self):
         
         # make a list of all UNIQUE, EMPIRICAL spectrum names
-        uniqueSpecNames = self.line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
+        uniqueSpecNames_preIndexReset = self.line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
+
+        uniqueSpecNames = uniqueSpecNames_preIndexReset.dropna().reset_index(drop=True) # drop row of NaNs and smooth the indexing
         
         # fit a straight line to Hgam vs Hdel
         x_data = self.line_data['EQW'].where(self.line_data['line_name'] == 'Hdel').dropna() # Hdel
@@ -161,11 +160,9 @@ class findHK():
         
         # prepare data for a plot
         # loop over every EMPIRICAL spectrum and assemble SYNTHETIC data into arrays
-        for p in range(0,len(uniqueSpecNames)):
-    
-            # the name of the empirical spectrum being used here
-            print(np.array(uniqueSpecNames)[p])
-    
+        for p in range(0,len(np.array(uniqueSpecNames.values))):
+
+            print("Synthetic data being assembled corresponding to spectrum "+np.array(uniqueSpecNames)[p])
             # extract all synthetic data corresponding to this empirical spectrum
             data_for_this_empir_spectrum = self.line_data.where(self.line_data['empir_spec_name'][0:-4] == np.array(uniqueSpecNames)[p])
     
@@ -192,7 +189,7 @@ class findHK():
             K_data = K_data_wnans[np.isfinite(K_data_wnans)]
     
             # get the H-K synthetic data together
-            balmer_data_allsynthetic_spec = np.mean([Hdel_data,rHgam_data], axis=0) # Balmer EW = 0.5*(Hdel + rHgam)
+            balmer_data_allsynthetic_spec = np.nanmean([Hdel_data,rHgam_data], axis=0) # Balmer EW = 0.5*(Hdel + rHgam)
             K_data_allsynthetic_spec = np.copy(K_data)
     
             # the actual points to plot (or record in a table)
@@ -211,7 +208,6 @@ class findHK():
             err_Hdel_data = np.nanstd(Hdel_data)
             err_Heps_data = np.nanstd(Heps_data)
             err_balmer_data = np.nanstd(balmer_data_allsynthetic_spec)
-            import ipdb; ipdb.set_trace() # why is Balmer data so screwy? appears to be coming from rHgam_data values (but probably not the raw_Hgam_data)
             err_K_data = np.nanstd(K_data_allsynthetic_spec)
     
             #plt.plot(balmer_data_pt,K_data_pt)
@@ -230,7 +226,7 @@ class findHK():
             self.err_Hbet_data_array = np.append(self.err_Hbet_data_array,err_Hbet_data)
             self.Hgam_data_array = np.append(self.Hgam_data_array,Hgam_data_pt)
             self.err_Hgam_data_array = np.append(self.err_Hgam_data_array,err_Hgam_data)
-            self.rHgam_data_array = np.append(self.rHgam_data_array,err_rHgam_data) # rescaled Hgamma
+            self.rHgam_data_array = np.append(self.rHgam_data_array,rHgam_data_pt) # rescaled Hgamma
             self.err_rHgam_data_array = np.append(self.err_rHgam_data_array,err_rHgam_data)
             self.Hdel_data_array = np.append(self.Hdel_data_array,Hdel_data_pt)
             self.err_Hdel_data_array = np.append(self.err_Hdel_data_array,err_Hdel_data)
@@ -273,9 +269,8 @@ class findHK():
         err_feh_array = []
         name_array = []
 
-        import ipdb; ipdb.set_trace()
-        
-        for q in range(0,len(df_collation)):
+        # loop over each empirical spectrum name 
+        for q in range(0,len(df_collation['empir_spec_name'].values)):    
             name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
             phase_this_one = phase_info['phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
             feh_this_one = phase_info['FeH'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
@@ -284,7 +279,13 @@ class findHK():
             phase_array = np.append(phase_array,phase_this_one)
             feh_array = np.append(feh_array,feh_this_one)
             err_feh_array = np.append(err_feh_array,err_feh_this_one)
-        df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans
+            #print('-----------')
+            #print(name_this_one)
+            #print(phase_this_one)
+            #print(feh_this_one)
+            #print(err_feh_this_one)
+
+        df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
         df_collation_real['phase'] = phase_array
         df_collation_real['FeH'] = feh_array
         df_collation_real['eFeH'] = err_feh_array
@@ -300,12 +301,12 @@ class findHK():
         
         # plot data points
         cmap = plt.get_cmap(name='jet')
-        fig = plt.figure()
+        fig = plt.figure(figsize=(20,10))
         ax = fig.add_subplot(111)
-
-        import ipdb; ipdb.set_trace()
         
         # loop over every star, overlay the set of points for that star on the plot
+        colors = ['red', 'blue', 'orange', 'teal', 'black', 'green', 'purple']*10 # make set of colors/markers I can loop over
+        markers = ['o', '^', '>', 's', '<']*10
         for y in range(0,len(unique_star_names)):
     
             x_data = data_to_plot['balmer'].where(data_to_plot['star_name'] == unique_star_names[y])
@@ -316,13 +317,13 @@ class findHK():
     
             # plot, and keep the same color for each star
             color_this_star = cmap(float(y)/len(unique_star_names))
-            ax.errorbar(x_data,y_data,yerr=err_y_data,xerr=err_x_data,linestyle='',fmt='o',markerfacecolor=color_this_star,color = color_this_star)
+            ax.errorbar(x_data,y_data,yerr=err_y_data,xerr=err_x_data,linestyle='',fmt=markers[y],markerfacecolor=colors[y],color=colors[y])
     
             x_data_badPhase = x_data.where(np.logical_or(data_to_plot['phase'] > 0.8, data_to_plot['phase'] < 0.05))
             y_data_badPhase = y_data.where(np.logical_or(data_to_plot['phase'] > 0.8, data_to_plot['phase'] < 0.05))
     
             # overplot unfilled markers to denote bad phase region
-            ax.errorbar(x_data_badPhase,y_data_badPhase,linestyle='',fmt='o',markerfacecolor='white',color = color_this_star)
+            ax.errorbar(x_data_badPhase,y_data_badPhase,linestyle='',fmt=markers[y],markerfacecolor='white',color=colors[y])
     
             # add star name
             ax.annotate(unique_star_names[y], xy=(np.array(x_data.dropna())[0], 
@@ -331,7 +332,8 @@ class findHK():
 
             
             
-        plt.title('KH plot, using synthetic spectra')
+        plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')
-        plt.show()
+        plt.tight_layout()
+        plt.savefig('test.pdf')
