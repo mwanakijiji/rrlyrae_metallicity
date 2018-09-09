@@ -11,6 +11,9 @@ class lit_metallicities():
     def __init__(self):
     
         stem = "./rrlyrae_metallicity/src/high_res_feh/"
+
+        # stand-in that consists of our program star names
+        self.our_program_stars = pd.read_csv(stem + "our_program_stars_names_only.csv")
         
         # Fe/H from Layden+ 1994
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
@@ -127,7 +130,8 @@ class lit_metallicities():
         coeff = np.polyfit(laydenFeH, residuals, 1)
         limits = [-3.0,0.5]
         line = np.multiply(coeff[0],limits)+coeff[1]
-    
+
+        ## ## IT APPEARS THE OFFSET FLAG IS DEPRECATED HERE?
         # if there needs to be an offset (like in Fig. 6 of Chadid+ 2017)
         chadid_y_125 = -0.10583621694962 # from Chadid line at Fe/H=-1.25
         this_y_125 = np.multiply(coeff[0],-1.25)+coeff[1] # y-value of this line at Fe/H=-1.25
@@ -174,6 +178,29 @@ class lit_metallicities():
         
         return d
 
+def remap_metal(layden_vals, vals_to_map):
+    '''
+    This takes metallicity values from a high-res study and maps them onto the Layden scale
+    Note this is with a slope and y-intercept
+
+    INPUTS:
+    vals_to_map: metallicity values from a high-resolution we want to put onto the Layden 94 scale
+    layden_vals: corresponding values given by Layden 94
+
+    OUTPUTS:
+    d: dictionary containing 1.) the remapped values from the high-res study; 2.) the coefficients from the fit
+    '''
+
+    coeffs = np.polyfit(layden_vals,vals_to_map,1)
+    vals_mapped = np.divide(np.subtract(vals_to_map,coeffs[1]),coeffs[0])
+
+    d = {
+        'vals_mapped': vals_mapped,
+        'coeffs': coeffs
+        }
+    
+    return d
+    
 
 def make_basis():
     
@@ -182,6 +209,8 @@ def make_basis():
     # find matches: Fernley 1996 ## ## WAIT-- FERNLEY 97 INCLUDES THESE
     #dict_Fernley_96 = lit_metallicities.find_match_Layden(fernley_feh,layden_feh,'Fernley_96', offset=True)
 
+    write_loc = "./rrlyrae_metallicity/bin/" # location where metallicity mapping should be written to
+    
     x = lit_metallicities() # instantiate the class
 
     # find matches: Lambert 1996
@@ -204,7 +233,7 @@ def make_basis():
     dict_Solano_1997  = x.find_match_Layden(x.solano_feh,x.layden_feh,'Solano_1997', offset=True)
 
     ## ## SNEDEN_17 DOES NOT OVERLAP WITH LAYDEN! FIX THIS
-
+    
     # find matches: Wallerstein+ 2010
     dict_Wallerstein_2010  = x.find_match_Layden(x.wallerstein_feh,x.layden_feh,'Wallerstein_2010', offset=True)
 
@@ -222,9 +251,102 @@ def make_basis():
     for key in dict_Lambert_96:
         dict_merged[key] = tuple(dict_merged[key] for dict_merged in dict_collect)
         
-    # plot merged data and fit linreg line
-    m_merged, b_merged = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
+    # plot merged data and fit linreg line (note this is for [Fe/H]_residuals_shifted vs. [Fe/H]_Lay94 )
+    m_merged_resid_shifted, b_merged_resid_shifted = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
 
+    # plot merged data and fit linreg line (note this is for [Fe/H]_shifted vs. [Fe/H]_Lay94 )
+    m_merged_shifted, b_merged_shifted = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(np.add(dict_merged['residuals_shifted'],dict_merged['laydenFeH'])), 1)
+
+
+    # retrieve our own program stars
+    dict_our_program_stars = x.find_match_Layden(x.our_program_stars,x.layden_feh,'NaN', offset=True) # find our stars that overlap with Layden 94
+
+    # remap metallicities via
+    # [Fe/H]_highres = m*[Fe/H]_Lay94 + b
+    dict_our_program_stars['mapped_feh'] = np.add(np.multiply(dict_our_program_stars['laydenFeH'],m_merged_shifted),b_merged_shifted)
+    
+    # write out
+    convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
+    convert_to_df.columns = ['name'] # rename the column
+    convert_to_df['mapped_feh'] = pd.DataFrame.from_dict(dict_our_program_stars['mapped_feh']) # add the remapped Fe/H
+    no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
+    
+    # rescale_lit_metallicities to find high-res Fe/H, via FeH = m * FeH_Layden + b
+    
+
+    ########################################
+    # BEGIN BUNCH OF PLOTS
+    ########################################
+    '''
+    plt.clf()
+    remapped_Lambert = remap_metal(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'])
+    plt.scatter(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'], color='orange')
+    plt.scatter(dict_Lambert_96['laydenFeH'], remapped_Lambert['vals_mapped'])
+    plt.plot(dict_Lambert_96['laydenFeH'], dict_Lambert_96['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Lambert['coeffs']))
+    plt.savefig('test_lambert.pdf')
+
+    plt.clf()
+    remapped_Nemec = remap_metal(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'])
+    plt.scatter(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'], color='orange')
+    plt.scatter(dict_Nemec_2013['laydenFeH'], remapped_Nemec['vals_mapped'])
+    plt.plot(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Nemec['coeffs']))
+    plt.savefig('test_nemec.pdf')
+
+    plt.clf()
+    remapped_Liu = remap_metal(dict_Liu_2013['laydenFeH'], dict_Liu_2013['inputFeH'])
+    plt.scatter(dict_Liu_2013['laydenFeH'], dict_Liu_2013['inputFeH'], color='orange')
+    plt.scatter(dict_Liu_2013['laydenFeH'], remapped_Liu['vals_mapped'])
+    plt.plot(dict_Liu_2013['laydenFeH'], dict_Liu_2013['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Liu['coeffs']))
+    plt.savefig('test_liu.pdf')
+
+    plt.clf()
+    remapped_Chadid = remap_metal(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['inputFeH'])
+    plt.scatter(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['inputFeH'], color='orange')
+    plt.scatter(dict_Chadid_2017['laydenFeH'], remapped_Chadid['vals_mapped'])
+    plt.plot(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Chadid['coeffs']))
+    plt.savefig('test_chadid.pdf')
+
+    plt.clf()
+    remapped_Fernley = remap_metal(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['inputFeH'])
+    plt.scatter(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['inputFeH'], color='orange')
+    plt.scatter(dict_Fernley_1997['laydenFeH'], remapped_Fernley['vals_mapped'])
+    plt.plot(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Fernley['coeffs']))
+    plt.savefig('test_fernley.pdf')
+
+    plt.clf()
+    remapped_Solano = remap_metal(dict_Solano_1997['laydenFeH'], dict_Solano_1997['inputFeH'])
+    plt.scatter(dict_Solano_1997['laydenFeH'], dict_Solano_1997['inputFeH'], color='orange')
+    plt.scatter(dict_Solano_1997['laydenFeH'], remapped_Solano['vals_mapped'])
+    plt.plot(dict_Solano_1997['laydenFeH'], dict_Solano_1997['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Solano['coeffs']))
+    plt.savefig('test_solano.pdf')
+
+    plt.clf()
+    remapped_Wallerstein = remap_metal(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['inputFeH'])
+    plt.scatter(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['inputFeH'], color='orange')
+    plt.scatter(dict_Wallerstein_2010['laydenFeH'], remapped_Wallerstein['vals_mapped'])
+    plt.plot(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['laydenFeH'], linestyle = ':')
+    plt.xlabel('Layden 94 Fe/H')
+    plt.ylabel('High-res Fe/H')
+    plt.title('coeffs '+str(remapped_Wallerstein['coeffs']))
+    plt.savefig('test_wallerstein.pdf')
     
     ### make a plot like Chadid+ 2017 Fig. 5 (residuals between high res study FeHs and Layden94 FeH vs. Layden94 FeH)
     
@@ -351,7 +473,7 @@ def make_basis():
     to_plot_x_all = dict_merged['laydenFeH'] # consolidate stuff to find regression coefficients
     to_plot_y_all = np.add(dict_merged['residuals_shifted'],dict_merged['laydenFeH'])
     [ax1.scatter(dict_merged['laydenFeH'][p], np.add(dict_merged['residuals_shifted'][p],dict_merged['laydenFeH'][p])) for p in range(0,len(dict_merged['laydenFeH']))]
-    coeff2 = np.polyfit(np.concatenate(to_plot_x_all).ravel(), np.concatenate(to_plot_y_all).ravel(), 1)
+    coeff2 = np.polyfit(np.concatenate(to_plot_x_all).ravel(), np.concatenate(to_plot_y_all).ravel(), 1) # regression coefficients to make high-res Fe/H values
     ax1.plot(np.arange(-3,1,step=0.1),np.arange(-3,1,step=0.1),linestyle='--') # one-to-one
     ax1.set_xlim([-2.9,0.4])
     ax1.set_ylim([-2.9,0.4])
@@ -369,7 +491,10 @@ def make_basis():
     plt.savefig('chadid_fig7_imitation_test.pdf')
     plt.clf()
 
-    
     ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
+    '''
+    ########################################
+    # END BUNCH OF PLOTS
+    ########################################
+    
 
-    # rescale_lit_metallicities to find high-res Fe/H
