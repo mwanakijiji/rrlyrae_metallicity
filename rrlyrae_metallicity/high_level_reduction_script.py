@@ -54,7 +54,7 @@ def main():
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
     # make FeH basis
-    make_high_res_feh_basis.make_basis()
+    make_high_res_feh_basis.make_basis(scrapedEWdataFilename) ## ## make output of this bit get appended to file corresp to scrapedEWdataFilename
 
     
     # assign phase values to spectra, put remaining data into giant table
@@ -64,7 +64,7 @@ def main():
     ## ## data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
 
     # run_emcee with input data_table_winnowed
-    mamluk5 = run_emcee.run_emcee()
+    mamluk5 = run_emcee.run_emcee(scrapedEWdataFilename)
     mamluk5()
 
     # yield the four coefficients with errors
