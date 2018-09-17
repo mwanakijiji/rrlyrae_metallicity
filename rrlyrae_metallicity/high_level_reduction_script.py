@@ -47,7 +47,8 @@ def main():
 
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
-    reducedHKdataFilename = mamluk3.get_hk_file() # call instance, and return the name of the file of H and K data points we will use to do the MCMC on
+    mamluk3() # call instance
+    reducedHKdataFilename = mamluk3.get_hk_file() # return the name of the file of H and K data points we will use to do the MCMC on
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -62,10 +63,12 @@ def main():
     # put data into giant table, winnow data based on phase
     ## ## data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
     
-    
+    print(reducedHKdataFilename)
     # run_emcee with input data_table_winnowed
     mamluk5 = run_emcee.run_emcee(reducedHKdataFilename)
-    mamluk5()
+    mamluk5() # call instance
+    mcmcOutputFilename = mamluk5.get_mcmc_output() # return file name of MCMC output
+    print(mcmcOutputFilename)
 
     # yield the four coefficients with errors
     

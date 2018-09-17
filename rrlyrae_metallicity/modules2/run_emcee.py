@@ -79,12 +79,15 @@ class run_emcee():
     def __init__(self, scrapedEWfilename):
         
         self.scrapedEWfilename = scrapedEWfilename # note this is the file with final H, K, FeH, and error values (and not the others from the noise-churned spectra)
+        self.filenameString = "rrlyrae_metallicity/bin/mcmc_output.csv" # saves the MCMC output
+        self.cornerFileString = "rrlyrae_metallicity/bin/corner.png" # makes a corner plot of the MCMC output
         
     def __call__(self):
 
         # read in EWs, Fe/Hs, phases, errors, etc.
         
         print('Reading in data ...')
+        print(self.scrapedEWfilename)
         dfChoice = pd.read_csv(self.scrapedEWfilename, delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
 
         name = dfChoice['empir_spec_name']
@@ -98,6 +101,7 @@ class run_emcee():
         #period = dfChoice.type
         #star_type = dataFloats[:,15]
 
+        print('HAHA')
         import ipdb; ipdb.set_trace()
         
         # fix some values
@@ -157,21 +161,19 @@ class run_emcee():
         postBurnInLinks = 3e3
 
         ################# SAVE PROGRESSIVELY TO TEXT FILE #################
-        ## ## refer to this code snipped from Foreman-Mackey's website
+        ## ## refer to these code snippets from Foreman-Mackey's website
         # IMPORTANT: sampler will only have memory of the last iteration if storechain flag is set to False
 
-        print('Saving MCMC chains to text file ...')
+        print("Saving MCMC chains to text file ...")
 
         # post-burn-in calculate and save iteratively
-        filenameString = "rrlyrae_metallicity/bin/mcmc_output.csv"
-        cornerFileString = "rrlyrae_metallicity/bin/corner.png"
-        f = open(filenameString, "w")
+        f = open(self.filenameString, "w")
         f.close()
         progBarWidth = 30
         start_time = time.time()
         for i, result in enumerate(sampler.sample(posAfterBurn, iterations=postBurnInLinks, storechain=True)):
             position = result[0]
-            f = open(filenameString, "a") # append
+            f = open(self.filenameString, "a") # append
             for k in range(position.shape[0]): # loop over number of chains
                 positionString = str(position[k]).strip("[]") # convert to string
                 f.write("{0:4d} {1:s}\n".format(k, " ".join(str(p) for p in position[k])))
@@ -181,24 +183,29 @@ class run_emcee():
         elapsed_time = time.time() - start_time
         sys.stdout.write(" Done!\n")
         sys.stdout.write("{0:s} {1:10d} {2:s}\n".format("Elapsed time: ", int(elapsed_time), "sec"))
+        sys.stdout.write("MCMC chains written out to file.\n")
 
         # corner plot (requires 'storechain=True' in enumerate above)
         samples = sampler.chain[:, int(burnIn):, :].reshape((-1, ndim))
-        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"])
-        fig.savefig(cornerFileString)
+        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"],
+                            quantiles=[0.16, 0.5, 0.84],
+                            title_fmt='.2f',
+                            show_titles=True, verbose=True, title_kwargs={"fontsize": 12})
+        fig.savefig(self.cornerFileString)
+        print("Corner plot of MCMC posteriors written out.")
 
+        # if its necessary to read in MCMC output again
+        #data = np.loadtxt(self.filenameString, usecols=range(1,5))
 
-        ################# WITHOUT SAVING PROGRESSIVELY TO FILE #################
+        # (this code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of https://emcee.readthedocs.io/en/stable/user/line.html#results )
+        a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                                             zip(*np.percentile(samples, [16, 50, 84], axis=0)))
+
+        print('Coefficients a, b, c, d, and errors (see corner plot):')
+        print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
+
+    def get_mcmc_output(self):
         '''
-        sampler.run_mcmc(posAfterBurn, postBurnInLinks) # if not progressively saving to text file
-        print(time.time()-startTime)
-        # remove burn-in
-        samples = sampler.chain[:, burnIn:, :].reshape((-1, ndim))
-
-        # corner plot
-        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"])
-        fig.savefig("triangle.png")
-
-        print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+        Return file name of MCMC chain outputs
         '''
-
+        return self.filenameString
