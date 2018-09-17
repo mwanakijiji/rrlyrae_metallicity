@@ -117,7 +117,8 @@ class findHK():
     def __init__(self, scrapedEWfilename):
 
         self.scrapedEWfilename = scrapedEWfilename
-    
+        self.hkFileName = 'rrlyrae_metallicity/src/more_realistic_EWs_w_phase_test.csv'
+        
         # read in line data
         print(self.scrapedEWfilename)
         self.line_data = pd.read_csv(self.scrapedEWfilename, delim_whitespace=False)
@@ -291,9 +292,8 @@ class findHK():
         df_collation_real['eFeH'] = err_feh_array
         
         # write to csv
-        hkFileName = 'rrlyrae_metallicity/src/more_realistic_EWs_w_phase_test.csv'
-        df_collation_real.to_csv(hkFileName)
-        print('HK data written to ' + hkFileName)
+        df_collation_real.to_csv(self.hkFileName)
+        print('HK data written to ' + self.hkFileName)
         
         # make plot: each color is a different star, open circles are bad phase region
         data_to_plot = pd.read_csv(hkFileName) # read data back in
@@ -339,3 +339,10 @@ class findHK():
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
         plt.savefig('test.pdf')
+
+        
+    def get_hk_file(self):
+        '''
+        Return file name of final H and K values to base calibration on
+        '''
+        return self.hkFileName

@@ -78,7 +78,7 @@ class run_emcee():
     
     def __init__(self, scrapedEWfilename):
         
-        self.scrapedEWfilename = scrapedEWfilename
+        self.scrapedEWfilename = scrapedEWfilename # note this is the file with final H, K, FeH, and error values (and not the others from the noise-churned spectra)
         
     def __call__(self):
 
@@ -87,23 +87,19 @@ class run_emcee():
         print('Reading in data ...')
         dfChoice = pd.read_csv(self.scrapedEWfilename, delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
 
-        name = dfChoice.Spectrum
-        caii = dfChoice.EW_K
-        ecaii = dfChoice.eEW_K
-        hdel = dfChoice.EW_D
-        ehdel = dfChoice.eEW_D
-        hgam = dfChoice.EW_G
-        ehgam = dfChoice.eEW_G
-        hbet = dfChoice.EW_B
-        ehbet = dfChoice.eEW_B
-        ave = dfChoice.Have
-        eave = dfChoice.eHave
-        feh = dfChoice.Fe_H
-        efeh = dfChoice.eFe_H
-        phase = dfChoice.phase
-        period = dfChoice.type
+        name = dfChoice['empir_spec_name']
+        caii = dfChoice['K']
+        ecaii = dfChoice['err_K']
+        ave = dfChoice['balmer']
+        eave = dfChoice['err_balmer']
+        feh = dfChoice['FeH']
+        efeh = dfChoice['eFeH']
+        phase = dfChoice['phase']
+        #period = dfChoice.type
         #star_type = dataFloats[:,15]
 
+        import ipdb; ipdb.set_trace()
+        
         # fix some values
         Teff = 0.0586758 # from previous IDL runs (kind of deprecated; just appears as a constant in the MCMC)
         
@@ -143,7 +139,7 @@ class run_emcee():
         print('Setting up MCMC ...')
 
         ndim = len(paramArray_0_Layden) # dimensions of space to explore
-        nwalkers = 20 # number of chains
+        nwalkers = 8 # number of chains
 
         # convert the one starting point into a nwalkers*ndim array with gaussian-offset starting points
         p0 = [np.add(paramArray_0_Layden,np.multiply(paramArray_0_Layden,1e-4*np.random.randn(ndim))) for i in range(nwalkers)]
@@ -153,12 +149,12 @@ class run_emcee():
                                                               g_eave, g_efeh, g_ecaii])
 
         # burn-in
-        burnIn = 1e5 # 1e5 seems to be necessary for the slow-converging parameter 'd'
+        burnIn = 1e3 # 1e5 seems to be necessary for the slow-converging parameter 'd'
         posAfterBurn, prob, state = sampler.run_mcmc(p0, burnIn)
 
         # post-burn-in
         startTime = time.time()
-        postBurnInLinks = 3e5
+        postBurnInLinks = 3e3
 
         ################# SAVE PROGRESSIVELY TO TEXT FILE #################
         ## ## refer to this code snipped from Foreman-Mackey's website
@@ -167,6 +163,8 @@ class run_emcee():
         print('Saving MCMC chains to text file ...')
 
         # post-burn-in calculate and save iteratively
+        filenameString = "rrlyrae_metallicity/bin/mcmc_output.csv"
+        cornerFileString = "rrlyrae_metallicity/bin/corner.png"
         f = open(filenameString, "w")
         f.close()
         progBarWidth = 30
@@ -185,9 +183,9 @@ class run_emcee():
         sys.stdout.write("{0:s} {1:10d} {2:s}\n".format("Elapsed time: ", int(elapsed_time), "sec"))
 
         # corner plot (requires 'storechain=True' in enumerate above)
-        samples = sampler.chain[:, burnIn:, :].reshape((-1, ndim))
+        samples = sampler.chain[:, int(burnIn):, :].reshape((-1, ndim))
         fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"])
-        fig.savefig("corner.png")
+        fig.savefig(cornerFileString)
 
 
         ################# WITHOUT SAVING PROGRESSIVELY TO FILE #################
