@@ -56,7 +56,7 @@ def main():
     # make FeH basis from literature (stand-alone part of code)
     make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
 
-    
+    '''
     # assign phase values to spectra, put remaining data into giant table
     ## ## data_table = graft_phases.graft_phases("spec_phases.list") # not made yet (is this even necessary?)
 
@@ -68,10 +68,9 @@ def main():
     mamluk5 = run_emcee.run_emcee(reducedHKdataFilename)
     mamluk5() # call instance
     mcmcOutputFilename = mamluk5.get_mcmc_output() # return file name of MCMC output
-    print(mcmcOutputFilename)
 
     # yield the four coefficients with errors
-    
+    '''
 
 
 # entry point

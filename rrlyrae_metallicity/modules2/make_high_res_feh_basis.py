@@ -272,12 +272,12 @@ def make_basis():
     no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
     
     # rescale_lit_metallicities to find high-res Fe/H, via FeH = m * FeH_Layden + b
-    
+
 
     ########################################
     # BEGIN BUNCH OF PLOTS
     ########################################
-    '''
+    
     plt.clf()
     remapped_Lambert = remap_metal(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'])
     plt.scatter(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'], color='orange')
@@ -286,8 +286,19 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Lambert['coeffs']))
+    labels = dict_Lambert_96['name']
+    labels_x = dict_Lambert_96['laydenFeH']
+    labels_y = dict_Lambert_96['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_lambert.pdf')
-
+    
     plt.clf()
     remapped_Nemec = remap_metal(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'])
     plt.scatter(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'], color='orange')
@@ -296,6 +307,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Nemec['coeffs']))
+    labels = dict_Nemec_2013['name']
+    labels_x = dict_Nemec_2013['laydenFeH']
+    labels_y = dict_Nemec_2013['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_nemec.pdf')
 
     plt.clf()
@@ -306,6 +328,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Liu['coeffs']))
+    labels = dict_Liu_2013['name']
+    labels_x = dict_Liu_2013['laydenFeH']
+    labels_y = dict_Liu_2013['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_liu.pdf')
 
     plt.clf()
@@ -316,6 +349,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Chadid['coeffs']))
+    labels = dict_Chadid_2017['name']
+    labels_x = dict_Chadid_2017['laydenFeH']
+    labels_y = dict_Chadid_2017['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_chadid.pdf')
 
     plt.clf()
@@ -326,6 +370,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Fernley['coeffs']))
+    labels = dict_Fernley_1997['name']
+    labels_x = dict_Fernley_1997['laydenFeH']
+    labels_y = dict_Fernley_1997['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_fernley.pdf')
 
     plt.clf()
@@ -336,6 +391,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Solano['coeffs']))
+    labels = dict_Solano_1997['name']
+    labels_x = dict_Solano_1997['laydenFeH']
+    labels_y = dict_Solano_1997['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_solano.pdf')
 
     plt.clf()
@@ -346,6 +412,17 @@ def make_basis():
     plt.xlabel('Layden 94 Fe/H')
     plt.ylabel('High-res Fe/H')
     plt.title('coeffs '+str(remapped_Wallerstein['coeffs']))
+    labels = dict_Wallerstein_2010['name']
+    labels_x = dict_Wallerstein_2010['laydenFeH']
+    labels_y = dict_Wallerstein_2010['inputFeH']
+    for point in range(0,len(labels)): 
+        plt.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     plt.savefig('test_wallerstein.pdf')
     
     ### make a plot like Chadid+ 2017 Fig. 5 (residuals between high res study FeHs and Layden94 FeH vs. Layden94 FeH)
@@ -359,6 +436,17 @@ def make_basis():
     ax1.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax1_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax1.plot(quantx, np.add(np.multiply(quantx,ax1_coeff[0]),ax1_coeff[1]), linestyle='--') # regression line
+    labels = dict_Fernley_1997['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax1.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax1.set_title('Fernley 97')
     #
     quantx = np.array(dict_Lambert_96['laydenFeH'],dtype=float)
@@ -367,6 +455,17 @@ def make_basis():
     ax2.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax2_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax2.plot(quantx, np.add(np.multiply(quantx,ax2_coeff[0]),ax2_coeff[1]), linestyle='--') # regression line
+    labels = dict_Lambert_96['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax2.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax2.set_title('Lambert 96')
     #
     quantx = np.array(dict_Nemec_2013['laydenFeH'],dtype=float)
@@ -375,6 +474,17 @@ def make_basis():
     ax3.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax3_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax3.plot(quantx, np.add(np.multiply(quantx,ax3_coeff[0]),ax3_coeff[1]), linestyle='--') # regression line
+    labels = dict_Nemec_2013['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax3.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax3.set_title('Nemec 13')
     #
     quantx = np.array(dict_Liu_2013['laydenFeH'],dtype=float)
@@ -383,6 +493,17 @@ def make_basis():
     ax4.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax4_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax4.plot(quantx, np.add(np.multiply(quantx,ax4_coeff[0]),ax4_coeff[1]), linestyle='--') # regression line
+    labels = dict_Liu_2013['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax4.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax4.set_title('Liu 13')
     #
     quantx = np.array(dict_Chadid_2017['laydenFeH'],dtype=float)
@@ -391,6 +512,17 @@ def make_basis():
     ax5.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax5_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax5.plot(quantx, np.add(np.multiply(quantx,ax5_coeff[0]),ax5_coeff[1]), linestyle='--') # regression line
+    labels = dict_Chadid_2017['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax5.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax5.set_title('Chadid 17')
     #
     quantx = np.array(dict_Solano_1997['laydenFeH'],dtype=float)
@@ -399,6 +531,17 @@ def make_basis():
     ax6.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
     ax6_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax6.plot(quantx, np.add(np.multiply(quantx,ax6_coeff[0]),ax6_coeff[1]), linestyle='--') # regression line
+    labels = dict_Solano_1997['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax6.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax6.set_title('Solano 97')
     #
     quantx = np.array(dict_Wallerstein_2010['laydenFeH'],dtype=float)
@@ -408,6 +551,17 @@ def make_basis():
     ax7_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
     ax7.plot(quantx, np.add(np.multiply(quantx,ax7_coeff[0]),ax7_coeff[1]), linestyle='--') # regression line
     ax7.set_title('Wallerstein 10')
+    labels = dict_Wallerstein_2010['name']
+    labels_x = quantx
+    labels_y = quanty
+    for point in range(0,len(labels)): 
+        ax7.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
     ax7.set_xlabel('FeH_Layden94')
     #
     ax1.set_xlim([-2.9,0.4])
@@ -478,21 +632,47 @@ def make_basis():
     ax1.set_xlim([-2.9,0.4])
     ax1.set_ylim([-2.9,0.4])
     ax1.set_ylabel('FeH_highres_shifted')
+    '''
+    labels = dict_Nemec_2013['name']
+    labels_x = dict_Nemec_2013['laydenFeH']
+    labels_y = dict_Nemec_2013['inputFeH']
+    for point in range(0,len(labels)): 
+        ax1.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
+    '''
     ax1.set_title('m = '+str(coeff2[0])+', b = '+str(coeff2[1]))
     # subplot 2
     [ax2.scatter(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]) for p in range(0,len(dict_merged['laydenFeH']))]
-    reg_x, reg_y = zip(*sorted(zip(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged),b_merged)))) # sort values in x, so that plot line doesn't zigzag
+    reg_x, reg_y = zip(*sorted(zip(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged_resid_shifted),b_merged_resid_shifted)))) # sort values in x, so that plot line doesn't zigzag
     ax2.plot(reg_x, reg_y, linestyle='--') # regression line
     ax2.plot(reg_x, np.zeros(np.shape(reg_y)), linestyle=':') # zero line
     ax2.set_ylim([-0.6,0.6])
     ax2.set_xlabel('FeH_Layden94')
     ax2.set_ylabel('FeH_highres_residuals_shifted')
+    '''
+    labels = dict_Nemec_2013['name']
+    labels_x = dict_Nemec_2013['laydenFeH']
+    labels_y = dict_Nemec_2013['inputFeH']
+    for point in range(0,len(labels)): 
+        ax2.annotate(
+            labels[point],
+            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
+            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
+    '''
     plt.suptitle('chadid_fig7')
     plt.savefig('chadid_fig7_imitation_test.pdf')
     plt.clf()
 
     ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
-    '''
+    
     ########################################
     # END BUNCH OF PLOTS
     ########################################

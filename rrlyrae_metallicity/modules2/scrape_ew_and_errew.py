@@ -296,7 +296,7 @@ class findHK():
         print('HK data written to ' + self.hkFileName)
         
         # make plot: each color is a different star, open circles are bad phase region
-        data_to_plot = pd.read_csv(hkFileName) # read data back in
+        data_to_plot = pd.read_csv(self.hkFileName) # read data back in
         
         # make list of unique star names 
         unique_star_names = data_to_plot.drop_duplicates(subset=['star_name'])['star_name'].values
