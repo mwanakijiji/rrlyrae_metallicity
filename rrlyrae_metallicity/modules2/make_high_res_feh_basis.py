@@ -14,8 +14,11 @@ class lit_metallicities():
 
         # stand-in that consists of our program star names
         self.our_program_stars = pd.read_csv(stem + "our_program_stars_names_only.csv")
+
+        #####################
+        #### RRab stars #####
         
-        # Fe/H from Layden+ 1994
+        # Fe/H from Layden+ 1994; this serves as the common basis
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat",delimiter=';')
         # RES: "rather low"
         
@@ -78,6 +81,21 @@ class lit_metallicities():
         
         # FYI: average Fe/H values in Sneden+ 1997 which were taken at different epochs
         # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
+
+        
+        #####################
+        #### RRc stars ######
+        
+        # Fe/H from Kemper+ 1982; this serves as the common basis
+        self.kemper_feh = pd.read_csv(stem + "kemper_1982_abundances.dat")
+
+        # Fe/H from Govea+ 2014
+        ## ## note: Govea+ has abundances for each phase value, and this includes NLTE phases; how to get single Fe/H?
+        self.govea_feh = pd.read_csv(stem + "govea_2014_abundances.dat", delimiter=";")
+        self.govea_feh['feh'] = np.mean([self.govea_feh['feIh'].values,self.govea_feh['feIIh'].values],axis=0) # average values from the FeI and FeII lines
+        # Res: 27,000; FeI and FeII lines, 3500-9000 A
+        
+        
         
         # initialize arrays: essential info
         empir_spec_name_array = []
@@ -140,8 +158,20 @@ class lit_metallicities():
         return d
 
     
-    # fcn: find stars that overlap with Layden 1994, and return (x,y,z)=(FeH_Lay94,FeH_input-FeH_Lay94,starname)
     def find_match_Layden(self, input_table, layden_table, plot_name, offset=False):
+        '''
+        Find what stars overlap with Layden 1994, and return (x,y,z)=(FeH_Lay94,FeH_input-FeH_Lay94,starname)
+
+        INPUTS:
+        input_table: table I'm interested in checking for overlapping stars
+        layden_table: the layden table, which serves as the basis set
+        plot_name: file name for saving a plot of the results
+
+        OUTPUTS:
+        dictionary with
+        1. overlapping star names
+        2. FeHs from the input_table
+        '''
     
         inputFeH = []
         laydenFeH = []
@@ -208,6 +238,86 @@ class lit_metallicities():
         
         return d
 
+    
+    def find_match_Kemper(self, input_table, kemper_table, plot_name, offset=False):
+        '''
+        Find what stars overlap with Kemper 1982, and return (x,y,z)=(FeH_Kemp82,FeH_input-FeH_Kemp82,starname)
+
+        N.b.
+        1.   This is essentially the equivalent of the find_match_Layden() function, but for RRcs.
+        2.   This also does not include the Chadid-style offset, since that was for RRab stars.
+
+        INPUTS:
+        input_table: table I'm interested in checking for overlapping stars
+        layden_table: the layden table, which serves as the basis set
+        plot_name: file name for saving a plot of the results
+
+        OUTPUTS:
+        dictionary with
+        1. overlapping star names
+        2. FeHs from the input_table
+        '''
+        
+        inputFeH = []
+        kemperFeH = []
+        nameArray = []
+    
+        for row in range(0,len(input_table)): # scan over each row in input table
+            if (kemper_table['name'] == input_table['name'][row]).any():
+            #if (input_table['name'][row] isin kemper_table['name']): # if there's a star name that matches
+                inputFeH = np.append(inputFeH,input_table['feh'][row])
+                kemperFeH = np.append(kemperFeH,kemper_table.loc[kemper_table['name'] == input_table['name'][row]]['feh'])
+                nameArray = np.append(nameArray,input_table['name'][row])
+    
+        residuals = np.subtract(inputFeH,kemperFeH)
+    
+        # best-fit line
+        coeff = np.polyfit(kemperFeH, residuals, 1)
+        limits = [-3.0,0.5]
+        line = np.multiply(coeff[0],limits)+coeff[1]
+
+        ## ## IT APPEARS THE OFFSET FLAG IS DEPRECATED HERE?
+        # if there needs to be an offset (like in Fig. 6 of Chadid+ 2017)
+
+        print('Number of overlapping stars:')
+        print(len(residuals))
+        line_offset = np.add(line,net_offset)
+    
+        # save a plot
+        '''
+        plt.scatter(kemperFeH, np.subtract(inputFeH,kemperFeH))
+        plt.plot([-3.0,0.5], [0., 0.], linestyle='--')
+        plt.plot(limits, line)
+        plt.plot(limits, line_offset)
+        #plt.xlim([-3.0,0.5])
+        #plt.ylim([-0.6,0.6])
+        plt.xlabel('[Fe/H]_Kemp82')
+        plt.ylabel('[Fe/H]_input - [Fe/H]_Kemp82')
+        plt.title('residuals between '+str(plot_name)+' and Kemp82\ny=mx+b, m='+str(coeff[0])+', b='+str(coeff[1])+'\n offset '+str(net_offset))
+        plt.savefig(plot_name+'_test_180708.png')
+        #plt.show()
+        plt.clf()
+        '''
+            
+        # return 
+        # 1. overlapping Kemper82 values
+        # 2. FeH values from lit source
+        # 3. Residuals between 1. and 2. (see Chadid+ 2017 ApJ 835:187, Figs. 5, 6, 7)
+        # 4. coefficients of best-fit line
+        # 5. offset in y to bring lit FeH values to match Chadid+ 2017 at FeH=-1.25 (see Chadid+ 2017 Figs. 5, 6)
+        # 6. Residuals (from 3.) minus the offset (from 5.)  (see Chadid+ 2017 Fig. 7)
+        # 7. The names of the stars (in same order as arrays for 1., 2., 3., 4.)
+        
+        d = dict()
+        d['kemperFeH'] = kemperFeH
+        d['inputFeH'] = inputFeH
+        d['residuals'] = residuals
+        d['coeff'] = coeff
+        d['name'] = nameArray
+        
+        return d
+
+    
 def remap_metal(layden_vals, vals_to_map):
     '''
     This takes metallicity values from a high-res study and maps them onto the Layden scale
@@ -728,7 +838,8 @@ def make_basis():
 
 
     
-    # plot high-res metallicities of our program stars: are the distributions bimodal?
+    # print high-res metallicities of our program stars: are the distributions bimodal?
+    '''
     match_our_lambert = lit_metal.find_match_gen(lit_metal.lambert_logeps, lit_metal.our_program_stars) # find overlaps between high-res and our program stars
     match_our_nemec = lit_metal.find_match_gen(lit_metal.nemec_feh, lit_metal.our_program_stars)
     match_our_liu = lit_metal.find_match_gen(lit_metal.liu_feh2, lit_metal.our_program_stars)
@@ -790,7 +901,7 @@ def make_basis():
         #print(this_star_name)
         #print(this_star_feh)
         #print(this_dataset_name)
-    
+    '''
     
     ########################################
     # END BUNCH OF PLOTS
