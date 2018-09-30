@@ -91,13 +91,7 @@ class lit_metallicities():
 
         # Fe/H from Govea+ 2014
         ## ## note: Govea+ has abundances for each phase value, and this includes NLTE phases; how to get single Fe/H?
-        self.govea_feh = pd.read_csv(stem + "govea_2014_abundances.dat", delimiter=";")
-        self.govea_feh['feh'] = np.mean([self.govea_feh['feIh'].values,self.govea_feh['feIIh'].values],axis=0) # average values from the FeI and FeII lines
-
-        ## ## bug in the below two lines; grouped by column (name) disappears
-        names_list = np.copy(self.govea_feh['name'])
-        self.govea_feh = self.govea_feh.groupby(names_list, axis=0, as_index=False).mean() # now average Fe/H values for different phases ## ## note this still includes bad phase regions        
-        # Res: 27,000; FeI and FeII lines, 3500-9000 A
+        self.govea_feh = pd.read_csv(stem + "govea_2014_abundances.dat")
         
 
         #####################
@@ -429,7 +423,7 @@ def make_basis():
     dict_Nemec_2013_rrc  = lit_metal.find_match_Kemper(lit_metal.nemec_feh,lit_metal.kemper_feh,'Nemec_2013', offset=True)
     
     # find matches: Liu 2013
-    lit_metal.liu_feh2_rrc = lit_metal.liu_feh.groupby(lit_metal.liu_feh['name'], axis=0, as_index=False).mean()
+    lit_metal.liu_feh2_rrc = lit_metal.liu_feh.groupby(lit_metal.liu_feh['name'], axis=0, as_index=False).mean() # take mean of Fe/H across phases for each star ## ## are these phases all within the good region?
     dict_Liu_2013_rrc  = lit_metal.find_match_Kemper(lit_metal.liu_feh2_rrc,lit_metal.kemper_feh,'Liu_2013', offset=True)
     
     # find matches: Chadid 2017
@@ -444,11 +438,12 @@ def make_basis():
     # find matches: Wallerstein+ 2010
     dict_Wallerstein_2010_rrc  = lit_metal.find_match_Kemper(lit_metal.wallerstein_feh,lit_metal.kemper_feh,'Wallerstein_2010', offset=True)
 
-    import ipdb; ipdb.set_trace()
     # find matches: Govea+ 2014
-    dict_Govea_2014_rrc  = lit_metal.find_match_Kemper(lit_metal.govea_feh,lit_metal.kemper_feh,'Govea_2010', offset=True)
-
-    import ipdb; ipdb.set_trace()
+    lit_metal.govea_feh2_rrc = lit_metal.govea_feh.groupby(lit_metal.govea_feh['name'], axis=0, as_index=False).mean() # take mean of Fe/H across phases for each star ## ## are these phases all within the good region?
+    lit_metal.govea_feh2_rrc['feh'] = np.mean([lit_metal.govea_feh2_rrc['feIh'].values,lit_metal.govea_feh2_rrc['feIIh'].values],axis=0) # average values from the FeI and FeII lines
+    lit_metal.govea_feh2_rrc['err_feh'] = np.sqrt(np.add(np.power(lit_metal.govea_feh2_rrc['e_feIh'].values,2),np.power(lit_metal.govea_feh2_rrc['e_feIIh'].values,2))) # get a net error for Fe/H by adding the errors from FeI and FeII in quadrature
+    dict_Govea_2014_rrc  = lit_metal.find_match_Kemper(lit_metal.govea_feh2_rrc,lit_metal.kemper_feh,'Govea_2014', offset=True)
+    
     ## ## IS THE BELOW NEEDED?
     # find matches between Wallerstein and Chadid
     # Chadid stars that appear in Wallerstein
@@ -464,12 +459,13 @@ def make_basis():
         dict_merged_rrc[key] = tuple(dict_merged_rrc[key] for dict_merged_rrc in dict_collect_rrc)
 
     import ipdb; ipdb.set_trace()
-    # plot merged data and fit linreg line (note this is for [Fe/H]_residuals_shifted vs. [Fe/H]_Lay94 )
-    m_merged_resid_shifted, b_merged_resid_shifted = np.polyfit(np.hstack(dict_merged['kemperFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
+    
+    # plot merged data and fit linreg line (note this is for [Fe/H]_residuals vs. [Fe/H]_Kemp82 )
+    m_merged_resid_rrcs, b_merged_resid_rrcs = np.polyfit(np.hstack(dict_merged_rrc['kemperFeH']), np.hstack(dict_merged_rrc['residuals']), 1)
 
     import ipdb; ipdb.set_trace()
-    # plot merged data and fit linreg line (note this is for [Fe/H]_shifted vs. [Fe/H]_Lay94 )
-    m_merged_shifted, b_merged_shifted = np.polyfit(np.hstack(dict_merged['kemperFeH']), np.hstack(np.add(dict_merged['residuals_shifted'],dict_merged['kemperFeH'])), 1)
+    # plot merged data and fit linreg line (note this is for [Fe/H]_highreslit vs. [Fe/H]_Kemp82 )
+    m_merged_rrcs, b_merged_rrcs = np.polyfit(np.hstack(dict_merged_rrc['kemperFeH']), np.hstack(np.add(dict_merged_rrc['residuals'],dict_merged_rrc['kemperFeH'])), 1)
 
     import ipdb; ipdb.set_trace()
     # retrieve our own program stars
