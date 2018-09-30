@@ -93,9 +93,14 @@ class lit_metallicities():
         ## ## note: Govea+ has abundances for each phase value, and this includes NLTE phases; how to get single Fe/H?
         self.govea_feh = pd.read_csv(stem + "govea_2014_abundances.dat", delimiter=";")
         self.govea_feh['feh'] = np.mean([self.govea_feh['feIh'].values,self.govea_feh['feIIh'].values],axis=0) # average values from the FeI and FeII lines
+
+        ## ## bug in the below two lines; grouped by column (name) disappears
+        names_list = np.copy(self.govea_feh['name'])
+        self.govea_feh = self.govea_feh.groupby(names_list, axis=0, as_index=False).mean() # now average Fe/H values for different phases ## ## note this still includes bad phase regions        
         # Res: 27,000; FeI and FeII lines, 3500-9000 A
         
-        
+
+        #####################
         
         # initialize arrays: essential info
         empir_spec_name_array = []
@@ -243,9 +248,10 @@ class lit_metallicities():
         '''
         Find what stars overlap with Kemper 1982, and return (x,y,z)=(FeH_Kemp82,FeH_input-FeH_Kemp82,starname)
 
-        N.b.
-        1.   This is essentially the equivalent of the find_match_Layden() function, but for RRcs.
+        N.b. This is essentially the equivalent of the find_match_Layden() function, but
+        1.   For RRcs.
         2.   This also does not include the Chadid-style offset, since that was for RRab stars.
+        3.   This does not return best-fit coefficients, because the number of overlapping stars is so few.
 
         INPUTS:
         input_table: table I'm interested in checking for overlapping stars
@@ -270,18 +276,13 @@ class lit_metallicities():
                 nameArray = np.append(nameArray,input_table['name'][row])
     
         residuals = np.subtract(inputFeH,kemperFeH)
-    
-        # best-fit line
-        coeff = np.polyfit(kemperFeH, residuals, 1)
-        limits = [-3.0,0.5]
-        line = np.multiply(coeff[0],limits)+coeff[1]
+
 
         ## ## IT APPEARS THE OFFSET FLAG IS DEPRECATED HERE?
         # if there needs to be an offset (like in Fig. 6 of Chadid+ 2017)
 
-        print('Number of overlapping stars:')
+        print('Number of overlapping stars with '+plot_name+':')
         print(len(residuals))
-        line_offset = np.add(line,net_offset)
     
         # save a plot
         '''
@@ -312,7 +313,6 @@ class lit_metallicities():
         d['kemperFeH'] = kemperFeH
         d['inputFeH'] = inputFeH
         d['residuals'] = residuals
-        d['coeff'] = coeff
         d['name'] = nameArray
         
         return d
@@ -353,6 +353,12 @@ def make_basis():
     
     lit_metal = lit_metallicities() # instantiate the class
 
+
+    #####################
+    #### RRab stars #####
+    '''
+    ## ## I think this involves all our program stars; go through and make sure the basis is just for RRabs
+            
     # find matches: Lambert 1996
     dict_Lambert_96 = lit_metal.find_match_Layden(lit_metal.lambert_logeps,lit_metal.layden_feh,'Lambert_96', offset=True)
 
@@ -397,7 +403,6 @@ def make_basis():
     # plot merged data and fit linreg line (note this is for [Fe/H]_shifted vs. [Fe/H]_Lay94 )
     m_merged_shifted, b_merged_shifted = np.polyfit(np.hstack(dict_merged['laydenFeH']), np.hstack(np.add(dict_merged['residuals_shifted'],dict_merged['laydenFeH'])), 1)
 
-
     # retrieve our own program stars
     dict_our_program_stars = lit_metal.find_match_Layden(lit_metal.our_program_stars,lit_metal.layden_feh,'NaN', offset=True) # find our stars that overlap with Layden 94
 
@@ -412,10 +417,81 @@ def make_basis():
     no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
     
     # rescale_lit_metallicities to find high-res Fe/H, via FeH = m * FeH_Layden + b
+    '''
 
+    #####################
+    #### RRc stars ######
+
+    # find matches: Lambert 1996
+    dict_Lambert_96_rrc = lit_metal.find_match_Kemper(lit_metal.lambert_logeps,lit_metal.kemper_feh,'Lambert_96', offset=True)
+
+    # find matches: Nemec 2013
+    dict_Nemec_2013_rrc  = lit_metal.find_match_Kemper(lit_metal.nemec_feh,lit_metal.kemper_feh,'Nemec_2013', offset=True)
+    
+    # find matches: Liu 2013
+    lit_metal.liu_feh2_rrc = lit_metal.liu_feh.groupby(lit_metal.liu_feh['name'], axis=0, as_index=False).mean()
+    dict_Liu_2013_rrc  = lit_metal.find_match_Kemper(lit_metal.liu_feh2_rrc,lit_metal.kemper_feh,'Liu_2013', offset=True)
+    
+    # find matches: Chadid 2017
+    dict_Chadid_2017_rrc  = lit_metal.find_match_Kemper(lit_metal.chadid_feh,lit_metal.kemper_feh,'Chadid_2017', offset=True)
+
+    # find matches: Fernley 1997
+    dict_Fernley_1997_rrc  = lit_metal.find_match_Kemper(lit_metal.fernley97_feh,lit_metal.kemper_feh,'Fernley_1997', offset=True)
+
+    # find matches: Solano 1997
+    dict_Solano_1997_rrc  = lit_metal.find_match_Kemper(lit_metal.solano_feh,lit_metal.kemper_feh,'Solano_1997', offset=True)
+    
+    # find matches: Wallerstein+ 2010
+    dict_Wallerstein_2010_rrc  = lit_metal.find_match_Kemper(lit_metal.wallerstein_feh,lit_metal.kemper_feh,'Wallerstein_2010', offset=True)
+
+    import ipdb; ipdb.set_trace()
+    # find matches: Govea+ 2014
+    dict_Govea_2014_rrc  = lit_metal.find_match_Kemper(lit_metal.govea_feh,lit_metal.kemper_feh,'Govea_2010', offset=True)
+
+    import ipdb; ipdb.set_trace()
+    ## ## IS THE BELOW NEEDED?
+    # find matches between Wallerstein and Chadid
+    # Chadid stars that appear in Wallerstein
+    #chadid_winnow = lit_metal.chadid_feh[chadid_feh['star'].isin(wallerstein_feh['star'])]
+    # Wallerstein stars that appear in Chadid
+    #wallerstein_winnow = lit_metal.wallerstein_feh[wallerstein_feh['star'].isin(chadid_feh['star'])]
+    
+    # merge the metallicity dictionaries
+    dict_collect_rrc = [dict_Lambert_96_rrc, dict_Nemec_2013_rrc, dict_Liu_2013_rrc, dict_Chadid_2017_rrc, 
+            dict_Fernley_1997_rrc, dict_Solano_1997_rrc, dict_Wallerstein_2010_rrc, dict_Govea_2014_rrc]
+    dict_merged_rrc = {}
+    for key in dict_Lambert_96_rrc:
+        dict_merged_rrc[key] = tuple(dict_merged_rrc[key] for dict_merged_rrc in dict_collect_rrc)
+
+    import ipdb; ipdb.set_trace()
+    # plot merged data and fit linreg line (note this is for [Fe/H]_residuals_shifted vs. [Fe/H]_Lay94 )
+    m_merged_resid_shifted, b_merged_resid_shifted = np.polyfit(np.hstack(dict_merged['kemperFeH']), np.hstack(dict_merged['residuals_shifted']), 1)
+
+    import ipdb; ipdb.set_trace()
+    # plot merged data and fit linreg line (note this is for [Fe/H]_shifted vs. [Fe/H]_Lay94 )
+    m_merged_shifted, b_merged_shifted = np.polyfit(np.hstack(dict_merged['kemperFeH']), np.hstack(np.add(dict_merged['residuals_shifted'],dict_merged['kemperFeH'])), 1)
+
+    import ipdb; ipdb.set_trace()
+    # retrieve our own program stars
+    dict_our_program_stars = lit_metal.find_match_Kemper(lit_metal.our_program_stars,lit_metal.kemper_feh,'NaN', offset=True) # find our stars that overlap with Kemper 94
+
+    import ipdb; ipdb.set_trace()
+    # remap metallicities via
+    # [Fe/H]_highres = m*[Fe/H]_Lay94 + b
+    dict_our_program_stars['mapped_feh'] = np.add(np.multiply(dict_our_program_stars['kemperFeH'],m_merged_shifted),b_merged_shifted)
+
+    import ipdb; ipdb.set_trace()
+    # write out
+    convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
+    convert_to_df.columns = ['name'] # rename the column
+    convert_to_df['mapped_feh'] = pd.DataFrame.from_dict(dict_our_program_stars['mapped_feh']) # add the remapped Fe/H
+    no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
+    
+    # rescale_lit_metallicities to find high-res Fe/H, via FeH = m * FeH_Kemper + b
+    
 
     ########################################
-    # BEGIN BUNCH OF PLOTS
+    # BEGIN BUNCH OF PLOTS FOR RRABS
     ########################################
     
     plt.clf()
