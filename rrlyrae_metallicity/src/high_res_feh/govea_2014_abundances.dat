@@ -1,4 +1,4 @@
-name,phase,feIh,e_feIh,feIIh,e_feIIh
+name,phase,feIh,err_feIh,feIIh,err_feIIh
 AS081933,0.377,-2.81,0.28,-2.81,0.32
 AS081933,0.433,-2.78,0.09,-2.84,0.10
 AS081933,0.911,-3.07,0.14,-3.08,0.09
