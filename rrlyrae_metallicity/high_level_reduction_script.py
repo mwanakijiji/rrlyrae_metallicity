@@ -53,8 +53,13 @@ def main():
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
-    # make FeH basis from literature (stand-alone part of code)
-    make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
+    # THE FOLLOWING COMMAND IS OLD
+    ## make FeH basis from literature (stand-alone part of code)
+    #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
+
+    # EXAMPLE COMMANDS FOR GENERATING FE/H BASIS AND CALCULATING FE/H FOR OUR STARS
+    test_rrab = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRab",offset=True).calc_FeH_program_stars()
+    test_rrc = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").calc_FeH_program_stars()
 
     '''
     # assign phase values to spectra, put remaining data into giant table

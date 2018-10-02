@@ -4,20 +4,26 @@ import matplotlib.pyplot as plt
 import sys
 
 class LitMetallicities():
-    
-    ##############################################################################
-    # STEP X: READ IN LITERATURE METALLICITY VALUES AND RESCALE
-    ##############################################################################
+    '''
+    Read in metallicities from high-res studies and basis data sets, and
+    define matching of stars between data sets.
+    '''
     
     def __init__(self):
     
         stem = "./rrlyrae_metallicity/src/high_res_feh/"
 
+        
+        ####################################
+        #### calibration program stars #####
+
         # stand-in that consists of our program star names
         self.our_program_stars = pd.read_csv(stem + "our_program_stars_names_only.csv")
 
-        #####################
-        #### RRab stars #####
+        
+        #######################################################
+        #### basis set and high-res studies of RRab stars #####
+        # (N.b. some RRcs are among them too, but basis set should only be RRabs)
         
         # Fe/H from Layden+ 1994; this serves as the common basis
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat")
@@ -85,8 +91,8 @@ class LitMetallicities():
         # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
 
         
-        #####################
-        #### RRc stars ######
+        #######################################################
+        #### basis set and high-res studies of RRc stars ######
         
         # Fe/H from Kemper+ 1982; this serves as the common basis
         self.kemper_feh = pd.read_csv(stem + "kemper_1982_abundances.dat")
@@ -117,22 +123,17 @@ class LitMetallicities():
         err_Hdel_data_array = []
         Heps_data_array = []
         err_Heps_data_array = []
+
         
     def __call__(self):
         
         # make a list of all UNIQUE, EMPIRICAL spectrum names
         uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
 
-        ## ##
-        #self.stem = "~/Documents/PythonPrograms/all_Python_code/2018_03_31_rrlyrae_rescale_a_la_chadid/"
-        # log(eps) from Lambert+ 1996
-        #lambert_logeps = pd.read_csv(self.stem + "lambert_1996_abundances.dat")
-        # RES: ~23,000, FeII + photometric models, 3600-9000 A
-
         
     def matchmaker(self, input_table, basis_table):
         '''
-        Find what stars are common to the two input tables, and return array of FeHs from the first table
+        Find what stars are common to the two input tables, and return array of FeHs from the first and basis tables
 
         INPUTS:
         input_table: table I'm interested in checking for overlapping stars
@@ -150,7 +151,7 @@ class LitMetallicities():
         self.basis_table = basis_table
             
         input_FeH = [] # Fe/H of high-res study
-        basis_FeH = [] # Fe/H of basis (ex. Layden+ 94)
+        basis_FeH = [] # Fe/H of basis (ex. Layden 1994)
         name_array = [] # name of star
 
         for row in range(0,len(input_table)): # scan over each row in input table
@@ -183,8 +184,11 @@ class LitMetallicities():
         return d
 
     
-
 class MetalBasisTypeSpecific(LitMetallicities):
+    '''
+    For a given RR Lyrae subtype, generate a metallicity basis and calculate
+    the abundances of stars in the calibration program dataset.
+    '''
 
     def __init__(self, plot_name, star_type="RRab", offset=False):
         super().__init__()
@@ -192,39 +196,9 @@ class MetalBasisTypeSpecific(LitMetallicities):
         self.__star_type = star_type
         self.__offset = offset
 
-    def calc_FeH_program_stars(self, basis_set):
-        '''
-        Calculate metallicities for the program stars which form the basis of the
-        metallicity calibration, by using the remapping relationships
-
-        INPUTS:
-        basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
-        '''
-
-        # retrieve our own program stars and remap those of the right type
-        if self.__star_type == "RRab":
-            type_string = "ab"
-        elif self.__star_type == "RRc":
-            type_string = "c"
-
-        ## ## retrieve our stars here, and extract only those which conform to the right type
-        
-        dict_our_program_stars = {}   self.our_program_stars
-
-        # remap metallicities via
-        # [Fe/H]_highres = m*[Fe/H]_basis_set + b
-        dict_our_program_stars['mapped_feh'] = np.add(np.multiply(dict_our_program_stars['laydenFeH'],m_merged_shifted),b_merged_shifted)
-    
-        # write out
-        convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
-        convert_to_df.columns = ['name'] # rename the column
-        convert_to_df['mapped_feh'] = pd.DataFrame.from_dict(dict_our_program_stars['mapped_feh']) # add the remapped Fe/H
-        no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
-    
-
     def make_basis(self):
         '''
-        Find what stars overlap with Layden 1994 (i.e., RRab stars), and return star name, FeH values, residuals
+        Find what stars overlap with basis data set, and return star name, FeH values, residuals
                 
         The functionality of LitMetallicities is inherited, and we just add Chadid+ 17-style offsets, a best-fit line, and plotting functionality
 
@@ -242,9 +216,11 @@ class MetalBasisTypeSpecific(LitMetallicities):
 
         # define the basis data set (like Layden+ 1994 for RRabs, or Kemper+ 1982 for RRcs)
         if self.__star_type == "RRab":
+            type_string = "ab"
             basis_set = self.layden_feh
             basis_string = "Layden RRab basis set" # string for plots
         elif self.__star_type == "RRc":
+            type_string = "c"
             basis_set = self.kemper_feh
             basis_string = "Kemper RRc basis set"
         else:
@@ -274,6 +250,7 @@ class MetalBasisTypeSpecific(LitMetallicities):
         basis_data_merged = np.hstack(dict_merged['basis_FeH'])
         highres_data_merged = np.hstack(dict_merged['input_FeH'])
         residuals_data_merged = np.hstack(dict_merged['residuals_FeH'])
+        names_merged = np.hstack(dict_merged['name'])
 
         # find best-fit line (note that user may have used a flag to make Fe/H values be offset)
         limits = [-3.0,0.5]
@@ -284,18 +261,21 @@ class MetalBasisTypeSpecific(LitMetallicities):
             
         # save a plot (high_res vs. basis on top; residuals vs. basis on bottom)
         plt.clf()
-        fig, axs = plt.subplots(2, 1, sharex=True)
+        fig, axs = plt.subplots(2, 1, figsize=(10,10), sharex=True)
+        axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
+        axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle='--') # best-fit line
         axs[0].scatter(basis_data_merged, highres_data_merged) # input vs. basis
         axs[0].set_xlim(limits[0], limits[1])
         axs[0].set_ylabel("Fe/H, high-res")
-        axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres))
+        axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres)+"; (blue line: 1-to-1; orange line: best fit)")
+        axs[1].axhline(y=0, linestyle='--') # dashed line at y=0
         axs[1].scatter(basis_data_merged, residuals_data_merged) # input vs. basis
         axs[1].set_xlabel("Fe/H, "+basis_string)
         axs[1].set_ylabel('Fe/H Residuals: high-res minus basis set')
-        axs[1].set_title("m = "+str(m_merged_resid)+", b = "+str(b_merged_resid))
-        fig.tight_layout()
-        plt.savefig(self.__plot_name, overwrite=True)
-        #plt.show()
+        axs[1].set_title("m = "+str(m_merged_resid)+", b = "+str(b_merged_resid)+"; (blue line: zero)")
+        fig.suptitle('Finding remapping relation between\nhigh-res studies and basis dataset\n('+type_string+' subtype)')
+        #fig.tight_layout()
+        plt.savefig('remapping_'+self.__plot_name, overwrite=True)
         plt.clf()
         
             
@@ -309,534 +289,81 @@ class MetalBasisTypeSpecific(LitMetallicities):
         # 7. The names of the stars (in same order as arrays for 1., 2., 3., 4.)
         
         d = dict()
-        d['laydenFeH'] = laydenFeH
-        d['inputFeH'] = inputFeH
-        d['residuals'] = residuals
-        d['coeff'] = coeff
-        d['net_offset'] = net_offset # this needs to be ADDED to high-res study data to make it match Chadid
-        d['residuals_shifted'] = np.add(residuals,net_offset)
-        d['name'] = nameArray
+        d['basis_FeH'] = basis_data_merged
+        d['input_FeH'] = highres_data_merged
+        d['residuals'] = residuals_data_merged
+        d['coeff_merged_highres'] = [m_merged_highres, b_merged_highres] # best-fit line coeffs for high-res vs. basis 
+        d['coeff_merged_resid'] = [m_merged_resid, b_merged_resid] # best-fit line coeffs for (residuals: high-res minus basis) vs. basis 
+        #d['net_offset'] = net_offset # this needs to be ADDED to high-res study data to make it match Chadid
+        #d['residuals_shifted'] = np.add(residuals,net_offset)
+        d['name'] = names_merged
         
         return d
-
     
-    def remap_metal(layden_vals, vals_to_map):
+    
+    def calc_FeH_program_stars(self):
         '''
-        Takes metallicity values from a high-res study and maps them onto a basis scale
-        Note this is with a slope and y-intercept
+        Calculate metallicities for the program stars which form the basis of the
+        metallicity calibration, by using the remapping relationships
 
         INPUTS:
-        vals_to_map: metallicity values from a high-resolution we want to put onto the Layden 94 scale
-        layden_vals: corresponding values given by Layden 94
-
-        OUTPUTS:
-        d: dictionary containing 1.) the remapped values from the high-res study; 2.) the coefficients from the fit
+        basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
         '''
 
-        coeffs = np.polyfit(layden_vals,vals_to_map,1)
-        vals_mapped = np.divide(np.subtract(vals_to_map,coeffs[1]),coeffs[0])
+        # retrieve our own program stars and remap those of the right type
+        if self.__star_type == "RRab":
+            type_string = "ab"
+            basis_set = self.layden_feh
+            basis_string = "Layden RRab basis set" # string for plots
+        elif self.__star_type == "RRc":
+            type_string = "c"
+            basis_set = self.kemper_feh
+            basis_string = "Kemper RRc basis set"
 
-        d = {
-            'vals_mapped': vals_mapped,
-            'coeffs': coeffs
-            }
+        # retrieve our stars here, and extract only those which conform to the right type
+        program_stars_subset = self.our_program_stars.loc[self.our_program_stars['type'] == type_string].reset_index()
+        
+        # find matches with the basis set
+        program_stars_subset_matched = self.matchmaker(program_stars_subset, basis_set)
+
+        # make the Fe/H basis and return the coefficients of the linear remapping
+        map_info = self.make_basis()
+        
+        # remap metallicities via
+        # [Fe/H]_highres = m*[Fe/H]_basis_set + b   
+        program_stars_subset_matched['mapped_FeH'] = np.add(np.multiply(program_stars_subset_matched['basis_FeH'],
+                                                                        map_info['coeff_merged_highres'][0]),
+                                                            map_info['coeff_merged_highres'][1])
+        
+        print(program_stars_subset_matched.keys())
+        # save a plot of calibration program stars Fe/H
+        # post-mapped Fe/H vs. pre-mapped (i.e., basis set) Fe/H
+        limits = [-3.0,0.5]
+        plt.clf()
+        fig, axs = plt.subplots(1, 1, figsize=(10,10))
+        axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
+        axs.scatter(program_stars_subset_matched['basis_FeH'], program_stars_subset_matched['mapped_FeH']) # input vs. basis
+        axs.set_xlim(limits[0], limits[1])
+        axs.set_ylabel("Fe/H, high-res")
+        axs.set_xlabel("Fe/H, "+basis_string)
+        #axs.set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres))
+
+        fig.suptitle('Calculated Fe/H of calibration program stars\n('+type_string+' subtype)')
+        #fig.tight_layout()
+        plt.savefig('calculated_FeH_'+self.__plot_name, overwrite=True)
+        plt.clf()
     
-        return d
-   
-
-    
-
-    ########################################
-    # BEGIN BUNCH OF PLOTS FOR RRABS
-    ########################################
-    
-    plt.clf()
-    remapped_Lambert = remap_metal(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'])
-    plt.scatter(dict_Lambert_96['laydenFeH'], dict_Lambert_96['inputFeH'], color='orange')
-    plt.scatter(dict_Lambert_96['laydenFeH'], remapped_Lambert['vals_mapped'])
-    plt.plot(dict_Lambert_96['laydenFeH'], dict_Lambert_96['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Lambert['coeffs']))
-    labels = dict_Lambert_96['name']
-    labels_x = dict_Lambert_96['laydenFeH']
-    labels_y = dict_Lambert_96['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_lambert.pdf')
-    
-    plt.clf()
-    remapped_Nemec = remap_metal(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'])
-    plt.scatter(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['inputFeH'], color='orange')
-    plt.scatter(dict_Nemec_2013['laydenFeH'], remapped_Nemec['vals_mapped'])
-    plt.plot(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Nemec['coeffs']))
-    labels = dict_Nemec_2013['name']
-    labels_x = dict_Nemec_2013['laydenFeH']
-    labels_y = dict_Nemec_2013['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_nemec.pdf')
-
-    plt.clf()
-    remapped_Liu = remap_metal(dict_Liu_2013['laydenFeH'], dict_Liu_2013['inputFeH'])
-    plt.scatter(dict_Liu_2013['laydenFeH'], dict_Liu_2013['inputFeH'], color='orange')
-    plt.scatter(dict_Liu_2013['laydenFeH'], remapped_Liu['vals_mapped'])
-    plt.plot(dict_Liu_2013['laydenFeH'], dict_Liu_2013['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Liu['coeffs']))
-    labels = dict_Liu_2013['name']
-    labels_x = dict_Liu_2013['laydenFeH']
-    labels_y = dict_Liu_2013['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_liu.pdf')
-
-    plt.clf()
-    remapped_Chadid = remap_metal(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['inputFeH'])
-    plt.scatter(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['inputFeH'], color='orange')
-    plt.scatter(dict_Chadid_2017['laydenFeH'], remapped_Chadid['vals_mapped'])
-    plt.plot(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Chadid['coeffs']))
-    labels = dict_Chadid_2017['name']
-    labels_x = dict_Chadid_2017['laydenFeH']
-    labels_y = dict_Chadid_2017['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_chadid.pdf')
-
-    plt.clf()
-    remapped_Fernley = remap_metal(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['inputFeH'])
-    plt.scatter(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['inputFeH'], color='orange')
-    plt.scatter(dict_Fernley_1997['laydenFeH'], remapped_Fernley['vals_mapped'])
-    plt.plot(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Fernley['coeffs']))
-    labels = dict_Fernley_1997['name']
-    labels_x = dict_Fernley_1997['laydenFeH']
-    labels_y = dict_Fernley_1997['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_fernley.pdf')
-
-    plt.clf()
-    remapped_Solano = remap_metal(dict_Solano_1997['laydenFeH'], dict_Solano_1997['inputFeH'])
-    plt.scatter(dict_Solano_1997['laydenFeH'], dict_Solano_1997['inputFeH'], color='orange')
-    plt.scatter(dict_Solano_1997['laydenFeH'], remapped_Solano['vals_mapped'])
-    plt.plot(dict_Solano_1997['laydenFeH'], dict_Solano_1997['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Solano['coeffs']))
-    labels = dict_Solano_1997['name']
-    labels_x = dict_Solano_1997['laydenFeH']
-    labels_y = dict_Solano_1997['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_solano.pdf')
-
-    plt.clf()
-    remapped_Wallerstein = remap_metal(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['inputFeH'])
-    plt.scatter(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['inputFeH'], color='orange')
-    plt.scatter(dict_Wallerstein_2010['laydenFeH'], remapped_Wallerstein['vals_mapped'])
-    plt.plot(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['laydenFeH'], linestyle = ':')
-    plt.xlabel('Layden 94 Fe/H')
-    plt.ylabel('High-res Fe/H')
-    plt.title('coeffs '+str(remapped_Wallerstein['coeffs']))
-    labels = dict_Wallerstein_2010['name']
-    labels_x = dict_Wallerstein_2010['laydenFeH']
-    labels_y = dict_Wallerstein_2010['inputFeH']
-    for point in range(0,len(labels)): 
-        plt.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    plt.savefig('test_wallerstein.pdf')
-    
-    ### make a plot like Chadid+ 2017 Fig. 5 (residuals between high res study FeHs and Layden94 FeH vs. Layden94 FeH)
-    
-    plt.clf() # clear plot space
-    f, (ax1, ax2, ax3, ax4, ax5, ax6, ax7) = plt.subplots(7, 1, figsize=(10,25), sharex=True)
-    #
-    quantx = np.array(dict_Fernley_1997['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Fernley_1997['residuals'], dtype=float)
-    ax1.scatter(quantx, quanty)
-    ax1.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax1_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax1.plot(quantx, np.add(np.multiply(quantx,ax1_coeff[0]),ax1_coeff[1]), linestyle='--') # regression line
-    labels = dict_Fernley_1997['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax1.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax1.set_title('Fernley 97')
-    #
-    quantx = np.array(dict_Lambert_96['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Lambert_96['residuals'], dtype=float)
-    ax2.scatter(quantx, quanty)
-    ax2.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax2_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax2.plot(quantx, np.add(np.multiply(quantx,ax2_coeff[0]),ax2_coeff[1]), linestyle='--') # regression line
-    labels = dict_Lambert_96['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax2.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax2.set_title('Lambert 96')
-    #
-    quantx = np.array(dict_Nemec_2013['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Nemec_2013['residuals'], dtype=float)
-    ax3.scatter(quantx, quanty)
-    ax3.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax3_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax3.plot(quantx, np.add(np.multiply(quantx,ax3_coeff[0]),ax3_coeff[1]), linestyle='--') # regression line
-    labels = dict_Nemec_2013['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax3.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax3.set_title('Nemec 13')
-    #
-    quantx = np.array(dict_Liu_2013['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Liu_2013['residuals'], dtype=float)
-    ax4.scatter(quantx, quanty)
-    ax4.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax4_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax4.plot(quantx, np.add(np.multiply(quantx,ax4_coeff[0]),ax4_coeff[1]), linestyle='--') # regression line
-    labels = dict_Liu_2013['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax4.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax4.set_title('Liu 13')
-    #
-    quantx = np.array(dict_Chadid_2017['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Chadid_2017['residuals'], dtype=float)
-    ax5.scatter(quantx, quanty)
-    ax5.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax5_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax5.plot(quantx, np.add(np.multiply(quantx,ax5_coeff[0]),ax5_coeff[1]), linestyle='--') # regression line
-    labels = dict_Chadid_2017['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax5.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax5.set_title('Chadid 17')
-    #
-    quantx = np.array(dict_Solano_1997['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Solano_1997['residuals'], dtype=float)
-    ax6.scatter(quantx, quanty)
-    ax6.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax6_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax6.plot(quantx, np.add(np.multiply(quantx,ax6_coeff[0]),ax6_coeff[1]), linestyle='--') # regression line
-    labels = dict_Solano_1997['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax6.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax6.set_title('Solano 97')
-    #
-    quantx = np.array(dict_Wallerstein_2010['laydenFeH'],dtype=float)
-    quanty = np.array(dict_Wallerstein_2010['residuals'], dtype=float)
-    ax7.scatter(quantx, quanty)
-    ax7.plot(quantx, np.zeros(np.shape(quantx)), color='k', linestyle=':') # zero line
-    ax7_coeff = np.polyfit(quantx.ravel(), quanty.ravel(), 1)
-    ax7.plot(quantx, np.add(np.multiply(quantx,ax7_coeff[0]),ax7_coeff[1]), linestyle='--') # regression line
-    ax7.set_title('Wallerstein 10')
-    labels = dict_Wallerstein_2010['name']
-    labels_x = quantx
-    labels_y = quanty
-    for point in range(0,len(labels)): 
-        ax7.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    ax7.set_xlabel('FeH_Layden94')
-    #
-    ax1.set_xlim([-2.9,0.4])
-    ax1.set_ylim([-0.6,0.6])
-    ax2.set_ylim([-0.6,0.6])
-    ax3.set_ylim([-0.6,0.6])
-    ax4.set_ylim([-0.6,0.6])
-    ax5.set_ylim([-0.6,0.6])
-    ax6.set_ylim([-0.6,0.6])
-    ax7.set_ylim([-0.6,0.6])
-    
-    plt.ylabel('FeH_highres')
-    #plt.title('chadid_fig5')
-    plt.tight_layout()
-    plt.savefig('chadid_fig5_imitation_test.pdf')
-    
-    plt.clf()
-
-    ### make a plot like Chadid+ 2017 Fig. 6 (same as Fig. 5, but by shifting in y to match Chadid at FeH_Layden94=-1.25; except that Chadid+ 17 also
-    ### reprocesses Clementini and Pancino FeH, which we dont do)
-    plt.clf() # clear plot space
-    f, (ax1, ax2, ax3, ax4, ax5, ax6, ax7) = plt.subplots(7, 1, figsize=(10,25), sharex=True)
-    ax1.scatter(dict_Fernley_1997['laydenFeH'], dict_Fernley_1997['residuals_shifted'])
-    ax1.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax1.set_title('Fernley 97')
-    ax2.scatter(dict_Lambert_96['laydenFeH'], dict_Lambert_96['residuals_shifted'])
-    ax2.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax2.set_title('Lambert 96')
-    ax3.scatter(dict_Nemec_2013['laydenFeH'], dict_Nemec_2013['residuals_shifted'])
-    ax3.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax3.set_title('Nemec 13')
-    ax4.scatter(dict_Liu_2013['laydenFeH'], dict_Liu_2013['residuals_shifted'])
-    ax4.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax4.set_title('Liu 13')
-    ax5.scatter(dict_Chadid_2017['laydenFeH'], dict_Chadid_2017['residuals_shifted'])
-    ax5.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax5.set_title('Chadid 17')
-    ax6.scatter(dict_Solano_1997['laydenFeH'], dict_Solano_1997['residuals_shifted'])
-    ax6.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax6.set_title('Solano 97')
-    ax7.scatter(dict_Wallerstein_2010['laydenFeH'], dict_Wallerstein_2010['residuals_shifted'])
-    ax7.plot(dict_Fernley_1997['laydenFeH'], np.zeros(np.shape(dict_Fernley_1997['laydenFeH'])), linestyle=':') # zero line
-    ax7.set_title('Wallerstein 10')
-    ax7.set_xlabel('FeH_Layden94')
-    ax1.set_xlim([-2.9,0.4])
-    ax1.set_ylim([-0.6,0.6])
-    ax2.set_ylim([-0.6,0.6])
-    ax3.set_ylim([-0.6,0.6])
-    ax4.set_ylim([-0.6,0.6])
-    ax5.set_ylim([-0.6,0.6])
-    ax6.set_ylim([-0.6,0.6])
-    ax7.set_ylim([-0.6,0.6])
-    plt.ylabel('FeH_highres_residuals_shifted')
-    #plt.title('chadid_fig6')
-    plt.tight_layout()
-    plt.savefig('chadid_fig6_imitation_test.pdf')
-    plt.clf()
-
-    ### make a plot like Chadid+ 2017 Fig. 7
-    plt.clf() # clear plot space
-    f, (ax1, ax2) = plt.subplots(2, 1, figsize=(6,9), sharex=True)
-    # subplot 1
-    to_plot_x_all = dict_merged['laydenFeH'] # consolidate stuff to find regression coefficients
-    to_plot_y_all = np.add(dict_merged['residuals_shifted'],dict_merged['laydenFeH'])
-    [ax1.scatter(dict_merged['laydenFeH'][p], np.add(dict_merged['residuals_shifted'][p],dict_merged['laydenFeH'][p])) for p in range(0,len(dict_merged['laydenFeH']))]
-    coeff2 = np.polyfit(np.concatenate(to_plot_x_all).ravel(), np.concatenate(to_plot_y_all).ravel(), 1) # regression coefficients to make high-res Fe/H values
-    ax1.plot(np.arange(-3,1,step=0.1),np.arange(-3,1,step=0.1),linestyle='--') # one-to-one
-    ax1.set_xlim([-2.9,0.4])
-    ax1.set_ylim([-2.9,0.4])
-    ax1.set_ylabel('FeH_highres_shifted')
-
-    for p in range(0,len(dict_merged['laydenFeH'])): # add labels
-        for label, x, y in zip(dict_merged["name"][p], dict_merged["laydenFeH"][p], np.add(dict_merged['residuals_shifted'][p],dict_merged['laydenFeH'][p])):
-            ax1.annotate(label, xy = (x, y))
-    '''
-    labels = dict_Nemec_2013['name']
-    labels_x = dict_Nemec_2013['laydenFeH']
-    labels_y = dict_Nemec_2013['inputFeH']
-    for point in range(0,len(labels)): 
-        ax1.annotate(
-            labels[point],
-            xy=(labels_x[point], labels_y[point]), xytext=(labels_x[point]+0.1, labels_y[point]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    '''
-    ax1.set_title('m = '+str(coeff2[0])+', b = '+str(coeff2[1]))
-    # subplot 2
-    [ax2.scatter(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]) for p in range(0,len(dict_merged['laydenFeH']))]
+        '''
+        # write out
+        convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
+        convert_to_df.columns = ['name'] # rename the column
+        convert_to_df['mapped_feh'] = pd.DataFrame.from_dict(dict_our_program_stars['mapped_feh']) # add the remapped Fe/H
+        no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
+        '''
 
     '''
-    ax2.annotate(
-            np.ravel(dict_merged['name'][0].values()),
-            xy=(np.ravel(dict_merged['laydenFeH'][0].values()), np.ravel(dict_merged['residuals_shifted'][0].values())),
-            xytext=(np.ravel(dict_merged['laydenFeH'][0].values()), np.ravel(dict_merged['residuals_shifted'][0].values())),
-            textcoords='data')
+    ## ##
+    EXAMPLE COMMANDS IN THE HIGHER-LEVEL SCRIPT:
+    test_rrab = MetalBasisTypeSpecific(plot_name='name_here',offset=True).calc_FeH_program_stars()
+    test_rrc = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").calc_FeH_program_stars()
     '''
-
-    for p in range(0,len(dict_merged['laydenFeH'])): # add labels
-        for label, x, y in zip(dict_merged["name"][p], dict_merged["laydenFeH"][p], dict_merged["residuals_shifted"][p]):
-            ax2.annotate(label, xy = (x, y))
-    
-    '''
-    for p in range(0,len(dict_merged['laydenFeH'])): # add labels
-        ax2.annotate(
-            dict_merged['name'][p],
-            xy=(dict_merged['laydenFeH'][p], dict_merged['residuals_shifted'][p]),
-            xytext=(dict_merged['laydenFeH'][p]+0.1, dict_merged['residuals_shifted'][p]+0.06),
-            textcoords='data', ha='right', va='bottom',
-            fontsize=10,
-            bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=1),
-            arrowprops=dict(arrowstyle = '->', connectionstyle='arc3,rad=0'))
-    '''
-    reg_x, reg_y = zip(*sorted(zip(np.hstack(dict_merged['laydenFeH']), np.add(np.multiply(np.hstack(dict_merged['laydenFeH']),m_merged_resid_shifted),b_merged_resid_shifted)))) # sort values in x, so that plot line doesn't zigzag
-    ax2.plot(reg_x, reg_y, linestyle='--') # regression line
-    ax2.plot(reg_x, np.zeros(np.shape(reg_y)), linestyle=':') # zero line
-    ax2.set_ylim([-0.6,0.6])
-    ax2.set_xlabel('FeH_Layden94')
-    ax2.set_ylabel('FeH_highres_residuals_shifted')
-
-    '''
-    labels = dict_Nemec_2013['name']
-    labels_x = dict_Nemec_2013['laydenFeH']
-    labels_y = dict_Nemec_2013['inputFeH']
-    for point in range(0,len(labels)): 
-    '''
-
-    plt.suptitle('chadid_fig7')
-    plt.savefig('chadid_fig7_imitation_test.pdf')
-    plt.clf()
-
-    ## ## CAUTION: TEST TO SEE IF THE CONTENT IN THE KEYS IS IN ORDER (I.E., MAKE A PLOT AND SEE IF ITS THE SAME IF DATASETS ARE OVERLAID INDIVIDUALLY)
-
-
-    
-    # print high-res metallicities of our program stars: are the distributions bimodal?
-    '''
-    match_our_lambert = lit_metal.find_match_gen(lit_metal.lambert_logeps, lit_metal.our_program_stars) # find overlaps between high-res and our program stars
-    match_our_nemec = lit_metal.find_match_gen(lit_metal.nemec_feh, lit_metal.our_program_stars)
-    match_our_liu = lit_metal.find_match_gen(lit_metal.liu_feh2, lit_metal.our_program_stars)
-    match_our_chadid = lit_metal.find_match_gen(lit_metal.chadid_feh, lit_metal.our_program_stars)
-    match_our_fernley = lit_metal.find_match_gen(lit_metal.fernley97_feh, lit_metal.our_program_stars)
-    match_our_solano = lit_metal.find_match_gen(lit_metal.solano_feh, lit_metal.our_program_stars)
-    match_our_wallerstein = lit_metal.find_match_gen(lit_metal.wallerstein_feh, lit_metal.our_program_stars)
-    all_high_res = [match_our_lambert,
-                    match_our_nemec,
-                    match_our_liu,
-                    match_our_chadid,
-                    match_our_fernley,
-                    match_our_solano,
-                    match_our_wallerstein]
-    all_high_res_names = ['lambert',
-                    'nemec',
-                    'liu',
-                    'chadid',
-                    'fernley',
-                    'solano',
-                    'wallerstein']        
-    # now plot the FeH values, star by star
-    plt.clf() # clear plot space
-
-    # for a given star in our own dataset, find all FeH values for that star in all the high-res studies
-    for row in range(0,len(lit_metal.our_program_stars)):
-        print('----START NEW STAR---')
-        this_star_name = []
-        this_star_feh = []
-        this_dataset_name = []
-        # check each dataset for a match
-        for dataset in range(0,len(all_high_res)):
-            ix = np.isin(all_high_res[dataset]['name'], lit_metal.our_program_stars['name'][row]) # index of first argument which appears in second (i.e., the name of the star)
-            if (len(np.where(ix==True)[0]) == 1): # if there is one name match (protects against return of an empty array)
-
-                this_star_name = np.concatenate((this_star_name,all_high_res[dataset]['name'][ix]))
-                this_star_feh = np.concatenate((this_star_feh,all_high_res[dataset]['feh'][ix]))
-                this_dataset_name = np.concatenate((this_dataset_name,[all_high_res_names[dataset]]))
-
-        print(this_star_name)
-        print(this_star_feh)
-        print(this_dataset_name)
-            
-            
-
-            
-            #print('Matches with ')
-            #print(lit_metal.our_program_stars['name'][row])
-            #print('in dataset ')
-            #print(dataset)
-            #if (lit_metal.our_program_stars['name'][row] == all_high_res[dataset]['name']).any():
-            #    print(all_high_res[dataset]['name'])
-            #    print(all_high_res[dataset]['feh'])
-            #    #all_high_res[row]['name']
-            #    #inputFeH = np.append(inputFeH,input_table['feh'][row])
-            #    #nameArray = np.append(nameArray,input_table['name'][row])
-            
-        #print('----')
-        #print(this_star_name)
-        #print(this_star_feh)
-        #print(this_dataset_name)
-    '''
-    
-    ########################################
-    # END BUNCH OF PLOTS
-    ########################################
-    
-
