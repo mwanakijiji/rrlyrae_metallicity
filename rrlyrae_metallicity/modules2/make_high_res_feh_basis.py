@@ -154,22 +154,15 @@ class LitMetallicities():
         basis_FeH = [] # Fe/H of basis (ex. Layden 1994)
         name_array = [] # name of star
 
+        # match the appropriate rows
         for row in range(0,len(input_table)): # scan over each row in input table
             if (basis_table['name'] == input_table['name'][row]).any():
                 input_FeH = np.append(input_FeH,input_table['feh'][row])
                 basis_FeH = np.append(basis_FeH,basis_table.loc[basis_table['name'] == input_table['name'][row]]['feh'])
                 name_array = np.append(name_array,input_table['name'][row])
 
-        d = dict()
-        d['name'] = name_array
-        d['input_FeH'] = input_FeH
-        d['basis_FeH'] = basis_FeH
-        d['residuals_FeH'] = np.subtract(d['input_FeH'],d['basis_FeH'])
-
-        ## ##
-        '''
-        if self.__offset: # if we want to apply Chadid+ 2017-style offsets to form a common Fe/H basis
-            print('PLACEHOLDER')
+        # if we want to apply Chadid+ 2017-style offsets to form a common Fe/H basis
+        if self.__offset: 
             # if there needs to be an offset (like in Fig. 6 of Chadid+ 2017)
             chadid_y_125 = -0.10583621694962 # from Chadid line at Fe/H=-1.25
             this_y_125 = np.multiply(coeff[0],-1.25)+coeff[1] # y-value of this line at Fe/H=-1.25
@@ -179,7 +172,12 @@ class LitMetallicities():
             print('Number of overlapping stars:')
             print(len(residuals))
             line_offset = np.add(line,net_offset)
-        '''    
+
+        d = dict()
+        d['name'] = name_array
+        d['input_FeH'] = input_FeH
+        d['basis_FeH'] = basis_FeH
+        d['residuals_FeH'] = np.subtract(d['input_FeH'],d['basis_FeH'])
             
         return d
 
