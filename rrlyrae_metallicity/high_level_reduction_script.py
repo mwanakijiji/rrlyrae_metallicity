@@ -43,7 +43,7 @@ def main():
     #test = mamluk2() # call instance
     ## ## END COMMENT
     scrapedEWdataFilename = mamluk2.get_list() # return the name of the file containing all the EW data from Robospect
-    
+    import ipdb; ipdb.set_trace()
 
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
