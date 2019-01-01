@@ -11,6 +11,7 @@ from modules2 import \
      graft_phases, \
      run_emcee
 from subprocess import Popen,PIPE
+import ipdb
 
 ########################
 ## MAKE THE SOLUTION IN THE FIRST PLACE; WORRY ABOUT APPLYING IT LATER
@@ -51,13 +52,11 @@ def main():
     #test = mamluk2() # call instance
     ## ## END COMMENT
     scrapedEWdataFilename = mamluk2.get_list() # return the name of the file containing all the EW data from Robospect
-    import ipdb; ipdb.set_trace()
 
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
     mamluk3() # call instance
     reducedHKdataFilename = mamluk3.get_hk_file() # return the name of the file of H and K data points we will use to do the MCMC on
-    ipdb.set_trace()
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -67,17 +66,16 @@ def main():
     #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
 
     # EXAMPLE COMMANDS FOR GENERATING FE/H BASIS AND CALCULATING FE/H FOR OUR STARS
-    test_rrab = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRab",offset=True).calc_FeH_program_stars()
+    ab_ab_off, ab_c_off, c_c_off, c_ab_off = make_high_res_feh_basis.MetalBasisTypeSpecific(plot_name='name_here').calc_FeH_program_stars()
     ipdb.set_trace()
-    test_rrc = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").calc_FeH_program_stars()
-    ipdb.set_trace()
-    
-    # assign phase values to spectra, put remaining data into giant table
-    ## ## data_table = graft_phases.graft_phases("spec_phases.list") # not made yet (is this even necessary?)
 
+    # obtain high-res metallicities for the program stars by mapping the basis set
+    
     # put data into giant table, winnow data based on phase
     data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
     ipdb.set_trace()
+
+    
     
     print(reducedHKdataFilename)
     # run_emcee with input data_table_winnowed

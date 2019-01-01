@@ -1,19 +1,8 @@
-
-# coding: utf-8
-
-# In[1]:
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import ipdb
 
-
-# In[2]:
-
-# define some functions that will be used in the classes
-
-
-# In[3]:
 
 class LitMetallicities():
     '''
@@ -255,8 +244,6 @@ class LitMetallicities():
         return df
 
 
-# In[4]:
-
 def return_offsets(data_postmatch, chadid_offset=True):
     '''
     Fit linear regression to input high-res Fe/H and the basis set,
@@ -349,8 +336,6 @@ def return_offsets(data_postmatch, chadid_offset=True):
  
     return df_offsets
 
-
-# In[5]:
 
 def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     '''
@@ -501,8 +486,6 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     return d
 
 
-# In[6]:
-
 class MetalBasisTypeSpecific(LitMetallicities):
     '''
     Class to make metallicity bases specific to subtypes: RRab, RRc
@@ -530,13 +513,13 @@ class MetalBasisTypeSpecific(LitMetallicities):
         basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
         '''
         
-        # match the RRab, RRcs stars with their basis sets
-        rrab_matches = self.match_highres_w_basis("RRab")
+        # get names of high-res stars that have matches in the RRab or RRc basis sets
+        rrab_matches = self.match_highres_w_basis("RRab") # returns: star names, Fe/H vals in basis set and high-res, name of high-res dataset
         rrc_matches = self.match_highres_w_basis("RRc")
     
-        # find necessary offsets to FeH_highres-FeH_basis
+        # find necessary offsets to FeH_highres-FeH_basis, for each high-res study
         print("======= STEP 1a: CALCULATE RRAB OFFSETS ========")
-        rrab_offsets = return_offsets(data_postmatch = rrab_matches)
+        rrab_offsets = return_offsets(data_postmatch = rrab_matches) # returns: high-res study names, offsets
         print("======= STEP 1a: PRINT RRAB OFFSETS ========")
         print(rrab_offsets)
         print("======= STEP 2a: CALCULATE RRC OFFSETS ========")
@@ -544,11 +527,11 @@ class MetalBasisTypeSpecific(LitMetallicities):
         print("======= STEP 2b: PRINT RRC OFFSETS ========")
         print(rrc_offsets)
         
-        # make the Fe/H bases based on the found offsets
+        # get best-fit line info for the mappings, based on RRL sub-type and origin of offsets
         print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
         rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                            df_offsets = rrab_offsets,
-                                                           plot_string = "rrab_w_rrab_offsets.png")
+                                                           plot_string = "rrab_w_rrab_offsets.png") # returns: slope, y-intercept
         print(rrab_basis_w_rrab_offsets)
         print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
         rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
@@ -562,7 +545,8 @@ class MetalBasisTypeSpecific(LitMetallicities):
         rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                           df_offsets = rrab_offsets,
                                                           plot_string="rrc_w_rrab_offsets.png")
-        
+
+        ipdb.set_trace()
         # use the bases to put Fe/H values on a common scale 
         # i.e., to have ONE high-res-spectroscopically determined 
         # Fe/H value for making the metallicity calibration
@@ -570,9 +554,22 @@ class MetalBasisTypeSpecific(LitMetallicities):
         # mapping is
         # [Fe/H]_highres = m*[Fe/H]_basis_set + b   
         
-        ## TEST
-        test_feh_highres = np.add(rrab_basis_w_rrab_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
-                                  rrab_basis_w_rrab_offsets["b_merged_highres"])
+        # RRabs, using ab-based offsets
+        rrab_feh_highres_ab_offsets = np.add(rrab_basis_w_rrab_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
+                                         rrab_basis_w_rrab_offsets["b_merged_highres"])
+
+        # RRabs, using c-based offsets
+        rrab_feh_highres_c_offsets = np.add(rrab_basis_w_rrc_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
+                                         rrab_basis_w_rrc_offsets["b_merged_highres"])
+
+        # RRcs, using ab-based offsets
+        rrc_feh_highres_ab_offsets = np.add(rrc_basis_w_rrab_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
+                                        rrc_basis_w_rrab_offsets["b_merged_highres"])
+
+        # RRcs, using c-based offsets
+        rrc_feh_highres_c_offsets = np.add(rrc_basis_w_rrc_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
+                                       rrc_basis_w_rrc_offsets["b_merged_highres"])
+        
         
         
         #rrab_matches
@@ -585,35 +582,61 @@ class MetalBasisTypeSpecific(LitMetallicities):
         # save a plot of calibration program stars Fe/H
         # post-mapped Fe/H vs. basis set Fe/H
         
-        limits = [-3.0,0.5]
+        limits = [-3.0,0.5] # limits of Fe/H to plot
 
-        # abs w ab offsets
-        plt.clf()
-        fig, axs = plt.subplots(1, 1, figsize=(10,10))
-        axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
-        axs.scatter(rrab_matches["FeH_basis"], test_feh_highres) # input vs. basis
-        axs.set_xlim(limits[0], limits[1])
-        axs.set_ylabel("Fe/H, high-res")
-        axs.set_xlabel("Fe/H, basis")
+        ######################
+        # PLOTS
+
+        def plot_mapping(input, mapped, title_string, plot_file_name):
+            plt.clf()
+            fig, axs = plt.subplots(1, 1, figsize=(10,10))
+            axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
+            axs.scatter(input["FeH_basis"], mapped) # input vs. basis
+            axs.set_xlim(limits[0], limits[1])
+            axs.set_ylabel("Fe/H, high-res")
+            axs.set_xlabel("Fe/H, basis")
+            # plot the as-is Fe/H values as reported in all the high-res basis sets
+            axs.scatter(input["FeH_basis"],input["FeH_highres"], alpha=0.5)
+            # add star names
+            for point in range(0,len(input["name_star"])): 
+                axs.annotate(
+                    input["name_star"][point],
+                    xy=(input["FeH_basis"][point], 
+                        mapped[point]), 
+                    xytext=(input["FeH_basis"][point]+0.1, 
+                        mapped[point]+0.06),
+                    textcoords='data', ha='right', va='bottom',
+                    fontsize=10,
+                    arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+            fig.suptitle(title_string)
+            plt.savefig(plot_file_name, overwrite=True)
+
+        # RRabs with RRab offsets
+        plot_mapping(input = rrab_matches,
+                     mapped = rrab_feh_highres_ab_offsets,
+                     title_string = "RRab Fe/H mapping, w/ ab-based offsets",
+                     plot_file_name = "rrab_w_ab_offsets_basis.png")
+
+        # RRabs with RRc offsets
+        plot_mapping(input = rrab_matches,
+                     mapped = rrab_feh_highres_c_offsets,
+                     title_string = "RRab Fe/H mapping, w/ c-based offsets",
+                     plot_file_name = "rrab_w_c_offsets_basis.png")
+
+        # RRcs with RRab offsets
+        plot_mapping(input = rrc_matches,
+                     mapped = rrc_feh_highres_ab_offsets,
+                     title_string = "RRc Fe/H mapping, w/ ab-based offsets",
+                     plot_file_name = "rrc_w_ab_offsets_basis.png")
+
+        # RRabs with RRab offsets
+        plot_mapping(input = rrc_matches,
+                     mapped = rrc_feh_highres_c_offsets,
+                     title_string = "RRc Fe/H mapping, w/ c-based offsets",
+                     plot_file_name = "rrc_w_c_offsets_basis.png")
         
-        # plot the Fe/H values from all the high-res basis sets
-        axs.scatter(rrab_matches["FeH_basis"],rrab_matches["FeH_highres"], alpha=0.5)
-        
-        # add star names
-        for point in range(0,len(rrab_matches["name_star"])): 
-            axs.annotate(
-                rrab_matches["name_star"][point],
-                xy=(rrab_matches["FeH_basis"][point], 
-                    test_feh_highres[point]), 
-                xytext=(rrab_matches["FeH_basis"][point]+0.1, 
-                    test_feh_highres[point]+0.06),
-                textcoords='data', ha='right', va='bottom',
-                fontsize=10,
-                arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
-        
-        #plt.show()
-        plt.savefig('junk.png', overwrite=True)
-        #axs.set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres))
+        print('BLAH BLAH')
+
 
         '''
         fig.suptitle('Calculated Fe/H of calibration program stars\n('+type_string+' subtype)')
@@ -628,20 +651,6 @@ class MetalBasisTypeSpecific(LitMetallicities):
         no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
         '''
 
-
-# In[7]:
-
-test = MetalBasisTypeSpecific(plot_name="name_here").calc_FeH_program_stars()
-#test_rrc = MetalBasisTypeSpecific(plot_name="name_here").calc_FeH_program_stars()
-#test_stuff = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").make_basis()
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
+        # return m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
+        return rrab_basis_w_rrab_offsets, rrab_basis_w_rrc_offsets, rrc_basis_w_rrc_offsets, rrc_basis_w_rrab_offsets
 
