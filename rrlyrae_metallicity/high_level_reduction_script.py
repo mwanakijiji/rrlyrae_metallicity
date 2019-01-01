@@ -1,7 +1,15 @@
 import sys
 import os
 from modules2 import *  # import stuff in init file
-from modules2 import compile_normalization, create_spec_realizations, run_robo, scrape_ew_and_errew, make_high_res_feh_basis, ca_correction, graft_phases, run_emcee
+from modules2 import \
+     compile_normalization, \
+     create_spec_realizations, \
+     run_robo, \
+     scrape_ew_and_errew, \
+     make_high_res_feh_basis, \
+     ca_correction, \
+     graft_phases, \
+     run_emcee
 from subprocess import Popen,PIPE
 
 ########################
@@ -49,6 +57,7 @@ def main():
     mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
     mamluk3() # call instance
     reducedHKdataFilename = mamluk3.get_hk_file() # return the name of the file of H and K data points we will use to do the MCMC on
+    ipdb.set_trace()
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -59,23 +68,27 @@ def main():
 
     # EXAMPLE COMMANDS FOR GENERATING FE/H BASIS AND CALCULATING FE/H FOR OUR STARS
     test_rrab = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRab",offset=True).calc_FeH_program_stars()
+    ipdb.set_trace()
     test_rrc = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").calc_FeH_program_stars()
-
-    '''
+    ipdb.set_trace()
+    
     # assign phase values to spectra, put remaining data into giant table
     ## ## data_table = graft_phases.graft_phases("spec_phases.list") # not made yet (is this even necessary?)
 
     # put data into giant table, winnow data based on phase
-    ## ## data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
+    data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
+    ipdb.set_trace()
     
     print(reducedHKdataFilename)
     # run_emcee with input data_table_winnowed
     mamluk5 = run_emcee.run_emcee(reducedHKdataFilename)
+    ipdb.set_trace()
     mamluk5() # call instance
+    ipdb.set_trace()
     mcmcOutputFilename = mamluk5.get_mcmc_output() # return file name of MCMC output
 
     # yield the four coefficients with errors
-    '''
+    
 
 
 # entry point

@@ -23,6 +23,8 @@ def run_robospect():
     ##############################################################################
     # STEP 3: RUN ROBOSPECT ON ANY SPECTRA AND WRITE OUT EW VALUES AS *.c.dat FILES (applicable to A and B)
     ##############################################################################
+
+    print("Running Robospect")
     
     # for applying to synthetic spectra 
 

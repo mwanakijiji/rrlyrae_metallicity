@@ -1,31 +1,35 @@
+
+# coding: utf-8
+
+# In[1]:
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
+
+
+# In[2]:
+
+# define some functions that will be used in the classes
+
+
+# In[3]:
 
 class LitMetallicities():
     '''
-    Read in metallicities from high-res studies and basis data sets, and
-    define matching of stars between data sets.
+    Class to 
+    1.   read in Fe/H values from the literature 
+    2.   initialize data set cross-referencing functionality
     '''
     
     def __init__(self):
     
         stem = "./rrlyrae_metallicity/src/high_res_feh/"
 
-        
-        ####################################
-        #### calibration program stars #####
-
         # stand-in that consists of our program star names
         self.our_program_stars = pd.read_csv(stem + "our_program_stars_names_only.csv")
-
         
-        #######################################################
-        #### basis set and high-res studies of RRab stars #####
-        # (N.b. some RRcs are among them too, but basis set should only be RRabs)
-        
-        # Fe/H from Layden+ 1994; this serves as the common basis
+        # Fe/H from Layden+ 1994; this may serve as the common basis for RRabs
         self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat")
         # RES: "rather low"
         
@@ -80,8 +84,7 @@ class LitMetallicities():
         
         # average the values in Chadid from FeI and FeII lines
         self.chadid_feh['feh'] = np.mean([self.chadid_feh['fehI'].values,self.chadid_feh['fehII'].values],axis=0)
-
-        # note also that Sneden+ 1997, Liu+ 2013, and 
+        
         ## ## INCLUDE SINGLE DATA PT FROM KOLENBERG+ 2010? (SEE CHADID+ 2017, FIG. 7)
         
         # FYI: average Fe/H values in Liu+ 2013 which were taken at different phases
@@ -89,12 +92,8 @@ class LitMetallicities():
         
         # FYI: average Fe/H values in Sneden+ 1997 which were taken at different epochs
         # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
-
         
-        #######################################################
-        #### basis set and high-res studies of RRc stars ######
-        
-        # Fe/H from Kemper+ 1982; this serves as the common basis
+        # Fe/H from Kemper+ 1982; this might serve as the common basis for RRcs
         self.kemper_feh = pd.read_csv(stem + "kemper_1982_abundances.dat")
 
         # Fe/H from Govea+ 2014
@@ -123,28 +122,30 @@ class LitMetallicities():
         err_Hdel_data_array = []
         Heps_data_array = []
         err_Heps_data_array = []
-
         
     def __call__(self):
         
-        # make a list of all UNIQUE, EMPIRICAL spectrum names
+        # make a list of all unique EMPIRICAL spectrum names
         uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
 
-        
-    def matchmaker(self, input_table, basis_table):
+    def matchmaker(self, input_table, basis_table, highres_dataset_name):
         '''
-        Find what stars are common to the two input tables, and return array of FeHs from the first and basis tables
+        Find what stars are common to two input tables, and return array of FeHs from the first table
 
         INPUTS:
-        input_table: table I'm interested in checking for overlapping stars
-        basis_table: table with the names for which I am looking for repeats in the other table (most likely our own program stars)
+        input_table: table I'm interested in checking for overlapping stars 
+            (pandas dataframe with col ['name']: star name; col ['feh']: Fe/H)
+        basis_table: table with the names for which I am looking for repeats in the other table
+            (pandas dataframe with col ['name']: star name; col ['feh']: Fe/H)
+        highres_dataset_name: string indicating the name of the highres dataset
 
         OUTPUTS:
-        dictionary with
+        pandas dataframe with
         1. overlapping star names
         2. FeHs from the input_table
         3. FeHs from the basis_table
         4. residuals in FeH: FeH_input - FeH_basis
+        5. string indicating the high-res dataset being matched
         '''
 
         self.input_table = input_table
@@ -152,153 +153,374 @@ class LitMetallicities():
             
         input_FeH = [] # Fe/H of high-res study
         basis_FeH = [] # Fe/H of basis (ex. Layden 1994)
-        name_array = [] # name of star
+        star_name_array = [] # name of star
 
-        # match the appropriate rows
         for row in range(0,len(input_table)): # scan over each row in input table
             if (basis_table['name'] == input_table['name'][row]).any():
                 input_FeH = np.append(input_FeH,input_table['feh'][row])
                 basis_FeH = np.append(basis_FeH,basis_table.loc[basis_table['name'] == input_table['name'][row]]['feh'])
-                name_array = np.append(name_array,input_table['name'][row])
-
-        # if we want to apply Chadid+ 2017-style offsets to form a common Fe/H basis
-        if self.__offset: 
-            # if there needs to be an offset (like in Fig. 6 of Chadid+ 2017)
-            chadid_y_125 = -0.10583621694962 # from Chadid line at Fe/H=-1.25
-            this_y_125 = np.multiply(coeff[0],-1.25)+coeff[1] # y-value of this line at Fe/H=-1.25
-            net_offset = chadid_y_125 - this_y_125 # offset needed to move line
-            print('Y_offset to add to residuals in order to overlap with Chadid+ 2017 at Fe/H=-1.25:')
-            print(net_offset)
-            print('Number of overlapping stars:')
-            print(len(residuals))
-            line_offset = np.add(line,net_offset)
+                star_name_array = np.append(star_name_array,input_table['name'][row])
 
         d = dict()
-        d['name'] = name_array
-        d['input_FeH'] = input_FeH
-        d['basis_FeH'] = basis_FeH
-        d['residuals_FeH'] = np.subtract(d['input_FeH'],d['basis_FeH'])
-            
-        return d
-
+        d['name_star'] = star_name_array
+        d['FeH_highres'] = input_FeH
+        d['FeH_basis'] = basis_FeH
+        d['name_highres_dataset'] = np.repeat(highres_dataset_name, len(star_name_array))
+        d['name_basis_dataset'] = np.repeat(highres_dataset_name, len(star_name_array))
+        
+        df = pd.DataFrame(data=d)
+        
+        return df
     
-class MetalBasisTypeSpecific(LitMetallicities):
-    '''
-    For a given RR Lyrae subtype, generate a metallicity basis and calculate
-    the abundances of stars in the calibration program dataset.
-    '''
-
-    def __init__(self, plot_name, star_type="RRab", offset=False):
-        super().__init__()
-        self.__plot_name = plot_name
-        self.__star_type = star_type
-        self.__offset = offset
-
-    def make_basis(self):
+    
+    def match_highres_w_basis(self, star_type):
         '''
-        Find what stars overlap with basis data set, and return star name, FeH values, residuals
-                
-        The functionality of LitMetallicities is inherited, and we just add Chadid+ 17-style offsets, a best-fit line, and plotting functionality
+        Find what stars overlap with basis data set, and return star name, data set names, 
+            FeH values, residuals
+
+        The functionality of LitMetallicities is inherited
+        N.b. There are no offsets applied yet (as are applied in Chadid+ 2017 plots)
 
         INPUTS:
-        input_table: table of likely high-res-derived Fe/H values of RRabs, which I want to cross-ref with Layden 94
-        layden_table: the layden table, which serves as the basis set
+        input_table: table of high-res-derived Fe/H values, which I want to cross-ref with 
+            a basis (like Layden 94 or Kemper 82)
+        basis_table: the table which serves as the basis set
         plot_name: file name for saving a plot of the results
 
         OUTPUTS:
-        dictionary with
-        1. overlapping star names
-        2. Fe/Hs from the input_table
-        3. Fe/Hs from Layden
+        df: concatenated frames containing 
+            ['name_star']: star_name_array
+            ['FeH_highres']: Fe/H from high-res study
+            ['FeH_basis']: Fe/H from basis set
+            ['name_highres_dataset']: string indicating the high-res dataset
+            ['name_basis_dataset']: string indicating the basis set
         '''
 
-        # define the basis data set (like Layden+ 1994 for RRabs, or Kemper+ 1982 for RRcs)
-        if self.__star_type == "RRab":
+        # define the basis data set (like Layden 1994 for RRabs, or Kemper+ 1982 for RRcs)
+        if star_type == "RRab":
             type_string = "ab"
             basis_set = self.layden_feh
             basis_string = "Layden RRab basis set" # string for plots
-        elif self.__star_type == "RRc":
+        elif star_type == "RRc":
             type_string = "c"
             basis_set = self.kemper_feh
             basis_string = "Kemper RRc basis set"
         else:
             sys.exit("Error! No RR Lyrae subtype chosen.")
-            
-        # match high-res studies with the basis set
-        dict_Lambert_1996 = self.matchmaker(self.lambert_logeps, basis_set) # Lambert+ 1996 (logeps has already been converted to Fe/H)
-        dict_Nemec_2013 = self.matchmaker(self.nemec_feh, basis_set) # Nemec+ 2013
-        dict_Chadid_2017 = self.matchmaker(self.chadid_feh, basis_set) # Chadid+ 2017
-        dict_Fernley_1997 = self.matchmaker(self.fernley97_feh, basis_set) # Fernley+ 1997
-        dict_Solano_1997 = self.matchmaker(self.solano_feh, basis_set) # Solano+ 1997
-        dict_Wallerstein_2010 = self.matchmaker(self.wallerstein_feh, basis_set) # Wallerstein 2010
-        
+
+
+        ## match ALL available high-res studies with the basis set
+
+        pd_Lambert_1996 = self.matchmaker(self.lambert_logeps, 
+                                          basis_set, 
+                                          highres_dataset_name="lambert_1996") # Lambert+ 1996 (logeps has already been converted to Fe/H)
+        pd_Nemec_2013 = self.matchmaker(self.nemec_feh, 
+                                        basis_set,
+                                        highres_dataset_name="nemec_2013") # Nemec+ 2013
+        pd_Chadid_2017 = self.matchmaker(self.chadid_feh, 
+                                         basis_set,
+                                         highres_dataset_name="chadid_2017") # Chadid+ 2017
+        pd_Fernley_1997 = self.matchmaker(self.fernley97_feh, 
+                                          basis_set,
+                                          highres_dataset_name="fernley_1997") # Fernley+ 1997
+        pd_Solano_1997 = self.matchmaker(self.solano_feh, 
+                                         basis_set,
+                                         highres_dataset_name="solano_1997") # Solano+ 1997
+        pd_Wallerstein_2010 = self.matchmaker(self.wallerstein_feh, 
+                                              basis_set,
+                                              highres_dataset_name="wallerstein_2010") # Wallerstein 2010
+
         # for Liu+ 2013, we need to group multiple Fe/H values by star name
         # (the grouping is done here rather than further up because a bug causes the grouped column to disappear)
-        self.liu_feh_grouped = self.liu_feh.groupby(self.liu_feh['name'], axis=0, as_index=False).mean()
-        dict_Liu_2013 = self.matchmaker(self.liu_feh_grouped, basis_set) # Liu+ 2013
+        self.liu_feh_grouped = self.liu_feh.groupby(self.liu_feh["name"], axis=0, as_index=False).mean()
+        pd_Liu_2013 = self.matchmaker(self.liu_feh_grouped, 
+                                      basis_set,
+                                      highres_dataset_name="liu_2013") # Liu+ 2013
 
-        # merge dictionaries of Fe/H values
-        dict_collect = [dict_Lambert_1996, dict_Nemec_2013, dict_Liu_2013, dict_Chadid_2017,
-                        dict_Fernley_1997, dict_Solano_1997, dict_Wallerstein_2010]
-        dict_merged = {}
-        for key in dict_Lambert_1996:
-            dict_merged[key] = tuple(dict_merged[key] for dict_merged in dict_collect)
+        # for Govea+ 2014, we need to group multiple Fe/H_I and Fe/H_II values by star name
+        # (the grouping is done here rather than further upstream because otherwise a bug causes 
+        # the grouped column to disappear)
+        self.govea_feh_grouped = self.govea_feh.groupby(self.govea_feh["name"], axis=0, as_index=False).mean()
+        # now, average the Fe/H_I and Fe/H_II values to get single Fe/H values
+        self.govea_feh_grouped["feh"] = self.govea_feh_grouped[["feIh","feIIh"]].mean(axis=1)
+        pd_Govea_2014 = self.matchmaker(self.govea_feh_grouped, 
+                                        basis_set,
+                                        highres_dataset_name="govea_2014") # Govea+ 2014
 
-        # rename some things for neatness
-        basis_data_merged = np.hstack(dict_merged['basis_FeH'])
-        highres_data_merged = np.hstack(dict_merged['input_FeH'])
-        residuals_data_merged = np.hstack(dict_merged['residuals_FeH'])
-        names_merged = np.hstack(dict_merged['name'])
+        # merge dataframes
+        pd_collected = [pd_Lambert_1996, pd_Nemec_2013, pd_Liu_2013, pd_Chadid_2017,
+                        pd_Fernley_1997, pd_Solano_1997, pd_Wallerstein_2010, pd_Govea_2014]
+        df = pd.concat(pd_collected).reset_index()
 
-        # find best-fit line (note that user may have used a flag to make Fe/H values be offset)
-        limits = [-3.0,0.5]
-        m_merged_highres, b_merged_highres = np.polyfit(basis_data_merged, highres_data_merged, 1)
-        line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres # make best-fit line for high-res Fe/H
-        m_merged_resid, b_merged_resid = np.polyfit(basis_data_merged, residuals_data_merged, 1)
-        line_resid = np.multiply(m_merged_resid,limits)+b_merged_resid # make best-fit line for residuals
+        return df
+
+
+# In[4]:
+
+def return_offsets(data_postmatch, chadid_offset=True):
+    '''
+    Fit linear regression to input high-res Fe/H and the basis set,
+    and find offset for each dataset to match some constant
+    
+    INPUTS:
+    data_postmatch: output from match_w_highres_basis(), containing
+        Fe/H data from high-res studies and basis set
+        
+    OUTPUTS:
+    df: dataframe containing
+    ['name_highres_dataset']: name indicating high-res study
+    ['offset_highres_dataset_residuals']: offset for the entire high-res 
+        dataset, which needs to be applied to the vector (FeH_highres-FeH_basis)
+    '''
+    
+    # initialize dataframe
+    col_names =  ["name_highres", "offset_highres_residuals"]
+    df_offsets  = pd.DataFrame(columns = col_names)
+    
+    # loop over each high-res dataset
+    highres_names = data_postmatch["name_highres_dataset"].unique() # names of high-res datasets
+    index_counter = 0 # initialize this for appending dataframes
+    for dataset_num in range(0,len(highres_names)):
+        
+        this_dataset_name = highres_names[dataset_num] # name of this dataset
+        this_dataset = data_postmatch[data_postmatch["name_highres_dataset"].str.match(this_dataset_name)]
+    
+        # need at least 3 data points
+        if (len(this_dataset["FeH_highres"]) > 2): 
+    
+            # find linear regression of residuals
+            coeff = np.polyfit(this_dataset["FeH_basis"],
+                               np.subtract(this_dataset["FeH_highres"],
+                                           this_dataset["FeH_basis"]),1)
+            limits = [-3.0,0.5] # Fe/H limits to display
+            line = np.multiply(coeff[0],limits)+coeff[1] # points to plot linear regression
+
+            # find offset between residuals and Chadid+ 2017 at Fe/H=-1.25 (see their Fig. 6)
+            if chadid_offset: 
+                chadid_y_125 = -0.10583621694962 # from Chadid line at Fe/H=-1.25
+                FeH_resid_to_peg = chadid_y_125 # peg the FeH residuals to this y- point
+                FeH_basis_loc = -1.25 # corresponding x- value (Fe/H in the basis dataset)
+            else: 
+                FeH_resid_to_peg = 0. # peg the data at this y- point
+                FeH_basis_loc = 0. # location in the basis dataset 
+                print("Offset corresponds to (0,0)!")
+
+            # y-value of the unshifted linear regression line at Fe/H=-1.25
+            this_y_125 = np.multiply(coeff[0],FeH_basis_loc)+coeff[1] 
+
+            # offset to shift the linear regression line of the residuals to FeH_resid_to_peg
+            net_offset = chadid_y_125 - this_y_125
+
+            # line_offset = np.add(line,net_offset)
+
+            print('-----------------')
+            print('Calculating offsets for dataset '+this_dataset_name)
+            print('Y_offset to add to residuals in order to overlap with Chadid+ 2017 at Fe/H=-1.25:')
+            print(net_offset)
+            print('Number of overlapping stars:')
+            print(len(this_dataset["FeH_basis"]))
+
+            # append name of dataset and its offset to array
+            dict_this = {"name_highres":[this_dataset_name],
+                         "offset_highres_residuals":[net_offset]}
+            #print(pd.DataFrame(dict_this, index=[dataset_num]))
             
-        # save a plot (high_res vs. basis on top; residuals vs. basis on bottom)
-        plt.clf()
-        fig, axs = plt.subplots(2, 1, figsize=(10,10), sharex=True)
-        axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
-        axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle='--') # best-fit line
-        axs[0].scatter(basis_data_merged, highres_data_merged) # input vs. basis
-        axs[0].set_xlim(limits[0], limits[1])
-        axs[0].set_ylabel("Fe/H, high-res")
-        axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres)+"; (blue line: 1-to-1; orange line: best fit)")
-        axs[1].axhline(y=0, linestyle='--') # dashed line at y=0
-        axs[1].scatter(basis_data_merged, residuals_data_merged) # input vs. basis
-        axs[1].set_xlabel("Fe/H, "+basis_string)
-        axs[1].set_ylabel('Fe/H Residuals: high-res minus basis set')
-        axs[1].set_title("m = "+str(m_merged_resid)+", b = "+str(b_merged_resid)+"; (blue line: zero)")
-        fig.suptitle('Finding remapping relation between\nhigh-res studies and basis dataset\n('+type_string+' subtype)')
-        #fig.tight_layout()
-        plt.savefig('remapping_'+self.__plot_name, overwrite=True)
-        plt.clf()
-        
+            # append info from this dataset
+            print(dict_this)
+            print(list(dict_this.items()))
+            print(pd.DataFrame(dict_this))
+            df_offsets = df_offsets.append(pd.DataFrame(dict_this)) 
+            index_counter += 1 # increase the counter
             
-        # return 
-        # 1. overlapping Layden94 values
-        # 2. FeH values from lit source
-        # 3. Residuals between 1. and 2. (see Chadid+ 2017 ApJ 835:187, Figs. 5, 6, 7)
-        # 4. coefficients of best-fit line
-        # 5. offset in y to bring lit FeH values to match Chadid+ 2017 at FeH=-1.25 (see Chadid+ 2017 Figs. 5, 6)
-        # 6. Residuals (from 3.) minus the offset (from 5.)  (see Chadid+ 2017 Fig. 7)
-        # 7. The names of the stars (in same order as arrays for 1., 2., 3., 4.)
+        elif (len(this_dataset["FeH_highres"]) <= 2): 
+            
+            '''
+            # put in NaN offset
+            dict_this = {"name_highres": this_dataset_name,
+                         "offset_highres_residuals": np.nan}
+            #print(pd.DataFrame(dict_this, index=[dataset_num]))
+            
+            # append info from this dataset
+            df_offsets = df_offsets.append(pd.DataFrame(dict_this)) 
+            
+            index_counter += 1 # increase the counter
+            '''
+            pass
+ 
+    return df_offsets
+
+
+# In[5]:
+
+def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
+    '''
+    Apply offsets (which may be from RRabs, RRcs, combo, etc.) to data to make a basis
+
+    INPUTS:
+    df_to_offset: dataframe containing Fe/H values which we want to find residuals for, offset, and map
+        ['name_star']: star name
+        ['FeH_highres']: Fe/H from high-res study
+        ['FeH_basis']: Fe/H from basis set
+        ['name_highres_dataset']: string indicating the high-res dataset
+        ['name_basis_dataset']: string indicating the basis set
+          
+    df_offsets: dataframe containing the offset values and high-res dataset names
+        ['name_highres_dataset']: name indicating high-res study
+        ['offset_highres_dataset_residuals']: offset value to add to Fe/H values
         
-        d = dict()
-        d['basis_FeH'] = basis_data_merged
-        d['input_FeH'] = highres_data_merged
-        d['residuals'] = residuals_data_merged
-        d['coeff_merged_highres'] = [m_merged_highres, b_merged_highres] # best-fit line coeffs for high-res vs. basis 
-        d['coeff_merged_resid'] = [m_merged_resid, b_merged_resid] # best-fit line coeffs for (residuals: high-res minus basis) vs. basis 
-        #d['net_offset'] = net_offset # this needs to be ADDED to high-res study data to make it match Chadid
-        #d['residuals_shifted'] = np.add(residuals,net_offset)
-        d['name'] = names_merged
-        
-        return d
+    OUTPUTS:
+    d: dictionary with
+        "m_merged_highres": slope of high_res_FeH vs. FeH_basis
+        "b_merged_highres": y-intercept of " " " "
+        "m_merged_shifted_resid": slope of high_res_FeH residuals (i.e., high_res_FeH minus FeH_basis) vs. FeH_basis
+        "b_merged_shifted_resid": y-intercept of " " " "
+    '''
+
+    dict_merged_this_basis = {} # initialize dictionaries
+    dict_not_merged_this_basis = {}
+    highres_names = df_to_offset["name_highres_dataset"].unique() # names of high-res datasets (which will also be the keys to dict_merged_this_basis)
     
     
+    # for each high-res dataset name, apply the offsets to Fe/H residuals
+    for this_dataset_name in highres_names:    
+        
+        this_dataset = df_to_offset[df_to_offset["name_highres_dataset"].str.match(this_dataset_name)]
+        
+        #print('this_resid_offset')
+        #print(df_offsets['offset_highres_residuals'].loc[df_offsets['name_highres'] == this_dataset_name].values)
+        
+        # retrieve the required offset
+        this_resid_offset = df_offsets['offset_highres_residuals'].loc[df_offsets['name_highres'] == this_dataset_name].values
+        
+        if this_resid_offset: # if there is an offset that could be found for this dataset
+            this_dataset["residuals_no_shift"] = np.subtract(this_dataset["FeH_highres"],this_dataset["FeH_basis"])
+            this_dataset["residuals_shifted"] = np.add(this_dataset["residuals_no_shift"],this_resid_offset)
+    
+            # add dataframe to dictionary; 
+            # each key corresponds to a high-res dataset, and each value is a dataframe (this is good for plotting)
+            dict_not_merged_this_basis[this_dataset_name] = this_dataset
+        
+        else:
+            continue
+        
+    # merge ["residuals_shifted"] and ["FeH_highres"] across all 
+    # dataframes in the dictionary (this is good for finding net Fe/H mapping)
+    vals_of_interest = dict_not_merged_this_basis.copy()
+    pd_merged = pd.concat(vals_of_interest.values(), ignore_index=True)
+    
+    # A value is trying to be set on a copy of a slice from a DataFrame.
+    # Try using .loc[row_indexer,col_indexer] = value instead
+    
+    # find best-fit line to Fe/H plot of high_res vs. basis 
+    # (note that user may have used a flag to make Fe/H values be offset)
+    limits = [-3.0,0.5] # Fe/H limits to display
+    
+    m_merged_highres, b_merged_highres = np.polyfit(pd_merged["FeH_basis"], pd_merged["FeH_highres"], 1)
+    line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres # make best-fit line for high-res Fe/H
+    
+    m_merged_shifted_resid, b_merged_shifted_resid = np.polyfit(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], 1)
+    line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid # make best-fit line for residuals
+    
+    # save a plot (high_res vs. basis on top; residuals vs. basis on bottom)
+    plt.clf()
+    limits = [-3.0,0.5]
+    fig, axs = plt.subplots(2, 1, figsize=(10,10), sharex=True)
+    
+    axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
+    axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle='--') # best-fit line
+    axs[0].scatter(pd_merged["FeH_basis"], pd_merged["FeH_highres"]) # input vs. basis
+    # for keeping data points separated by datasets, plot with a list comprehension
+    [axs[0].scatter(dict_not_merged_this_basis[key]["FeH_basis"], 
+                    dict_not_merged_this_basis[key]["FeH_highres"], 
+                    label=key) for key in dict_not_merged_this_basis] 
+    # add star names
+    for point in range(0,len(pd_merged["FeH_basis"])): 
+        axs[0].annotate(
+            pd_merged["name_star"][point],
+            xy=(pd_merged["FeH_basis"][point], 
+                pd_merged["FeH_highres"][point]), 
+            xytext=(pd_merged["FeH_basis"][point]+0.1, 
+                    pd_merged["FeH_highres"][point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+    
+    axs[0].set_xlim(limits[0], limits[1])
+    axs[0].set_ylabel("Fe/H, high-res; no offsets applied")
+    axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres)+"; (blue line: 1-to-1; orange line: best fit)")
+    axs[0].legend() # indicates high-res dataset names
+    
+    axs[1].axhline(y=0, linestyle='--') # dashed line at y=0
+    axs[1].scatter(df_to_offset['FeH_basis'], np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])) # input vs. basis
+    axs[1].scatter(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], alpha=0.5) # input vs. basis
+    # for keeping data points separated by datasets, plot with a list comprehension
+    [axs[1].scatter(dict_not_merged_this_basis[key]["FeH_basis"], 
+                    dict_not_merged_this_basis[key]["residuals_shifted"], 
+                    label=key) for key in dict_not_merged_this_basis] 
+    # add star names
+    for point in range(0,len(pd_merged["FeH_basis"])): 
+        axs[1].annotate(
+            pd_merged["name_star"][point],
+            xy=(pd_merged["FeH_basis"][point], 
+                pd_merged["residuals_shifted"][point]), 
+            xytext=(pd_merged["FeH_basis"][point]+0.1, 
+                    pd_merged["residuals_shifted"][point]+0.06),
+            textcoords='data', ha='right', va='bottom',
+            fontsize=10,
+            arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+    axs[1].set_xlabel("Fe/H, Basis")
+    axs[1].set_ylabel('Fe/H Residuals: high-res minus basis set')
+    axs[1].set_title("m = "+str(m_merged_shifted_resid)+", b = "+str(b_merged_shifted_resid)+"; (blue line: zero)")
+    axs[1].set_ylim([-1.5,1.5])
+    axs[1].legend() # indicates high-res dataset names
+    
+    #fig.suptitle("Finding remapping relation between\nhigh-res studies and basis dataset\n("+type_string+" subtype)")
+    #fig.tight_layout()
+    plt.savefig(plot_string, overwrite=True)
+    plt.clf()
+    
+    print("Scatter in residuals before offsets:")
+    print(np.std(np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])))
+    print("Number of data points:")
+    print(len(np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])))
+    print("-----")
+    print("Scatter in residuals after offset shifts:")
+    print(np.std(pd_merged["residuals_shifted"]))
+    print(len(pd_merged["residuals_shifted"]))
+    
+    #d['coeff_merged_highres'] = [m_merged_highres, b_merged_highres] # best-fit line coeffs for high-res vs. basis 
+    #d['coeff_merged_resid'] = [m_merged_resid, b_merged_resid] # best-fit line coeffs for (residuals: high-res minus basis) vs. basis 
+    
+    d = {
+        "m_merged_highres": m_merged_highres,
+        "b_merged_highres": b_merged_highres,
+        "m_merged_shifted_resid": m_merged_shifted_resid,
+        "b_merged_shifted_resid": b_merged_shifted_resid
+    }
+    
+    return d
+
+
+# In[6]:
+
+class MetalBasisTypeSpecific(LitMetallicities):
+    '''
+    Class to make metallicity bases specific to subtypes: RRab, RRc
+    '''
+
+    def __init__(self, 
+                 plot_name):
+        '''
+        INPUTS:
+        plot_name: string for the plot file name
+        '''
+        
+        super().__init__()
+        self.__plot_name = plot_name
+        #self.__star_type = star_type
+        #self.__offset = offset
+        
+        
     def calc_FeH_program_stars(self):
         '''
         Calculate metallicities for the program stars which form the basis of the
@@ -307,51 +529,98 @@ class MetalBasisTypeSpecific(LitMetallicities):
         INPUTS:
         basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
         '''
-
-        # retrieve our own program stars and remap those of the right type
-        if self.__star_type == "RRab":
-            type_string = "ab"
-            basis_set = self.layden_feh
-            basis_string = "Layden RRab basis set" # string for plots
-        elif self.__star_type == "RRc":
-            type_string = "c"
-            basis_set = self.kemper_feh
-            basis_string = "Kemper RRc basis set"
-
-        # retrieve our stars here, and extract only those which conform to the right type
-        program_stars_subset = self.our_program_stars.loc[self.our_program_stars['type'] == type_string].reset_index()
         
-        # find matches with the basis set
-        program_stars_subset_matched = self.matchmaker(program_stars_subset, basis_set)
-
-        # make the Fe/H basis and return the coefficients of the linear remapping
-        map_info = self.make_basis()
+        # match the RRab, RRcs stars with their basis sets
+        rrab_matches = self.match_highres_w_basis("RRab")
+        rrc_matches = self.match_highres_w_basis("RRc")
+    
+        # find necessary offsets to FeH_highres-FeH_basis
+        print("======= STEP 1a: CALCULATE RRAB OFFSETS ========")
+        rrab_offsets = return_offsets(data_postmatch = rrab_matches)
+        print("======= STEP 1a: PRINT RRAB OFFSETS ========")
+        print(rrab_offsets)
+        print("======= STEP 2a: CALCULATE RRC OFFSETS ========")
+        rrc_offsets = return_offsets(data_postmatch = rrc_matches)
+        print("======= STEP 2b: PRINT RRC OFFSETS ========")
+        print(rrc_offsets)
         
-        # remap metallicities via
+        # make the Fe/H bases based on the found offsets
+        print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
+        rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
+                                                           df_offsets = rrab_offsets,
+                                                           plot_string = "rrab_w_rrab_offsets.png")
+        print(rrab_basis_w_rrab_offsets)
+        print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
+        rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
+                                                          df_offsets = rrc_offsets,
+                                                          plot_string="rrab_w_rrc_offsets.png")
+        print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
+        rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
+                                                         df_offsets = rrc_offsets,
+                                                         plot_string="rrc_w_rrc_offsets.png")
+        print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
+        rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
+                                                          df_offsets = rrab_offsets,
+                                                          plot_string="rrc_w_rrab_offsets.png")
+        
+        # use the bases to put Fe/H values on a common scale 
+        # i.e., to have ONE high-res-spectroscopically determined 
+        # Fe/H value for making the metallicity calibration
+        
+        # mapping is
         # [Fe/H]_highres = m*[Fe/H]_basis_set + b   
-        program_stars_subset_matched['mapped_FeH'] = np.add(np.multiply(program_stars_subset_matched['basis_FeH'],
-                                                                        map_info['coeff_merged_highres'][0]),
-                                                            map_info['coeff_merged_highres'][1])
         
-        print(program_stars_subset_matched.keys())
+        ## TEST
+        test_feh_highres = np.add(rrab_basis_w_rrab_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
+                                  rrab_basis_w_rrab_offsets["b_merged_highres"])
+        
+        
+        #rrab_matches
+        #['name_star']: star_name_array
+        #    ['FeH_highres']: Fe/H from high-res study
+        #    ['FeH_basis']: Fe/H from basis set
+        #    ['name_highres_dataset']: string indicating the high-res dataset
+        #    ['name_basis_dataset']
+        
         # save a plot of calibration program stars Fe/H
-        # post-mapped Fe/H vs. pre-mapped (i.e., basis set) Fe/H
+        # post-mapped Fe/H vs. basis set Fe/H
+        
         limits = [-3.0,0.5]
+
+        # abs w ab offsets
         plt.clf()
         fig, axs = plt.subplots(1, 1, figsize=(10,10))
         axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
-        axs.scatter(program_stars_subset_matched['basis_FeH'], program_stars_subset_matched['mapped_FeH']) # input vs. basis
+        axs.scatter(rrab_matches["FeH_basis"], test_feh_highres) # input vs. basis
         axs.set_xlim(limits[0], limits[1])
         axs.set_ylabel("Fe/H, high-res")
-        axs.set_xlabel("Fe/H, "+basis_string)
+        axs.set_xlabel("Fe/H, basis")
+        
+        # plot the Fe/H values from all the high-res basis sets
+        axs.scatter(rrab_matches["FeH_basis"],rrab_matches["FeH_highres"], alpha=0.5)
+        
+        # add star names
+        for point in range(0,len(rrab_matches["name_star"])): 
+            axs.annotate(
+                rrab_matches["name_star"][point],
+                xy=(rrab_matches["FeH_basis"][point], 
+                    test_feh_highres[point]), 
+                xytext=(rrab_matches["FeH_basis"][point]+0.1, 
+                    test_feh_highres[point]+0.06),
+                textcoords='data', ha='right', va='bottom',
+                fontsize=10,
+                arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+        
+        #plt.show()
+        plt.savefig('junk.png', overwrite=True)
         #axs.set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres))
 
+        '''
         fig.suptitle('Calculated Fe/H of calibration program stars\n('+type_string+' subtype)')
         #fig.tight_layout()
         plt.savefig('calculated_FeH_'+self.__plot_name, overwrite=True)
         plt.clf()
-    
-        '''
+
         # write out
         convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
         convert_to_df.columns = ['name'] # rename the column
@@ -359,9 +628,20 @@ class MetalBasisTypeSpecific(LitMetallicities):
         no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
         '''
 
-    '''
-    ## ##
-    EXAMPLE COMMANDS IN THE HIGHER-LEVEL SCRIPT:
-    test_rrab = MetalBasisTypeSpecific(plot_name='name_here',offset=True).calc_FeH_program_stars()
-    test_rrc = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").calc_FeH_program_stars()
-    '''
+
+# In[7]:
+
+test = MetalBasisTypeSpecific(plot_name="name_here").calc_FeH_program_stars()
+#test_rrc = MetalBasisTypeSpecific(plot_name="name_here").calc_FeH_program_stars()
+#test_stuff = MetalBasisTypeSpecific(plot_name='name_here',star_type="RRc").make_basis()
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+

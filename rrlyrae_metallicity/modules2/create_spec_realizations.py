@@ -180,6 +180,8 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # Main Function
 # -------------
 def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
+
+    print("Making "+str(num)+" realizations of each empirical spectrum")
     
     # Read list of empirical spectra
     #stem = './src/empirical_spectra/'

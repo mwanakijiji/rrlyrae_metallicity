@@ -105,6 +105,10 @@ class scraper():
 
 
     def get_list(self):
+
+        print("-------------------------------------------------")
+        print("Scraping EW info from Robospect output text files")
+        
         return self.writeOutFilename
 
 
@@ -293,6 +297,7 @@ class findHK():
         
         # write to csv
         df_collation_real.to_csv(self.hkFileName)
+        print('----------------------------------------')
         print('HK data written to ' + self.hkFileName)
         
         # make plot: each color is a different star, open circles are bad phase region
