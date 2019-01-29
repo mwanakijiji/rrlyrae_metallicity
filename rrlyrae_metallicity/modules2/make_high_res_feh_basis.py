@@ -405,6 +405,8 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     
     m_merged_shifted_resid, b_merged_shifted_resid = np.polyfit(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], 1)
     line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid # make best-fit line for residuals
+
+    
     
     # save a plot (high_res vs. basis on top; residuals vs. basis on bottom)
     plt.clf()
@@ -463,6 +465,8 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     #fig.tight_layout()
     plt.savefig(plot_string, overwrite=True)
     plt.clf()
+
+
     
     print("Scatter in residuals before offsets:")
     print(np.std(np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])))
@@ -612,6 +616,9 @@ class MetalBasisTypeSpecific(LitMetallicities):
             plt.savefig(plot_file_name, overwrite=True)
 
         # RRabs with RRab offsets
+        # pickle info for abs first!
+        import pickle
+        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( "info.pkl", "wb" ) )
         plot_mapping(input = rrab_matches,
                      mapped = rrab_feh_highres_ab_offsets,
                      title_string = "RRab Fe/H mapping, w/ ab-based offsets",
