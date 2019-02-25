@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import ipdb
+import pickle
 
 
 class LitMetallicities():
@@ -550,7 +551,6 @@ class MetalBasisTypeSpecific(LitMetallicities):
                                                           df_offsets = rrab_offsets,
                                                           plot_string="rrc_w_rrab_offsets.png")
 
-        ipdb.set_trace()
         # use the bases to put Fe/H values on a common scale 
         # i.e., to have ONE high-res-spectroscopically determined 
         # Fe/H value for making the metallicity calibration
@@ -616,9 +616,6 @@ class MetalBasisTypeSpecific(LitMetallicities):
             plt.savefig(plot_file_name, overwrite=True)
 
         # RRabs with RRab offsets
-        # pickle info for abs first!
-        import pickle
-        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( "info.pkl", "wb" ) )
         plot_mapping(input = rrab_matches,
                      mapped = rrab_feh_highres_ab_offsets,
                      title_string = "RRab Fe/H mapping, w/ ab-based offsets",
@@ -641,9 +638,13 @@ class MetalBasisTypeSpecific(LitMetallicities):
                      mapped = rrc_feh_highres_c_offsets,
                      title_string = "RRc Fe/H mapping, w/ c-based offsets",
                      plot_file_name = "rrc_w_c_offsets_basis.png")
+
+        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrabs_rrab_offsets.pkl", "wb" ) )
+        pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrabs_rrc_offsets.pkl", "wb" ) )
+        pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrcs_rrab_offsets.pkl", "wb" ) )
+        pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrcs_rrc_offsets.pkl", "wb" ) )
         
         print('BLAH BLAH')
-
 
         '''
         fig.suptitle('Calculated Fe/H of calibration program stars\n('+type_string+' subtype)')

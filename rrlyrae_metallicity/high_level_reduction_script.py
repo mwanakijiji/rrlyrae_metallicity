@@ -9,7 +9,8 @@ from modules2 import \
      make_high_res_feh_basis, \
      ca_correction, \
      graft_phases, \
-     run_emcee
+     run_emcee, \
+     error_propagation_and_mapping
 from subprocess import Popen,PIPE
 import ipdb
 
@@ -67,6 +68,7 @@ def main():
 
     # EXAMPLE COMMANDS FOR GENERATING FE/H BASIS AND CALCULATING FE/H FOR OUR STARS
     ab_ab_off, ab_c_off, c_c_off, c_ab_off = make_high_res_feh_basis.MetalBasisTypeSpecific(plot_name='name_here').calc_FeH_program_stars()
+    error_propagation_and_mapping.FeHmapper().map() # actually do the mapping here
     ipdb.set_trace()
 
     # obtain high-res metallicities for the program stars by mapping the basis set
