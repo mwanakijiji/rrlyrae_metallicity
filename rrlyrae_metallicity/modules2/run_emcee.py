@@ -95,14 +95,14 @@ class run_emcee():
         ecaii = dfChoice['err_K']
         ave = dfChoice['balmer']
         eave = dfChoice['err_balmer']
-        feh = dfChoice['FeH']
-        efeh = dfChoice['eFeH']
+
+        ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
+        feh = dfChoice['final_feh_center']
+        efeh = np.subtract(dfChoice['final_feh_center'],dfChoice['final_feh_lower'])
+        
         phase = dfChoice['phase']
         #period = dfChoice.type
         #star_type = dataFloats[:,15]
-
-        print('HAHA')
-        import ipdb; ipdb.set_trace()
         
         # fix some values
         Teff = 0.0586758 # from previous IDL runs (kind of deprecated; just appears as a constant in the MCMC)
@@ -204,8 +204,4 @@ class run_emcee():
         print('Coefficients a, b, c, d, and errors (see corner plot):')
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
-    def get_mcmc_output(self):
-        '''
-        Return file name of MCMC chain outputs
-        '''
-        return self.filenameString
+        print("MCMC data written to " + self.filenameString)

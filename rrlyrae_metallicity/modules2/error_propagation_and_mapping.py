@@ -49,12 +49,12 @@ class FeHplotter():
         return np.multiply(0.5,np.add(1., erf_return)) # (1/2)*(1 + erf(x*/sqrt(2)))
 
 
-    def pickle_plot_info(self, name_star,feh_mapped_array):
+    def pickle_plot_info(self, name_star, feh_mapped_array):
 
-        x_vals, y_vals = cdf_fcn(np.ravel(feh_mapped_array))
+        x_vals, y_vals = self.cdf_fcn(np.ravel(feh_mapped_array))
 
         # fit a Gaussian
-        popt, pcov = scipy.optimize.curve_fit(cdf_gauss, x_vals, y_vals)
+        popt, pcov = scipy.optimize.curve_fit(self.cdf_gauss, x_vals, y_vals)
 
         print("Line parameters")
         print(popt)
@@ -115,10 +115,10 @@ class FeHplotter():
         print(xvals_interp[idx_1sig_low])
         print(xvals_interp[idx_1sig_high])
 
-        # pickle the data, to avoid choking the machine with too much plot-making all at once
+        # pickle the data for this one star, to avoid choking the machine with too much plot-making all at once
         name_star_underscore = str(name_star).replace(" ", "_") # replace space with underscore
         pickle_write_name = "./rrlyrae_metallicity/modules2/pickled_info/plot_info_" + name_star_underscore + ".pkl"
-        cdf_gauss_info = cdf_gauss(x_vals, *popt)
+        cdf_gauss_info = self.cdf_gauss(x_vals, *popt)
         with open(pickle_write_name, "wb") as f:
             pickle.dump((name_star,
                      feh_mapped_array,
@@ -180,9 +180,64 @@ class FeHplotter():
         plt.close()
 
 
+
+    def do_bootstrap(self):
+        # read in actual data
+        ## ## N.b. this is just the RRabs with RRab offsets for now
+        real_data_1 = pickle.load( open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrab_rrab_offsets.pkl", "rb" ) )
+
+        # arrange the data in a way we can use
+        # N.b. This is NOT fake data; I'm just appropriating the old variable name
+        ## ## Note the ersatz Layden errors for now; need to revisit this with values from his paper
+        fake_data_1 = { "star_name": real_data_1[0]["name_star"],
+                "feh_lit": real_data_1[0]["FeH_highres"],
+                "feh_layden": real_data_1[0]["FeH_basis"],
+                "err_feh_lit": np.zeros(len(real_data_1[0]["FeH_basis"])),
+                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["FeH_basis"]))}
+        fake_dataset_1 = pd.DataFrame(data=fake_data_1)
+
+        
+        # # Find the linear regression line to high_res vs. basis Fe/H values
+        
+        # Put Fe/H values into a useable form
+        feh_sample = np.transpose([fake_data_1["feh_layden"],fake_data_1["feh_lit"]])
+
+        # Bootstrap
+        N_samples = int(1e4)
+        # set RNG for reproducibility of the bootstrap
+        with NumpyRNGContext(1):
+            bootresult = bootstrap(feh_sample, N_samples)
+    
+        # populate the arrays with bootstrap results
+        m_array = np.nan*np.ones(len(bootresult))
+        b_array = np.nan*np.ones(len(bootresult))
+        for boot_n in range(0,len(bootresult)):
+            test_fit = np.polyfit(bootresult[boot_n,:,0], bootresult[boot_n,:,1], 1)
+            m_array[boot_n] = test_fit[0]
+            b_array[boot_n] = test_fit[1]
+    
+        # consolidate info, remove extra dimension
+        name_star = fake_data_1["star_name"][:].values
+        feh_test = fake_data_1["feh_layden"][:].values
+        params_array = np.squeeze([[name_star],[feh_test]])
+
+        # arrange into a list for parallel processing
+        params_list_star_feh = list(np.transpose(params_array))
+
+        return m_array, b_array, params_list_star_feh, fake_data_1
+
+
+class FeHmapper(FeHplotter):
+    
+    def __init__(self):
+        pass
+
+    def __call__(self):
+        pass  
+        
     def map_feh_one_star(self, params_element):
         '''
-        Maps the Fe/H values (in a single function for parallel processing)
+        Maps the Fe/H values for one star (in a single function for parallel processing)
         '''
     
         time_start = time.time()
@@ -220,72 +275,29 @@ class FeHplotter():
                 feh_mapped_array[sample_num][integal_piece] = feh_mapped_1sample
     
         # pickle plot info
-        pickle_plot_info(name_star,feh_mapped_array)
+        self.pickle_plot_info(name_star,feh_mapped_array)
 
         print("Elapsed time:")
         print(str(time.time() - time_start))
         print("--------------------------")
 
-
-class FeHmapper(FeHplotter):
-
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass  
-
-    def map(self):
-        # read in actual data
-        ## ## N.b. this is just the RRabs with RRab offsets for now
-        real_data_1 = pickle.load( open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrab_rrab_offsets.pkl", "rb" ) )
-
-        # arrange the data in a way we can use
-        # N.b. This is NOT fake data; I'm just appropriating the old variable name
-        ## ## Note the ersatz Layden errors for now; need to revisit this with values from his paper
-        fake_data_1 = { "star_name": real_data_1[0]["name_star"],
-                "feh_lit": real_data_1[0]["FeH_highres"],
-                "feh_layden": real_data_1[0]["FeH_basis"],
-                "err_feh_lit": np.zeros(len(real_data_1[0]["FeH_basis"])),
-                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["FeH_basis"]))}
-        fake_dataset_1 = pd.DataFrame(data=fake_data_1)
-
         
-        # # Find the linear regression line to high_res vs. basis Fe/H values
-        
-        # Put Fe/H values into a useable form
-        feh_sample = np.transpose([fake_data_1["feh_layden"],fake_data_1["feh_lit"]])
+    def do(self):
 
-        # Bootstrap
-        N_samples = int(1e4)
-        # set RNG for reproducibility of the bootstrap
-        with NumpyRNGContext(1):
-            bootresult = bootstrap(feh_sample, N_samples)
-    
-        # populate the arrays with bootstrap results
-        m_array = np.nan*np.ones(len(bootresult))
-        b_array = np.nan*np.ones(len(bootresult))
-        for boot_n in range(0,len(bootresult)):
-            test_fit = np.polyfit(bootresult[boot_n,:,0], bootresult[boot_n,:,1], 1)
-            m_array[boot_n] = test_fit[0]
-            b_array[boot_n] = test_fit[1]
-
-        # consolidate info, remove extra dimension
-        name_star = fake_data_1["star_name"][:].values
-        feh_test = fake_data_1["feh_layden"][:].values
-        params_array = np.squeeze([[name_star],[feh_test]])
-
-        # arrange into a list 
-        params_list_star_feh = list(np.transpose(params_array))
+        # do the bootstrap
+        global m_array # have to make this global for multiprocessing to work
+        global b_array
+        m_array, b_array, params_list_star_feh, fake_data_1 = self.do_bootstrap()
 
         # parallel process the Fe/H info
         ncpu = multiprocessing.cpu_count()
         pool = Pool(ncpu)
-        outdat = pool.map(map_feh_one_star,params_list_star_feh) # FeH info is pickled here
+        outdat = pool.map(self.map_feh_one_star,params_list_star_feh) # FeH info is pickled here
         pool.close()
 
         # now make and save the plots of Fe/H values
         # (this is done in series to avoid memory chokes)
         for t in range(0,len(fake_data_1["star_name"])):
             this_star = fake_data_1["star_name"][t]
+            print("Writing Fe/H CDF for star " + this_star)
             self.write_cdf_hist_plot(this_star)

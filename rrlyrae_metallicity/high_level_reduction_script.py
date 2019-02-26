@@ -20,6 +20,7 @@ import ipdb
 
 def main():
 
+    import ipdb; ipdb.set_trace()
     '''
     Compile the C spectral normalization script
     '''
@@ -68,27 +69,15 @@ def main():
 
     # obtain high-res metallicities for the program stars by mapping the basis set
     ab_ab_off, ab_c_off, c_c_off, c_ab_off = make_high_res_feh_basis.MetalBasisTypeSpecific(plot_name='name_here').calc_FeH_program_stars()
-    error_propagation_and_mapping.FeHmapper().map() # actually do the mapping here
+    error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
 
-    
-    ipdb.set_trace()
-    
     # put data into giant table, winnow data based on phase
-    data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
-    ipdb.set_trace()
+    data_table_grafted = graft_phases.graft_feh() # graft FeH values onto table 
+    data_table_winnowed_file_name = graft_phases.winnow() # remove data corresponding to bad phase values
 
-    
-    
-    print(reducedHKdataFilename)
     # run_emcee with input data_table_winnowed
-    mamluk5 = run_emcee.run_emcee(reducedHKdataFilename)
-    ipdb.set_trace()
-    mamluk5() # call instance
-    ipdb.set_trace()
-    mcmcOutputFilename = mamluk5.get_mcmc_output() # return file name of MCMC output
-
-    # yield the four coefficients with errors
-    
+    mamluk5 = run_emcee.run_emcee(data_table_winnowed_file_name)
+    mamluk5() # call instance    
 
 
 # entry point
