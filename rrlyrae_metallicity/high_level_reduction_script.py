@@ -66,12 +66,12 @@ def main():
     ## make FeH basis from literature (stand-alone part of code)
     #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
 
-    # EXAMPLE COMMANDS FOR GENERATING FE/H BASIS AND CALCULATING FE/H FOR OUR STARS
+    # obtain high-res metallicities for the program stars by mapping the basis set
     ab_ab_off, ab_c_off, c_c_off, c_ab_off = make_high_res_feh_basis.MetalBasisTypeSpecific(plot_name='name_here').calc_FeH_program_stars()
     error_propagation_and_mapping.FeHmapper().map() # actually do the mapping here
-    ipdb.set_trace()
 
-    # obtain high-res metallicities for the program stars by mapping the basis set
+    
+    ipdb.set_trace()
     
     # put data into giant table, winnow data based on phase
     data_table_winnowed = graft_phases.winnow(data_table) ## ## implement once we have reliable phases
