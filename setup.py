@@ -5,40 +5,21 @@
 
 from setuptools import setup, Extension
 from setuptools.command.install import install
+import sys
 import shlex
 import subprocess
-#from numpy.distutils.core import setup, Extension
+from subprocess import Popen,PIPE
 
 long_description = "For determining metallicities of RR Lyraes from low-res spectroscopy see `here <https://github.com/mwanakijiji/rrlyrae_metallicity>`__ for more info"
 
-'''
-class CustomInstall(install):
-    def run(self):
-        command = "g++ -o bkgrnd11 bkgrnd.cc"
-        normzn_compile = shlex.split(command)
-        process = subprocess.run(normzn_compile) #, shell=True, stderr=subprocess.STDOUT)
-        #process = subprocess.Popen(normzn_compile, shell=True, stderr=subprocess.STDOUT)
-        #process.wait()
-        print('allo?')
-        print('_')
-        print('_')
-        print('_')
-        install.run(self)
-'''
-
-# NEEDED? 
-module1 = Extension("bkgrnd13", sources = ["bkgrnd.cc"]) # if extension were to be converted into a *.so file on Mac OSX
-
 setup(name="RRab metallicity",
-      version="1.0.0",
+      version="0.0.1",
       description="For finding FeH from low-res survey spectra of RRab stars",
       long_description=long_description,
       author="Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell",
       author_email="spalding at email dot arizona dot edu",
       url="https://github.com/mwanakijiji/rrlyrae_metallicity",
       license="MIT",
-      include_package_data=True,
-      ext_modules=[module1]
+      packages=['rrlyrae_metallicity','rrlyrae_metallicity/modules2'],
+      include_package_data=True
       )
-# cmdclass={'install': CustomInstall}
-# install_requires=['gsl==1']

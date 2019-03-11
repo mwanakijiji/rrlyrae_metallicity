@@ -1,3 +1,3 @@
 # rrlyrae_metallicity
 
-[![astropy](http://img.shields.io/badge/powered%20by-AstroPy-orange.svg?style=flat)](http://www.astropy.org/)
+This is a package for determining metallicities from med-res RRab spectroscopy. See --- for documentation.
