@@ -1,11 +1,6 @@
-#synthetic_in_dir = "empirical_spectra_unnorm"
-#synthetic_out_dir = "synthetic_output"
-
-goodPhaseRange = [0.05,0.90]
-
-scrapedEWdataFilename = "scrapedEWdataFilename_test.dat"
-
-smooth_val = int(22)
+# configuration data
+config = configparser.ConfigParser() # for parsing values in .init file
+config.read("modules2/config.ini")
 
 from setuptools import Distribution
 from setuptools.command.install import install
@@ -27,3 +22,18 @@ def get_setuptools_script_dir():
     command.ensure_finalized()
     command.run()
     return dist.install_scripts
+
+def make_dirs():
+    '''
+    Make directories for housing files/info if they don't already exist
+    '''
+
+    # loop over all directory paths we will need
+    for vals in config["data_dirs"]:
+        abs_path_name = str(config["data_dirs"][vals])
+        print("Directory exists: " + abs_path_name)
+        
+        # if directory does not exist, create it
+        if not os.path.exists(abs_path_name):
+            os.makedirs(abs_path_name)
+            print("Made directory " + abs_path_name)

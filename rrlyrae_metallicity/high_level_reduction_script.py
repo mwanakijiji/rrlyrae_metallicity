@@ -21,9 +21,11 @@ import ipdb
 def main():
 
     import ipdb; ipdb.set_trace()
-    '''
-    Compile the C spectral normalization script
-    '''
+
+    # Make all the directories
+    make_dirs()
+    
+    # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
     
     '''
