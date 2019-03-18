@@ -1,3 +1,5 @@
+import configparser
+
 # configuration data
 config = configparser.ConfigParser() # for parsing values in .init file
 config.read("modules2/config.ini")

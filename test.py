@@ -1,3 +1,3 @@
-print('Hello world')
+from rrlyrae_metallicity.modules2 import scrape_ew_and_errew
 
-# compile C code and run test.cc script
+from rrlyrae_metallicity.tests import test_scrape_ew_and_errew

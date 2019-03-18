@@ -5,7 +5,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-class scraper():
+class Scraper():
 
     ##############################################################################
     # STEP 3B: SCRAPE ALL THE EW INFO FROM *.c.dat FILES (applicable to A and B)

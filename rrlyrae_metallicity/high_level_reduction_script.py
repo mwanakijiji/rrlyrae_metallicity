@@ -50,7 +50,7 @@ def main():
     '''
 
     # scrape_ew_from_robo and calculate EWs + err_EW
-    mamluk2 = scrape_ew_and_errew.scraper() # create scraper instance
+    mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
     print('----')
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
     #test = mamluk2() # call instance
