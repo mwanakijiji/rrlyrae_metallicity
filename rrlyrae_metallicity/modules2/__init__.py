@@ -1,8 +1,9 @@
 import configparser
+import os
 
 # configuration data
 config = configparser.ConfigParser() # for parsing values in .init file
-config.read("modules2/config.ini")
+config.read("rrlyrae_metallicity/modules2/config.ini")
 
 from setuptools import Distribution
 from setuptools.command.install import install
