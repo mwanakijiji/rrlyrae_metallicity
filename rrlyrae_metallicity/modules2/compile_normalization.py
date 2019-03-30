@@ -7,10 +7,6 @@ from modules2 import *
 Compile spectral normalization script
 '''
 
-# configuration data
-config = configparser.ConfigParser() # for parsing values in .init file
-config.read("rrlyrae_metallicity/modules2/config.ini")
-
 def compile_bkgrnd():
     _COMPILE_BKGRND = True
     if _COMPILE_BKGRND:

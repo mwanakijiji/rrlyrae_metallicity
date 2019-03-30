@@ -13,10 +13,6 @@ class Scraper():
     ##############################################################################
     
     def __init__(self):
-
-        # configuration data
-        config = configparser.ConfigParser() # for parsing values in .init file
-        config.read("rrlyrae_metallicity/modules2/config.ini")
         
         # directory containing the directory containing the *.fits.robolines files containing the EW info
         self.stem = '.' ## ##
@@ -360,7 +356,7 @@ class findHK():
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
-        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + config["file_names"]["HK_PLOT_NAME"])
+        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + config["file_names"]["KH_PLOT_NAME"])
 
         
     def get_hk_file(self):

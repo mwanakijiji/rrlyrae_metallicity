@@ -29,12 +29,6 @@ from astropy.table import Table
 import numpy as np
 from modules2 import *
 
-# -----------------
-# Configuration parameters
-# -----------------
-config = configparser.ConfigParser() # for parsing values in .init file
-config.read("rrlyrae_metallicity/modules2/config.ini")
-
 # --------------------
 # Function Definitions
 # --------------------

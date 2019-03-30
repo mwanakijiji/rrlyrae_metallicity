@@ -13,10 +13,6 @@ class LitMetallicities():
     '''
     
     def __init__(self):
-
-        # configuration data
-        config = configparser.ConfigParser() # for parsing values in .init file
-        config.read("rrlyrae_metallicity/modules2/config.ini")
     
         # stand-in that consists of our program star names
         self.our_program_stars = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]

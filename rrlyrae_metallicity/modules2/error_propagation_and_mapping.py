@@ -17,13 +17,16 @@ from astropy.modeling.functional_models import Gaussian2D
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
 from multiprocessing import Pool
+from modules2 import *
 
 class FeHplotter():
 
     def __init__(self):
+        
         pass
 
     def __call__(self):
+        
         pass  
 
     def cdf_fcn(self, array_input):
@@ -283,7 +286,7 @@ class FeHmapper(FeHplotter):
 
         
     def do(self):
-
+                
         # do the bootstrap
         global m_array # have to make this global for multiprocessing to work
         global b_array
