@@ -24,7 +24,6 @@ class Scraper():
         self.subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"] ## ##
         
         # get list of filenames without the path
-        ## ## ADD CHECK TO MAKE SURE THESE FILES ARE THE SAME AS SPIT OUT BY NDLS MODULE
         fileListLong = glob.glob(self.subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
@@ -53,7 +52,7 @@ class Scraper():
 
         dfMaster = pd.DataFrame() # initialize
 
-        # loop over all filenames, extract line data
+        # loop over all filenames of realizations of empirical spectra, extract line data
         for t in range(0,len(self.fileList)):
 
             # read in Robospect output
@@ -64,13 +63,22 @@ class Scraper():
     
             # add two cols on the left: the filename, and the name of the line
             sLength = len(df['mean']) # number of lines (should be 5)
+
+            # file names
             df['file_name'] = pd.Series(self.fileList[t], index=df.index)
-            df['synth_spec_name'] = pd.Series(self.fileList[t].split(".")[0], index=df.index) # multiple synthetic spectra correspond to one empirical spectrum
-            df['empir_spec_name'] = pd.Series(self.fileList[t].split(".")[0][0:-4], index=df.index) # empirical spectrum
+
+            # names of empirical spectra realizations (multiple ones correspond to one empirical spectrum)
+            df['synth_spec_name'] = pd.Series(self.fileList[t].split(".")[0], index=df.index)
+
+            # names of empirical spectra
+            df['empir_spec_name'] = pd.Series(self.fileList[t].split(".")[0][0:-4], index=df.index)
+            
             #df['star_name'] = pd.Series(self.fileList[t].split("__")[0], index=df.index)
+
+            # names of the absorption lines
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
     
-            # get an idea of the progress
+            # print progress
             print('Out of '+str(len(self.fileList))+' files, '+str(t)+' scraped...')
     
             # if this is the first list, start a master copy from it to concatenate stuff to it
@@ -83,7 +91,7 @@ class Scraper():
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         dfMaster_reset = dfMaster.reset_index(drop=True).copy() # this gets shown further down in this notebook
-        #dfMaster.reset_index(drop=True).to_csv(stem+self.subdir+'/McD_largeTable_test.csv') # this is effectively the same, but gets written out
+        dfMaster.reset_index(drop=True).to_csv(self.subdir+config["file_names"]["MCD_ALL_DATA"]) # this is effectively the same, but gets written out
 
         ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
         # remove all rows with a flag ending with something other than zero (i.e., the fit is bad)
@@ -126,7 +134,7 @@ class findHK():
     def __init__(self, scrapedEWfilename):
 
         self.scrapedEWfilename = scrapedEWfilename
-        self.hkFileName = 'rrlyrae_metallicity/src/more_realistic_EWs_w_phase_test.csv'
+        self.hkFileName = config["data_dirs"]["DIR_SRC"] + config["file_names"]["MORE_REALISTIC"] 
         
         # read in line data
         print(self.scrapedEWfilename)
@@ -151,6 +159,9 @@ class findHK():
         self.err_Hdel_data_array = []
         self.Heps_data_array = []
         self.err_Heps_data_array = []
+
+        # read in boundaries of good phase regions
+        self.min_good, self.max_good = phase_regions()
         
     def __call__(self):
         
@@ -271,7 +282,7 @@ class findHK():
         df_collation = pd.DataFrame(data=d)
         
         # read in a text file containing phase information ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
-        phase_info = pd.read_csv('rrlyrae_metallicity/src/eckhart_2ndPass_allSNR_noVXHer_lowAmpPrior.csv')
+        phase_info = pd.read_csv(config["data_dirs"]["DIR_SRC"] + config["file_names"]["DETACHED_PHASES"])
         
         # paste phase info into the table of EWs
         phase_array = []
@@ -330,9 +341,10 @@ class findHK():
             # plot, and keep the same color for each star
             color_this_star = cmap(float(y)/len(unique_star_names))
             ax.errorbar(x_data,y_data,yerr=err_y_data,xerr=err_x_data,linestyle='',fmt=markers[y],markerfacecolor=colors[y],color=colors[y])
-    
-            x_data_badPhase = x_data.where(np.logical_or(data_to_plot['phase'] > 0.8, data_to_plot['phase'] < 0.05))
-            y_data_badPhase = y_data.where(np.logical_or(data_to_plot['phase'] > 0.8, data_to_plot['phase'] < 0.05))
+
+            bad_phase_locs = np.logical_or(data_to_plot['phase'] > self.max_good, data_to_plot['phase'] < self.min_good)
+            x_data_badPhase = x_data.where(bad_phase_locs)
+            y_data_badPhase = y_data.where(bad_phase_locs)
     
             # overplot unfilled markers to denote bad phase region
             ax.errorbar(x_data_badPhase,y_data_badPhase,linestyle='',fmt=markers[y],markerfacecolor='white',color=colors[y])

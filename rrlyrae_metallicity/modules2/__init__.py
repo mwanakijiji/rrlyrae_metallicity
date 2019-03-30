@@ -3,7 +3,7 @@ import os
 
 # configuration data
 config = configparser.ConfigParser() # for parsing values in .init file
-config.read("rrlyrae_metallicity/modules2/config.ini")
+config.read("modules2/config.ini")
 
 from setuptools import Distribution
 from setuptools.command.install import install
@@ -40,3 +40,13 @@ def make_dirs():
         if not os.path.exists(abs_path_name):
             os.makedirs(abs_path_name)
             print("Made directory " + abs_path_name)
+
+def phase_regions():
+    '''
+    Read in the boundary between good and bad phase regions
+    '''
+
+    value1 = config.getfloat("phase", "MIN_GOOD")
+    value2 = config.getfloat("phase", "MAX_GOOD")
+    
+    return value1, value2
