@@ -15,12 +15,10 @@ import pickle
 def graft_feh():
     ## ## TACK PHASES ONTO LIST OF EWS FROM SPECTRA
     ## ## NEED TO GET RID OF THE 'FAKE' AT SOME POINT
-
-    stem_pickled = "./rrlyrae_metallicity/modules2/pickled_info/"
     
     # read in star names first
     ## ## N.b. this is just the RRabs with RRab offsets for now
-    real_data_1 = pickle.load( open( stem_pickled + "info_rrab_rrab_offsets.pkl", "rb" ) )
+    real_data_1 = pickle.load( open( config["data_dirs"]["DIR_PICKLE"] + "info_rrab_rrab_offsets.pkl", "rb" ) )
 
     # arrange the data in a way we can use
     # N.b. This is NOT fake data; I'm just appropriating the old variable name
@@ -53,8 +51,8 @@ def graft_feh():
                                                ignore_index=True)
 
     # read in the EW and phase info
-    hkFileName = stem_pickled + "../../src/more_realistic_EWs_w_phase_test.csv"
-    hk_ews = pd.read_csv(hkFileName)
+    hk_ews = pd.read_csv(config["data_dirs"]["DIR_SRC"]
+                         + config["file_names"]["MORE_REALISTIC"])
 
     # paste the feh values onto the HK table
     # loop over each row of the HK table and assign an FeH based on string in empirical spectrum name
@@ -86,7 +84,7 @@ def graft_feh():
     
     # pickle the table of H,K,phases,Fe/H
     ## ## NEED TO ADD STAR TYPE, TOO
-    pickle_write_name = stem_pickled + "hk_final_feh_info.pkl"
+    pickle_write_name = config["data_dirs"]["DIR_PICKLE"] + "hk_final_feh_info.pkl"
     with open(pickle_write_name, "wb") as f:
         pickle.dump(hk_ews, f)
     
@@ -98,21 +96,23 @@ def winnow():
     This removes the program star spectra which are in the bad phase region
     '''
 
-    stem_pickled = "./rrlyrae_metallicity/modules2/pickled_info/"
-
+    # read in phase boundaries
+    min_good, max_good = phase_regions()
+    
     # restore pickle file with all the H,K data
-    hk_data = pickle.load( open( stem_pickled + "hk_final_feh_info.pkl", "rb" ) )
+    hk_data = pickle.load( open( config["data_dirs"]["DIR_PICKLE"] + config["FILE_NAMES"]["KH_FINAL_PKL"], "rb" ) )
     #hk_data_df = pd.DataFrame(hk_data)
     print(hk_data)
     
     # drop bad phases
     ## ## NOTE THAT THE DROPNA HERE SEEMS TO BE DROPPING ALL ROWS WITH ANY NANS IN IT (SOME OF THE RRC FEHS ARE NANS)
     ## ## ALSO CHECK THAT WERE NOT LOSING V535 OR V445 THROUGH SILLY NAME DIFFERENCES
-    hk_data_winnowed = hk_data.where(np.logical_and(hk_data["phase"] > 0.05,hk_data["phase"] < 0.90)).dropna().reset_index()
+    hk_data_winnowed = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
+                                                    hk_data["phase"] < max_good)).dropna().reset_index()
 
-    hk_data_winnowed_file_name = "hk_data_winnowed.csv"
-    hk_data_winnowed.to_csv(hk_data_winnowed_file_name)
+    #hk_data_winnowed_file_name = "hk_data_winnowed.csv"
+    hk_data_winnowed.to_csv(config["data_dirs"]["DIR_BIN"] + config["file_names"]["KH_WINNOWED_FILE_NAME"])
     
     ## ## NEED TO WINNOW BY STAR TYPE, TOO
 
-    return hk_data_winnowed_file_name
+    return

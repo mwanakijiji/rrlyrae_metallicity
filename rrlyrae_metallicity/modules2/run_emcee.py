@@ -76,11 +76,19 @@ class run_emcee():
     # STEP 5: RUN EMCEE ON THE SPACE, GET VALUES FOR a, b, c, d (applicable only to A)
     ##############################################################################
     
-    def __init__(self, scrapedEWfilename):
-        
-        self.scrapedEWfilename = scrapedEWfilename # note this is the file with final H, K, FeH, and error values (and not the others from the noise-churned spectra)
-        self.filenameString = "rrlyrae_metallicity/bin/mcmc_output.csv" # saves the MCMC output
-        self.cornerFileString = "rrlyrae_metallicity/bin/corner.png" # makes a corner plot of the MCMC output
+    def __init__(self):
+
+        # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
+        self.scrapedEWfilename = config["data_dirs"]["DIR_BIN"] + config["file_names"]["KH_WINNOWED_FILE_NAME"]
+
+        # name of file of the MCMC output
+        self.filenameString = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"]
+
+        # name of corner plot of the MCMC output
+        self.cornerFileString = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]
+
+        # read in boundaries of good phase regions
+        self.min_good, self.max_good = phase_regions()
         
     def __call__(self):
 
@@ -88,7 +96,8 @@ class run_emcee():
         
         print('Reading in data ...')
         print(self.scrapedEWfilename)
-        dfChoice = pd.read_csv(self.scrapedEWfilename, delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
+        dfChoice = pd.read_csv(self.scrapedEWfilename,
+                               delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
 
         name = dfChoice['empir_spec_name']
         caii = dfChoice['K']
@@ -98,7 +107,8 @@ class run_emcee():
 
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
         feh = dfChoice['final_feh_center']
-        efeh = np.subtract(dfChoice['final_feh_center'],dfChoice['final_feh_lower'])
+        efeh = np.subtract(dfChoice['final_feh_center'],
+                           dfChoice['final_feh_lower'])
         
         phase = dfChoice['phase']
         #period = dfChoice.type
@@ -120,15 +130,14 @@ class run_emcee():
         paramArray_0_Layden = [float(a_layden),float(b_layden),float(c_layden),float(d_layden)] # starting position, before adding a perturbation
         sigmas_0_Layden = [float(sigma_a_layden),float(sigma_b_layden),float(sigma_c_layden),float(sigma_d_layden)]
 
-        # remove high metallicity stars and bad phases  
-        phaseUpperLimit = 0.8
-        phaseLowerLimit = 0.05
+        # remove high metallicity stars
+        ## PUT INTO CONFIG FILE  
         metalUpperLimit = 1.0
 
         # impose conditions using anonymous functions
-        good_phase = find_indices(phase, lambda q: (q<phaseUpperLimit)&(q>phaseLowerLimit))
-        good_metal = find_indices(feh, lambda r: (r<metalUpperLimit))
-        good_indices = np.intersect1d(good_phase, good_metal) # return common values
+        good_phase = find_indices(phase, lambda q: (q < self.max_good) & (q > self.min_good))
+        good_metal = find_indices(feh, lambda r: (r < metalUpperLimit))
+        good_indices = np.intersect1d(good_phase, good_metal) # return common index values
 
         g_ave = ave[good_indices]
         g_eave = eave[good_indices]
@@ -149,8 +158,10 @@ class run_emcee():
         p0 = [np.add(paramArray_0_Layden,np.multiply(paramArray_0_Layden,1e-4*np.random.randn(ndim))) for i in range(nwalkers)]
 
         # set up sampler
-        sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[Teff, g_ave, g_feh, g_caii, \
-                                                              g_eave, g_efeh, g_ecaii])
+        sampler = emcee.EnsembleSampler(nwalkers,
+                                        ndim,
+                                        lnprob,
+                                        args=[Teff, g_ave, g_feh, g_caii, g_eave, g_efeh, g_ecaii])
 
         # burn-in
         burnIn = 1e3 # 1e5 seems to be necessary for the slow-converging parameter 'd'
@@ -197,11 +208,12 @@ class run_emcee():
         # if its necessary to read in MCMC output again
         #data = np.loadtxt(self.filenameString, usecols=range(1,5))
 
-        # (this code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of https://emcee.readthedocs.io/en/stable/user/line.html#results )
+        # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
+        # https://emcee.readthedocs.io/en/stable/user/line.html#results
         a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                                              zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 
         print('Coefficients a, b, c, d, and errors (see corner plot):')
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
-        print("MCMC data written to " + self.filenameString)
+        print("MCMC data written to " + os.basename(self.filenameString))

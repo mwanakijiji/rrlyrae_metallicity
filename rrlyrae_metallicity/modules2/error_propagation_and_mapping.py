@@ -74,10 +74,11 @@ class FeHplotter():
 
         # SIGMA DEFINITION 1: FIND MEDIAN AND SIGMA BRACKETS AROUND IT
         # find element of value closest to 1-sigma limit (on low side)
-        percent_bar_1sig_low = 0.5 - 0.5*0.682689492
+        1sigma_perc = 0.682689492
+        percent_bar_1sig_low = 0.5 - 0.5*1sigma_perc
         idx_1sig_low = np.abs(yvals_interp - percent_bar_1sig_low).argmin()
         # find element of value closest to 1-sigma limit (on high side)
-        percent_bar_1sig_high = 0.5 + 0.5*0.682689492
+        percent_bar_1sig_high = 0.5 + 0.5*1sigma_perc
         idx_1sig_high = np.abs(yvals_interp - percent_bar_1sig_high).argmin()
 
         # SIGMA DEFINITION 2: FIND NARROWEST REGION CONTAINING 1-SIGMA WORTH OF POINTS
@@ -87,7 +88,7 @@ class FeHplotter():
         for t in range(0,len(xvals_interp)):
     
             lower_bar_y = yvals_interp[t]
-            upper_bar_y = yvals_interp[t] + 0.682689492
+            upper_bar_y = yvals_interp[t] + 1sigma_perc
     
             # break if the range will go beyond data points
             if (upper_bar_y > 0.99):
@@ -120,7 +121,7 @@ class FeHplotter():
 
         # pickle the data for this one star, to avoid choking the machine with too much plot-making all at once
         name_star_underscore = str(name_star).replace(" ", "_") # replace space with underscore
-        pickle_write_name = "./rrlyrae_metallicity/modules2/pickled_info/plot_info_" + name_star_underscore + ".pkl"
+        pickle_write_name = config["data_dirs"]["DIR_PICKLE"] + "plot_info_" + name_star_underscore + ".pkl"
         cdf_gauss_info = self.cdf_gauss(x_vals, *popt)
         with open(pickle_write_name, "wb") as f:
             pickle.dump((name_star,
@@ -146,7 +147,7 @@ class FeHplotter():
     
         # open the pickle file
         name_star_underscore = str(name_star).replace(" ", "_") # replace space with underscore
-        pickle_read_name = "./rrlyrae_metallicity/modules2/pickled_info/plot_info_" + name_star_underscore + ".pkl"
+        pickle_read_name = config["data_dirs"]["DIR_PICKLE"] + "plot_info_" + name_star_underscore + ".pkl"
     
         with open(pickle_read_name, 'rb') as f:
             name_star,feh_mapped_array,x_vals,y_vals,xvals_interp,cdf_gauss_info,\
@@ -164,14 +165,14 @@ class FeHplotter():
         plt.axvline(shortest_xrange_halfway, color='orange')
         plt.xlabel("Fe/H")
         plt.ylabel("CDF")
-        plt.title(name_star + "\n"+          "Fe/H based on median (blue): "
+        plt.title(name_star + "\n" + "Fe/H based on median (blue): "
           + "{:.{}f}".format( xvals_interp[idx], 3) + ", +" + "{:.{}f}".format( np.subtract(xvals_interp[idx_1sig_high],xvals_interp[idx]), 3) 
           + ", -" + "{:.{}f}".format( np.subtract(xvals_interp[idx],xvals_interp[idx_1sig_low]), 3) +"\n"+\
           "Fe/H based on shortest range (orange): "
           + "{:.{}f}".format( shortest_xrange_halfway, 3) + ", +" + "{:.{}f}".format( np.subtract(shortest_xrange_upper,shortest_xrange_halfway), 3) 
           + ", -" + "{:.{}f}".format( np.subtract(shortest_xrange_halfway,shortest_xrange_lower), 3))
         plt.tight_layout()
-        plt.savefig("./rrlyrae_metallicity/modules2/saved_plots/" + name_star + "_cdf.pdf")
+        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + name_star + "_cdf.pdf")
         plt.close()
 
         plt.clf()
@@ -179,7 +180,7 @@ class FeHplotter():
         plt.title(name_star + "\n" + "std = "+str(np.std(np.ravel(feh_mapped_array))))
         plt.xlabel("Fe/H")
         plt.tight_layout()
-        plt.savefig("./rrlyrae_metallicity/modules2/saved_plots/" + name_star + "_hist.pdf")
+        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + name_star + "_hist.pdf")
         plt.close()
 
 
@@ -187,7 +188,8 @@ class FeHplotter():
     def do_bootstrap(self):
         # read in actual data
         ## ## N.b. this is just the RRabs with RRab offsets for now
-        real_data_1 = pickle.load( open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrab_rrab_offsets.pkl", "rb" ) )
+        real_data_1 = pickle.load( open( config["data_dirs"]["DIR_PICKLE"]
+                                         + config["file_names"]["RRAB_RRAB_OFFSETS"], "rb" ) )
 
         # arrange the data in a way we can use
         # N.b. This is NOT fake data; I'm just appropriating the old variable name
