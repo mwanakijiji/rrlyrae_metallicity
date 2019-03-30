@@ -11,7 +11,8 @@ def compile_bkgrnd():
     _COMPILE_BKGRND = True
     if _COMPILE_BKGRND:
         if True:
-            
+
+            print("--------------------------")
             print("Compiling background normalization script...")
             bkgrnd_compile = Popen(["g++","-o",
                                     config["data_dirs"]["DIR_BIN"] + "bkgrnd",

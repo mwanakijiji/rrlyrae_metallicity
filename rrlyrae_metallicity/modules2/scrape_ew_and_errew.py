@@ -107,18 +107,9 @@ class Scraper():
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
         dfMaster_reset_dropBadSpectra.to_csv(self.writeOutFilename) # this is effectively the same, but gets written out
 
-        print('------')
+        print("--------------------------")
         print('Scraped Robospect output written to')
         print(self.writeOutFilename)
-        print('------')
-
-
-    def get_list(self):
-
-        print("-------------------------------------------------")
-        print("Scraping EW info from Robospect output text files")
-        
-        return self.writeOutFilename
 
 
 class findHK():

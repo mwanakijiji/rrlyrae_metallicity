@@ -32,7 +32,9 @@ from modules2 import *
 # --------------------
 # Function Definitions
 # --------------------
-def create_norm_spec(name_list,normdir,finaldir):
+def create_norm_spec(name_list,
+                     normdir,
+                     finaldir):
     '''
     Create final normalized spectra, using the output from the bkgrnd routine (which puts out wavelength, flux, and continuum flux, but
     not the actual normalized flux)
@@ -176,15 +178,18 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 # Main Function
 # -------------
-def create_spec_realizations_main(input_list,outdir,num=100,verb=False):
+def create_spec_realizations_main(num=100,
+                                  verb=False):
 
+    print("--------------------------")
     print("Making "+str(num)+" realizations of each empirical spectrum")
     
     # Read list of empirical spectra
-    #stem = './src/empirical_spectra/'
+    input_list = config["data_dirs"]["DIR_SRC"]+config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     
     # Check to make sure outdir (to receive realizations of spectra) exists
+    outdir = config["data_dirs"]["DIR_SYNTH_SPEC"]
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
            

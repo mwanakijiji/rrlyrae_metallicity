@@ -93,7 +93,7 @@ class RunEmcee():
     def __call__(self):
 
         # read in EWs, Fe/Hs, phases, errors, etc.
-        
+        print("--------------------------")
         print('Reading in data ...')
         print(self.scrapedEWfilename)
         dfChoice = pd.read_csv(self.scrapedEWfilename,
@@ -149,6 +149,7 @@ class RunEmcee():
 
         ################# MCMC setup #################
 
+        print("--------------------------")
         print('Setting up MCMC ...')
 
         ndim = len(paramArray_0_Layden) # dimensions of space to explore
@@ -175,6 +176,7 @@ class RunEmcee():
         ## ## refer to these code snippets from Foreman-Mackey's website
         # IMPORTANT: sampler will only have memory of the last iteration if storechain flag is set to False
 
+        print("--------------------------")
         print("Saving MCMC chains to text file ...")
 
         # post-burn-in calculate and save iteratively
@@ -203,6 +205,7 @@ class RunEmcee():
                             title_fmt='.2f',
                             show_titles=True, verbose=True, title_kwargs={"fontsize": 12})
         fig.savefig(self.cornerFileString)
+        print("--------------------------")
         print("Corner plot of MCMC posteriors written out.")
 
         # if its necessary to read in MCMC output again
@@ -216,4 +219,5 @@ class RunEmcee():
         print('Coefficients a, b, c, d, and errors (see corner plot):')
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
+        print("--------------------------")
         print("MCMC data written to " + os.basename(self.filenameString))
