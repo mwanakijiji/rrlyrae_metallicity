@@ -22,10 +22,6 @@ def main():
 
     import ipdb; ipdb.set_trace()
 
-    # configuration data
-    config = configparser.ConfigParser() # for parsing values in .init file
-    config.read("rrlyrae_metallicity/modules2/config.ini")
-
     # Make all the directories
     make_dirs()
     
