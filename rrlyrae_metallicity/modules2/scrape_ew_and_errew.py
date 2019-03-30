@@ -360,7 +360,7 @@ class findHK():
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
-        plt.savefig('test.pdf')
+        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + config["file_names"]["HK_PLOT_NAME"])
 
         
     def get_hk_file(self):

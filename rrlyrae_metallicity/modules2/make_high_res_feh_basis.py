@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipdb
 import pickle
-
+from modules2 import *
 
 class LitMetallicities():
     '''
@@ -13,58 +13,76 @@ class LitMetallicities():
     '''
     
     def __init__(self):
-    
-        stem = "./rrlyrae_metallicity/src/high_res_feh/"
 
+        # configuration data
+        config = configparser.ConfigParser() # for parsing values in .init file
+        config.read("rrlyrae_metallicity/modules2/config.ini")
+    
         # stand-in that consists of our program star names
-        self.our_program_stars = pd.read_csv(stem + "our_program_stars_names_only.csv")
+        self.our_program_stars = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                             + "our_program_stars_names_only.csv")
         
         # Fe/H from Layden+ 1994; this may serve as the common basis for RRabs
-        self.layden_feh = pd.read_csv(stem + "layden_1994_abundances.dat")
+        self.layden_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "layden_1994_abundances.dat")
         # RES: "rather low"
         
         # Fe/H Clementini+ 1995
-        self.clementini_feh = pd.read_csv(stem + "clementini_1995_abundances.dat")
+        self.clementini_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                          + "clementini_1995_abundances.dat")
 
         # Fe/H Fernley+ 1996
-        self.fernley_feh = pd.read_csv(stem + "fernley_1996_abundances.dat")
+        self.fernley_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                       + "fernley_1996_abundances.dat")
         # RES: 60,000, FeI & FeII, 5900-8100 A
         
         # log(eps) from Lambert+ 1996
-        self.lambert_logeps = pd.read_csv(stem + "lambert_1996_abundances.dat")
+        self.lambert_logeps = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                          + "lambert_1996_abundances.dat")
         # RES: ~23,000, FeII + photometric models, 3600-9000 A
         
         # Fe/H from Wallerstein and Huang 2010, arXiv 1004.2017
-        self.wallerstein_feh = pd.read_csv(stem + "wallerstein_huang_2010_abundances.dat")
+        self.wallerstein_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                           + "wallerstein_huang_2010_abundances.dat")
         # RES: ~30,000, FeII
         
         # Fe/H from Chadid+ 2017 ApJ 835.2:187 (FeI and II lines)
-        self.chadid_feh = pd.read_csv(stem + "chadid_2017_abundances.dat")
+        self.chadid_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "chadid_2017_abundances.dat")
         # RES: 38000, FeI & FeII, 3400-9900 A
 
         # Fe/H from Liu+ 2013 Res Ast Astroph 13:1307
-        self.liu_feh = pd.read_csv(stem + "liu_2013_abundances.dat")
+        self.liu_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                   + "liu_2013_abundances.dat")
         # RES: ~60,000, FeI (& FeII?), 5100-6400 A
 
         # Fe/H from Nemec+ 2013
-        self.nemec_feh = pd.read_csv(stem + "nemec_2013_abundances.dat")
+        self.nemec_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                     + "nemec_2013_abundances.dat")
         # RES: ~65,000 or 36,000, FeI & FeII, 5150-5200 A
 
         # Fe/H from Fernley+ 1997
-        self.fernley97_feh = pd.read_csv(stem + "fernley_1997_abundances.dat")
+        self.fernley97_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                         + "fernley_1997_abundances.dat")
         # RES: 60,000, two FeII lines, 5900-8100 A
 
         # Fe/H from Solano+ 1997
-        self.solano_feh = pd.read_csv(stem + "solano_1997_abundances.dat")
+        self.solano_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "solano_1997_abundances.dat")
         # RES: 22,000 & 19,000, strong FeI lines, 4160-4390 & 4070-4490 A
         
         # Fe/H from Pancino+ 2015 MNRAS 447:2404
-        self.pacino_feh = pd.read_csv(stem + "pacino_2015_abundances.dat") 
+        self.pacino_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "pacino_2015_abundances.dat") 
         # RES: >30,000, FeI (weighted average), 4000-8500 A
 
         # Fe/H from Sneden+ 2017
-        self.sneden_feh = pd.read_csv(stem + "sneden_2017_abundances.dat")
+        self.sneden_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "sneden_2017_abundances.dat")
         # RES: ~27,000 (at 5000 A), FeI & FeII, 3400-9000 A
+
+
+        # Now modify some of the datasets on an individual basis
         
         # convert Lambert's values, which are in terms of log(eps)
         # FeH = log(epsFe) - log(epsFe,sol)
@@ -84,11 +102,13 @@ class LitMetallicities():
         # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
         
         # Fe/H from Kemper+ 1982; this might serve as the common basis for RRcs
-        self.kemper_feh = pd.read_csv(stem + "kemper_1982_abundances.dat")
+        self.kemper_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                      + "kemper_1982_abundances.dat")
 
         # Fe/H from Govea+ 2014
         ## ## note: Govea+ has abundances for each phase value, and this includes NLTE phases; how to get single Fe/H?
-        self.govea_feh = pd.read_csv(stem + "govea_2014_abundances.dat")
+        self.govea_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
+                                     + "govea_2014_abundances.dat")
         
 
         #####################
@@ -536,20 +556,20 @@ class MetalBasisTypeSpecific(LitMetallicities):
         print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
         rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                            df_offsets = rrab_offsets,
-                                                           plot_string = "rrab_w_rrab_offsets.png") # returns: slope, y-intercept
+                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrab_offsets.png") # returns: slope, y-intercept
         print(rrab_basis_w_rrab_offsets)
         print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
         rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                           df_offsets = rrc_offsets,
-                                                          plot_string="rrab_w_rrc_offsets.png")
+                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrc_offsets.png")
         print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
         rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                          df_offsets = rrc_offsets,
-                                                         plot_string="rrc_w_rrc_offsets.png")
+                                                         plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrc_offsets.png")
         print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
         rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                           df_offsets = rrab_offsets,
-                                                          plot_string="rrc_w_rrab_offsets.png")
+                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrab_offsets.png")
 
         # use the bases to put Fe/H values on a common scale 
         # i.e., to have ONE high-res-spectroscopically determined 
@@ -613,7 +633,7 @@ class MetalBasisTypeSpecific(LitMetallicities):
                     fontsize=10,
                     arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
             fig.suptitle(title_string)
-            plt.savefig(plot_file_name, overwrite=True)
+            plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + plot_file_name, overwrite=True)
 
         # RRabs with RRab offsets
         plot_mapping(input = rrab_matches,
@@ -639,10 +659,10 @@ class MetalBasisTypeSpecific(LitMetallicities):
                      title_string = "RRc Fe/H mapping, w/ c-based offsets",
                      plot_file_name = "rrc_w_c_offsets_basis.png")
 
-        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrabs_rrab_offsets.pkl", "wb" ) )
-        pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrabs_rrc_offsets.pkl", "wb" ) )
-        pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrcs_rrab_offsets.pkl", "wb" ) )
-        pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets], open( "./rrlyrae_metallicity/modules2/pickled_info/info_rrcs_rrc_offsets.pkl", "wb" ) )
+        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrabs_rrab_offsets.pkl", "wb" ) )
+        pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrabs_rrc_offsets.pkl", "wb" ) )
+        pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrab_offsets.pkl", "wb" ) )
+        pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrc_offsets.pkl", "wb" ) )
         
         print('BLAH BLAH')
 
