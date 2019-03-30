@@ -70,7 +70,7 @@ def find_indices(lst, condition): # condition will be in form of an anonymous fu
     return [i for i, elem in enumerate(lst) if condition(elem)]
 
 
-class run_emcee():
+class RunEmcee():
     
     ##############################################################################
     # STEP 5: RUN EMCEE ON THE SPACE, GET VALUES FOR a, b, c, d (applicable only to A)

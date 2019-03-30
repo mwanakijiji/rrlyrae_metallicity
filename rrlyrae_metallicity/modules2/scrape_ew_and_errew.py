@@ -357,10 +357,3 @@ class findHK():
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
         plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + config["file_names"]["KH_PLOT_NAME"])
-
-        
-    def get_hk_file(self):
-        '''
-        Return file name of final H and K values to base calibration on
-        '''
-        return self.hkFileName

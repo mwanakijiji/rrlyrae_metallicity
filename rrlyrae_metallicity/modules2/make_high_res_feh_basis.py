@@ -191,7 +191,6 @@ class LitMetallicities():
         input_table: table of high-res-derived Fe/H values, which I want to cross-ref with 
             a basis (like Layden 94 or Kemper 82)
         basis_table: the table which serves as the basis set
-        plot_name: file name for saving a plot of the results
 
         OUTPUTS:
         df: concatenated frames containing 
@@ -512,15 +511,9 @@ class MetalBasisTypeSpecific(LitMetallicities):
     Class to make metallicity bases specific to subtypes: RRab, RRc
     '''
 
-    def __init__(self, 
-                 plot_name):
-        '''
-        INPUTS:
-        plot_name: string for the plot file name
-        '''
+    def __init__(self):
         
         super().__init__()
-        self.__plot_name = plot_name
         #self.__star_type = star_type
         #self.__offset = offset
         
@@ -675,6 +668,15 @@ class MetalBasisTypeSpecific(LitMetallicities):
         no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
         '''
 
-        # return m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
-        return rrab_basis_w_rrab_offsets, rrab_basis_w_rrc_offsets, rrc_basis_w_rrc_offsets, rrc_basis_w_rrab_offsets
+        # PRINT m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
+        print("rrab_basis_w_rrab_offsets:")
+        print(rrab_basis_w_rrab_offsets)
+        print("rrab_basis_w_rrc_offsets:")
+        print(rrab_basis_w_rrc_offsets)
+        print("rrc_basis_w_rrc_offsets:")
+        print(rrc_basis_w_rrc_offsets)
+        print("rrc_basis_w_rrab_offsets:")
+        print(rrc_basis_w_rrab_offsets)     
+        
+        return 
 

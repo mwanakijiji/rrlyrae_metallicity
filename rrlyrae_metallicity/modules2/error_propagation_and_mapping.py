@@ -74,11 +74,11 @@ class FeHplotter():
 
         # SIGMA DEFINITION 1: FIND MEDIAN AND SIGMA BRACKETS AROUND IT
         # find element of value closest to 1-sigma limit (on low side)
-        1sigma_perc = 0.682689492
-        percent_bar_1sig_low = 0.5 - 0.5*1sigma_perc
+        one_sigma_perc = 0.682689492
+        percent_bar_1sig_low = 0.5 - 0.5*one_sigma_perc
         idx_1sig_low = np.abs(yvals_interp - percent_bar_1sig_low).argmin()
         # find element of value closest to 1-sigma limit (on high side)
-        percent_bar_1sig_high = 0.5 + 0.5*1sigma_perc
+        percent_bar_1sig_high = 0.5 + 0.5*one_sigma_perc
         idx_1sig_high = np.abs(yvals_interp - percent_bar_1sig_high).argmin()
 
         # SIGMA DEFINITION 2: FIND NARROWEST REGION CONTAINING 1-SIGMA WORTH OF POINTS
@@ -88,7 +88,7 @@ class FeHplotter():
         for t in range(0,len(xvals_interp)):
     
             lower_bar_y = yvals_interp[t]
-            upper_bar_y = yvals_interp[t] + 1sigma_perc
+            upper_bar_y = yvals_interp[t] + one_sigma_perc
     
             # break if the range will go beyond data points
             if (upper_bar_y > 0.99):
