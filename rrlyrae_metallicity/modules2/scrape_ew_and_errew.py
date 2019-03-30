@@ -4,6 +4,7 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+from modules2 import *
 
 class Scraper():
 
@@ -12,18 +13,22 @@ class Scraper():
     ##############################################################################
     
     def __init__(self):
+
+        # configuration data
+        config = configparser.ConfigParser() # for parsing values in .init file
+        config.read("rrlyrae_metallicity/modules2/config.ini")
         
         # directory containing the directory containing the *.fits.robolines files containing the EW info
         self.stem = '.' ## ##
         # subdirectory containing the *.c.dat files
-        self.subdir = '/robospect_output' ## ##
+        self.subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"] ## ##
         
         # get list of filenames without the path
         ## ## ADD CHECK TO MAKE SURE THESE FILES ARE THE SAME AS SPIT OUT BY NDLS MODULE
-        fileListLong = glob.glob('rrlyrae_metallicity/'+self.stem+self.subdir+'/'+'*.fits.robolines')
+        fileListLong = glob.glob(self.subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
-        self.writeOutFilename = 'rrlyrae_metallicity/'+self.stem+self.subdir+'/McD_largeTable_bad_spectra_removed_test.csv' # EW info will get scraped into this
+        self.writeOutFilename = self.subdir+config["file_names"]["MCD_LARGE_BAD_REMOVED"] # EW info will get scraped into this
         
     def __call__(self):
 
@@ -42,7 +47,7 @@ class Scraper():
                 print('Lines not matching!')
                 sys.exit
             elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
-                print('Lines not matching5!')
+                print('Lines not matching!')
                 sys.exit
             return
 
@@ -52,7 +57,7 @@ class Scraper():
         for t in range(0,len(self.fileList)):
 
             # read in Robospect output
-            df = pd.read_csv('rrlyrae_metallicity/'+self.stem+self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+            df = pd.read_csv(self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
             # check lines are in the right order
             line_check(df['#x0'])

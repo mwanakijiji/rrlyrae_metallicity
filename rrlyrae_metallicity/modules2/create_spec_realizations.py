@@ -30,8 +30,10 @@ import numpy as np
 from modules2 import *
 
 # -----------------
-# Class Definitions
+# Configuration parameters
 # -----------------
+config = configparser.ConfigParser() # for parsing values in .init file
+config.read("rrlyrae_metallicity/modules2/config.ini")
 
 # --------------------
 # Function Definitions
@@ -96,6 +98,7 @@ def generate_realizations(spec_name,outdir,num):
         except IOError:
             print("File {} could not be opened!".format(new_name))
         for j in range(len(new_flux)):
+            print("Writing out realization file " + os.path.basename(new_name))
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j],new_flux[j]))
         outfile.close()
     return(new_name_list)

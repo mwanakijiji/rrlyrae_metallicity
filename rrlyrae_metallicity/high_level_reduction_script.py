@@ -22,6 +22,10 @@ def main():
 
     import ipdb; ipdb.set_trace()
 
+    # configuration data
+    config = configparser.ConfigParser() # for parsing values in .init file
+    config.read("rrlyrae_metallicity/modules2/config.ini")
+
     # Make all the directories
     make_dirs()
     
@@ -41,11 +45,15 @@ def main():
     # col [2]: phase (0. to 1.)
 
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    #create_spec_realizations.create_spec_realizations_main(input_list="./rrlyrae_metallicity/src/spec_phases_fake.list", outdir="./synthetic_output")
+    '''
+    create_spec_realizations.create_spec_realizations_main(input_list=config["data_dirs"]["DIR_SRC"]+config["file_names"]["LIST_SPEC_PHASE"],
+                                                           outdir=config["data_dirs"]["DIR_SYNTH_SPEC"])
+    '''
     ## ## END COMMENT
     
     '''
     # run_robospect on normalized synthetic spectra
+    ## ## IMPLEMENT THE PYTHON VERSION WHEN ITS OUT
     run_robo.run_robospect()
     '''
 
