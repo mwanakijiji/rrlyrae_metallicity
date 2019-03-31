@@ -1,6 +1,6 @@
 import sys
 import os
-from modules2 import *  # import stuff in init file
+from modules2 import * 
 from modules2 import \
      compile_normalization, \
      create_spec_realizations, \
@@ -27,6 +27,7 @@ def main():
     
     # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
+    import ipdb; ipdb.set_trace()
     
     '''
     Take list of unnormalized empirical spectra and generate synthetic spectra
@@ -42,14 +43,13 @@ def main():
 
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
     '''
-    create_spec_realizations.create_spec_realizations_main(input_list=config["data_dirs"]["DIR_SRC"]+config["file_names"]["LIST_SPEC_PHASE"],
-                                                           outdir=config["data_dirs"]["DIR_SYNTH_SPEC"])
+    create_spec_realizations.create_spec_realizations_main()
     '''
     ## ## END COMMENT
     
     '''
     # run_robospect on normalized synthetic spectra
-    ## ## IMPLEMENT THE PYTHON VERSION WHEN ITS OUT
+    ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
     '''
 
@@ -57,14 +57,12 @@ def main():
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
     print('----')
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    #test = mamluk2() # call instance
+    #mamluk2() # call instance
     ## ## END COMMENT
-    scrapedEWdataFilename = mamluk2.get_list() # return the name of the file containing all the EW data from Robospect
 
     # findHK
-    mamluk3 = scrape_ew_and_errew.findHK(scrapedEWdataFilename) # create findHK instance
+    mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
     mamluk3() # call instance
-    reducedHKdataFilename = mamluk3.get_hk_file() # return the name of the file of H and K data points we will use to do the MCMC on
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -74,15 +72,15 @@ def main():
     #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
 
     # obtain high-res metallicities for the program stars by mapping the basis set
-    ab_ab_off, ab_c_off, c_c_off, c_ab_off = make_high_res_feh_basis.MetalBasisTypeSpecific(plot_name='name_here').calc_FeH_program_stars()
+    make_high_res_feh_basis.MetalBasisTypeSpecific().calc_FeH_program_stars()
     error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
 
     # put data into giant table, winnow data based on phase
-    data_table_grafted = graft_phases.graft_feh() # graft FeH values onto table 
-    data_table_winnowed_file_name = graft_phases.winnow() # remove data corresponding to bad phase values
+    graft_phases.graft_feh() # graft FeH values onto table 
+    graft_phases.winnow() # remove data corresponding to bad phase values
 
     # run_emcee with input data_table_winnowed
-    mamluk5 = run_emcee.run_emcee(data_table_winnowed_file_name)
+    mamluk5 = run_emcee.RunEmcee()
     mamluk5() # call instance    
 
 

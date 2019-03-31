@@ -1,3 +1,0 @@
-from rrlyrae_metallicity.modules2 import scrape_ew_and_errew
-
-from rrlyrae_metallicity.tests import test_scrape_ew_and_errew
