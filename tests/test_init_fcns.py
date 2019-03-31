@@ -1,4 +1,3 @@
-import configparser
 from rrlyrae_metallicity.modules2 import *
 
 

@@ -4,7 +4,6 @@ from modules2 import *
 from modules2 import \
      compile_normalization, \
      create_spec_realizations, \
-     run_robo, \
      scrape_ew_and_errew, \
      make_high_res_feh_basis, \
      ca_correction, \

@@ -101,12 +101,12 @@ def generate_realizations(spec_name,outdir,num):
     
 def read_bkgrnd_spec(spec_name):
     '''
-    Reads in ascii spectra created by bckgrnd and returns numpy arrays of wavelength, flux, bckgrnd__flux
+    Reads in ascii spectra created by bckgrnd and returns numpy arrays of wavelength, flux, bckgrnd_flux
     
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, bckgrnd_flux
     Returns:
-       A numpy Table with three columns: wavelenght, flus, bckgrnd_flux
+       A numpy Table with three columns: waveleread_bknght, flus, bckgrnd_flux
        wavelength: Numpy array of wavelengths
        flux: Numpy array of fluxes
        bckgrnd_flux: Numpy array of flux error
@@ -199,9 +199,10 @@ def create_spec_realizations_main(num=100,
         name_list.extend(generate_realizations(list_arr[i],outdir,num))
     
     # Check to see if outdir/norm exists (for receiving output of binary bkgrnd, which includes the data and continuum trace) 
-    normdir = os.path.join(outdir,'norm')
-    if not os.path.isdir(normdir):
-        os.mkdir(normdir)
+    normdir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"]
+    ## ## below is redundant, since directories are checked earlier on in pipeline
+    #if not os.path.isdir(normdir):
+    #    os.mkdir(normdir)
         
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
