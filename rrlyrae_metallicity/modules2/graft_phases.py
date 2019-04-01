@@ -12,6 +12,7 @@ from IPython.display import clear_output
 from astropy.io import fits
 import pickle
 
+
 def graft_feh():
     ## ## TACK PHASES ONTO LIST OF EWS FROM SPECTRA
     ## ## NEED TO GET RID OF THE 'FAKE' AT SOME POINT
@@ -116,3 +117,8 @@ def winnow():
     ## ## NEED TO WINNOW BY STAR TYPE, TOO
 
     return
+
+
+def yadayada():
+    
+    return config["reduc_params"]["SMOOTH"]

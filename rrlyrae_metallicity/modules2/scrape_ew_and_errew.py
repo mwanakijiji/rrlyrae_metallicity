@@ -118,7 +118,7 @@ class findHK():
     # STEP 4: READ IN ROBOSPECT EWS OF SYNTHETIC SPECTRA, RESCALE THEM, AVERAGE THEM, PLOT H-K SPACE (applicable to A and B)
     ##############################################################################
     
-    def __init__(self, scrapedEWfilename):
+    def __init__(self):
 
         self.scrapedEWfilename = scrapedEWfilename
         self.hkFileName = config["data_dirs"]["DIR_SRC"] + config["file_names"]["MORE_REALISTIC"] 
