@@ -127,15 +127,20 @@ class Scraper():
 
 
 class findHK():
+    '''
+    Read in Robospect EWs of synthetic spectra, rescale them, average them, and plot KH space
+    '''
     
-    ##############################################################################
-    # STEP 4: READ IN ROBOSPECT EWS OF SYNTHETIC SPECTRA, RESCALE THEM, AVERAGE THEM, PLOT H-K SPACE (applicable to A and B)
-    ##############################################################################
-    
-    def __init__(self):
+    def __init__(self,
+                 source_subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"],
+                 phase_subdir = config["data_dirs"]["TEST_DIR_SRC"],
+                 plot_write_subdir = config["data_dirs"]["DIR_FYI_INFO"],
+                 verbose=False):
 
-        self.scrapedEWfilename = scrapedEWfilename
-        self.hkFileName = config["data_dirs"]["DIR_SRC"] + config["file_names"]["MORE_REALISTIC"] 
+        self.source_subdir = source_subdir
+        self.phase_subdir = phase_subdir
+        self.scrapedEWfilename = self.source_subdir + config["file_names"]["MCD_LARGE_BAD_REMOVED"]
+        self.hkFileName = config["data_dirs"]["DIR_SRC"] + config["file_names"]["MORE_REALISTIC"]
         
         # read in line data
         print(self.scrapedEWfilename)
@@ -163,13 +168,17 @@ class findHK():
 
         # read in boundaries of good phase regions
         self.min_good, self.max_good = phase_regions()
+
+        # indicate subdirectory where FYI plot will be written
+        self.plot_write_subdir = plot_write_subdir
         
     def __call__(self):
         
         # make a list of all UNIQUE, EMPIRICAL spectrum names
         uniqueSpecNames_preIndexReset = self.line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
 
-        uniqueSpecNames = uniqueSpecNames_preIndexReset.dropna().reset_index(drop=True) # drop row of NaNs and smooth the indexing
+        # drop row of NaNs and smooth the indexing
+        uniqueSpecNames = uniqueSpecNames_preIndexReset.dropna().reset_index(drop=True) 
         
         # fit a straight line to Hgam vs Hdel
         x_data = self.line_data['EQW'].where(self.line_data['line_name'] == 'Hdel').dropna() # Hdel
@@ -183,18 +192,21 @@ class findHK():
         # prepare data for a plot
         # loop over every EMPIRICAL spectrum and assemble SYNTHETIC data into arrays
         for p in range(0,len(np.array(uniqueSpecNames.values))):
+            print(len(np.array(uniqueSpecNames.values)))
 
             print("Synthetic data being assembled corresponding to spectrum "+np.array(uniqueSpecNames)[p])
             # extract all synthetic data corresponding to this empirical spectrum
             data_for_this_empir_spectrum = self.line_data.where(self.line_data['empir_spec_name'][0:-4] == np.array(uniqueSpecNames)[p])
-    
+
+            print('1')
             # scrape data
             raw_Hbet_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hbet')
             raw_Hgam_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hgam')
             raw_Hdel_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Hdel')
             raw_Heps_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'Heps')
             raw_K_data = data_for_this_empir_spectrum['EQW'].where(self.line_data['line_name'] == 'CaIIK')
-    
+
+            print('2')
             # rescale and remove nans
             Hbet_data_wnans = np.array(np.copy(raw_Hbet_data))
             Hgam_data_wnans = np.array(np.copy(raw_Hgam_data))
@@ -202,18 +214,21 @@ class findHK():
             Heps_data_wnans = np.array(np.copy(raw_Heps_data))    
             K_data_wnans = np.array(np.copy(raw_K_data))
             rHgam_data_wnans = np.array(np.divide(np.subtract(raw_Hgam_data,b),m)) # rescale Hgam EWs
-    
+
+            print('3')
             Hbet_data = Hbet_data_wnans[np.isfinite(Hbet_data_wnans)] # remove nans
             Hgam_data = Hgam_data_wnans[np.isfinite(Hgam_data_wnans)]
             Hdel_data = Hdel_data_wnans[np.isfinite(Hdel_data_wnans)]
             Heps_data = Heps_data_wnans[np.isfinite(Heps_data_wnans)]
             rHgam_data = rHgam_data_wnans[np.isfinite(rHgam_data_wnans)]
             K_data = K_data_wnans[np.isfinite(K_data_wnans)]
-    
+
+            print('4')
             # get the H-K synthetic data together
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data,rHgam_data], axis=0) # Balmer EW = 0.5*(Hdel + rHgam)
             K_data_allsynthetic_spec = np.copy(K_data)
-    
+
+            print('5')
             # the actual points to plot (or record in a table)
             Hbet_data_pt = np.nanmedian(Hbet_data)
             Hgam_data_pt = np.nanmedian(Hgam_data)
@@ -222,7 +237,8 @@ class findHK():
             Heps_data_pt = np.nanmedian(Heps_data)
             balmer_data_pt = np.nanmedian(balmer_data_allsynthetic_spec)
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
-    
+
+            print('6')
             # the error bars
             err_Hbet_data = np.nanstd(Hbet_data)
             err_Hgam_data = np.nanstd(Hgam_data)
@@ -235,6 +251,7 @@ class findHK():
             #plt.plot(balmer_data_pt,K_data_pt)
             #plt.errorbar(balmer_data_pt, K_data_pt, yerr=err_K_data, xerr=err_balmer_data)
 
+            print('7')
             # append data to arrays: essential info
             self.empir_spec_name_array = np.append(self.empir_spec_name_array,np.array(uniqueSpecNames)[p])
             self.star_name_array = np.append(self.star_name_array,str(np.array(uniqueSpecNames)[p])[0:-3])
@@ -254,7 +271,8 @@ class findHK():
             self.err_Hdel_data_array = np.append(self.err_Hdel_data_array,err_Hdel_data)
             self.Heps_data_array = np.append(self.Heps_data_array,Heps_data_pt)
             self.err_Heps_data_array = np.append(self.err_Heps_data_array,err_Heps_data)
-    
+
+            print('7')
             # clear some variables
             balmer_data_allsynthetic_spec=None 
             K_data_allsynthetic_spec=None
@@ -263,6 +281,7 @@ class findHK():
             
         # put everything into a dataframe
 
+        print('8')
         d = {'empir_spec_name': self.empir_spec_name_array, 
              'star_name': self.star_name_array,
              'Hbet': self.Hbet_data_array,
@@ -281,9 +300,11 @@ class findHK():
              'err_K': self.err_K_data_array
             }     
         df_collation = pd.DataFrame(data=d)
-        
-        # read in a text file containing phase information ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
-        phase_info = pd.read_csv(config["data_dirs"]["DIR_SRC"] + config["file_names"]["DETACHED_PHASES"])
+
+        print('9')
+        # read in a text file containing phase information
+        ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
+        phase_info = pd.read_csv(self.phase_subdir + config["file_names"]["DETACHED_PHASES"])
         
         # paste phase info into the table of EWs
         phase_array = []
@@ -291,6 +312,7 @@ class findHK():
         err_feh_array = []
         name_array = []
 
+        print('10')
         # loop over each empirical spectrum name 
         for q in range(0,len(df_collation['empir_spec_name'].values)):    
             name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
@@ -307,27 +329,37 @@ class findHK():
             #print(feh_this_one)
             #print(err_feh_this_one)
 
+        print('11')
+        print(df_collation)
         df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
+        print(df_collation_real)
+        ## ## THIS IS AN ERSATZ FOR NOW; REAL PHASE VALUES NEED TO BE READ IN AT BEGINNING
+        #phase_array = 
         df_collation_real['phase'] = phase_array
         df_collation_real['FeH'] = feh_array
         df_collation_real['eFeH'] = err_feh_array
-        
+
+        print('11a')
         # write to csv
         df_collation_real.to_csv(self.hkFileName)
         print('----------------------------------------')
         print('HK data written to ' + self.hkFileName)
-        
+
+        print('11b')
         # make plot: each color is a different star, open circles are bad phase region
         data_to_plot = pd.read_csv(self.hkFileName) # read data back in
-        
+
+        print('11c')
         # make list of unique star names 
         unique_star_names = data_to_plot.drop_duplicates(subset=['star_name'])['star_name'].values
-        
+
+        print('11d')
         # plot data points
         cmap = plt.get_cmap(name='jet')
         fig = plt.figure(figsize=(20,10))
         ax = fig.add_subplot(111)
-        
+
+        print('12')
         # loop over every star, overlay the set of points for that star on the plot
         colors = ['red', 'blue', 'orange', 'teal', 'black', 'green', 'purple']*10 # make set of colors/markers I can loop over
         markers = ['o', '^', '>', 's', '<']*10
@@ -361,4 +393,4 @@ class findHK():
         plt.ylabel('CaIIK EW (milliangstrom)')
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
-        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + config["file_names"]["KH_PLOT_NAME"])
+        plt.savefig(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])

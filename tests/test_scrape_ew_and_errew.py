@@ -52,3 +52,25 @@ def test_Scraper(test_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
     for j in range(0,len(test_good_1["dmean"][:])):
         assert np.any(good_ew_data_only["flux"].isin([test_bad_1["flux"][j]])) == False
         assert np.any(good_ew_data_only["EQW"].isin([test_bad_2["EQW"][j]])) == False
+
+
+def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"],
+                test_phase_subdir = config["data_dirs"]["TEST_DIR_SRC"],
+                test_write_plot_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
+
+    '''
+    Test the veracity of the info extrapolated from KH data
+
+    INPUTS:
+    test_source_subdir: the directory where to find the .csv containing EW info
+    test_write_plot_subdir: the directory to write the FYI plot to
+    '''
+
+    # instantiate
+    ## ## ALSO NEED TO DEFINE LOCATION TO WRITE KH INFO TO, SO I CAN WRITE TO A TEST DIRECTORY
+    test_instance = scrape_ew_and_errew.findHK(source_subdir = test_source_subdir,
+                                               phase_subdir = test_phase_subdir,
+                                               plot_write_subdir = test_write_plot_subdir)
+
+    # run on fake data
+    no_return = test_instance()
