@@ -4,46 +4,57 @@ import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from modules2 import *
+from rrlyrae_metallicity.modules2 import *
 
 class Scraper():
+    '''
+    Scrape all the equivalent width info from the Robospect *.fits.robolines files
 
-    ##############################################################################
-    # STEP 3B: SCRAPE ALL THE EW INFO FROM *.c.dat FILES (applicable to A and B)
-    ##############################################################################
-    
-    def __init__(self):
+    INPUTS:
+    subdir: subdirectory containing the Robospect output
+    '''
+        
+    def __init__(self, subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"], verbose=False):
         
         # directory containing the directory containing the *.fits.robolines files containing the EW info
         self.stem = '.' ## ##
         # subdirectory containing the *.c.dat files
-        self.subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"] ## ##
+        self.subdir = subdir ## ##
         
         # get list of filenames without the path
         fileListLong = glob.glob(self.subdir+'/'+'*.fits.robolines')
         fileListUnsorted = [os.path.basename(x) for x in fileListLong]
         self.fileList = sorted(fileListUnsorted)
-        self.writeOutFilename = self.subdir+config["file_names"]["MCD_LARGE_BAD_REMOVED"] # EW info will get scraped into this
+
+        # EW info will get scraped into this
+        self.writeOutFilename = self.subdir+config["file_names"]["MCD_LARGE_BAD_REMOVED"]
+
+        # return tables of EW data?
+        self.verbose = verbose
         
     def __call__(self):
 
-        # sanity check: are the lines listed in order?
-        def line_check(lineCenters):
-            if ((lineCenters[0] < 3933.660-10) or (lineCenters[0] > 3933.660+10)): # CaIIK
+        def line_order_check(line_centers):
+            '''
+            Sanity check: are the lines listed in order?
+            N.b. This checks the wavelengths using the given line list values (and not the fitted centers)
+            '''
+            
+            if ((line_centers[0] < 3933.660-10) or (line_centers[0] > 3933.660+10)): # CaIIK
                 print('Lines not matching!')
-                sys.exit  # ... and abort
-            elif ((lineCenters[1] < 3970.075-10) or (lineCenters[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
+                sys.exit()  # ... and abort
+            elif ((line_centers[1] < 3970.075-10) or (line_centers[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
                 print('Lines not matching!')
-                sys.exit
-            elif ((lineCenters[2] < 4101.7100-10) or (lineCenters[2] > 4101.7100+10)): # H-delta
+                sys.exit()
+            elif ((line_centers[2] < 4101.7100-10) or (line_centers[2] > 4101.7100+10)): # H-delta
                 print('Lines not matching!')
-                sys.exit
-            elif ((lineCenters[3] < 4340.472-10) or (lineCenters[3] > 4340.472+10)): # H-gamma
+                sys.exit()
+            elif ((line_centers[3] < 4340.472-10) or (line_centers[3] > 4340.472+10)): # H-gamma
                 print('Lines not matching!')
-                sys.exit
-            elif ((lineCenters[4] < 4861.290-10) or (lineCenters[4] > 4861.290+10)): # H-beta
+                sys.exit()
+            elif ((line_centers[4] < 4861.290-10) or (line_centers[4] > 4861.290+10)): # H-beta
                 print('Lines not matching!')
-                sys.exit
+                sys.exit()
             return
 
         dfMaster = pd.DataFrame() # initialize
@@ -55,7 +66,7 @@ class Scraper():
             df = pd.read_csv(self.subdir+'/'+self.fileList[t], header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
             # check lines are in the right order
-            line_check(df['#x0'])
+            line_order_check(df['#x0'])
     
             # add two cols on the left: the filename, and the name of the line
             sLength = len(df['mean']) # number of lines (should be 5)
@@ -110,6 +121,9 @@ class Scraper():
         print("--------------------------")
         print('Scraped Robospect output written to')
         print(self.writeOutFilename)
+
+        if self.verbose:
+            return dfMaster_reset, dfMaster_reset_dropBadSpectra
 
 
 class findHK():

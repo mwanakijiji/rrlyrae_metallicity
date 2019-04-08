@@ -56,7 +56,7 @@ def main():
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
     print('----')
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    mamluk2() # call instance
+    #mamluk2() # call instance
     ## ## END COMMENT
 
     # findHK
