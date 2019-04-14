@@ -31,7 +31,6 @@ def test_make_dirs():
         abs_path_name = str(config["data_dirs"][vals])
         assert os.path.exists(abs_path_name)
 
-
 # test if the phase region boundaries are being read in correctly
 def test_phase_regions():
 
