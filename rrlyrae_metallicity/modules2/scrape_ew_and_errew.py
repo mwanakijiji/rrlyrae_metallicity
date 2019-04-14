@@ -155,15 +155,15 @@ class findHK():
         self.err_K_data_array = []
 
         # initialize arrays: other info
-        self.Hbet_data_array = []
+        self.Hbet_data_array = [] # Hbeta
         self.err_Hbet_data_array = []
-        self.Hgam_data_array = []
+        self.Hgam_data_array = [] # Hgamma
         self.err_Hgam_data_array = []
         self.rHgam_data_array = [] # rescaled Hgamma
         self.err_rHgam_data_array = []
-        self.Hdel_data_array = []
+        self.Hdel_data_array = [] # Hdelta
         self.err_Hdel_data_array = []
-        self.Heps_data_array = []
+        self.Heps_data_array = [] # Hepsilon
         self.err_Heps_data_array = []
 
         # read in boundaries of good phase regions
@@ -313,7 +313,7 @@ class findHK():
         name_array = []
 
         print('10')
-        # loop over each empirical spectrum name 
+        # loop over each empirical spectrum name and populate the arrays
         for q in range(0,len(df_collation['empir_spec_name'].values)):    
             name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
             phase_this_one = phase_info['phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
@@ -394,3 +394,7 @@ class findHK():
         plt.xlabel('Balmer EW (milliangstrom)')
         plt.tight_layout()
         plt.savefig(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
+        plt.close()
+
+        # return stuff to enable testing
+        return data_to_plot

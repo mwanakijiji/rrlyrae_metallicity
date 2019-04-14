@@ -13,14 +13,18 @@ def test_Scraper(test_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
     As of 2019 Apr. 7, the fake files are
     
     all_good_01_102.fits.robolines (which is 'perfectly good' data)
+     ... and other all_good_01_* files
     all_good_02_058.fits.robolines (which is 'perfectly good' data)
+     ... and other all_good_02_* files
     bad_hbeta_wavel_99_999.fits.robolines (which has a somewhat-off found wavelength for H-beta)
     fit_center_flag_99_999.fits.robolines (which has a flag for center correction)
     fit_max_iter_99_999.fits.robolines (which has a flag for having reached max iterations)
     fit_fail_flag_99_999.fits.robolines (which has a 'failed' flag for one line)
 
     ... and if all goes correctly, the 'good' data should involve the data in
-    all the tables except for that in the fit_fail_flag_99_999.fits.robolines
+    all the tables except for those in
+    fit_fail_flag_99_999.fits.robolines
+    fit_max_iter_99_999.fits.robolines
     '''
 
     # instantiate
@@ -72,5 +76,7 @@ def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]
                                                phase_subdir = test_phase_subdir,
                                                plot_write_subdir = test_write_plot_subdir)
 
+    print(test_source_subdir)
+
     # run on fake data
-    no_return = test_instance()
+    test_data_to_plot = test_instance()
