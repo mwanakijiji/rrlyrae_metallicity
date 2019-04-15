@@ -397,4 +397,4 @@ class findHK():
         plt.close()
 
         # return stuff to enable testing
-        return data_to_plot
+        return unique_star_names, data_to_plot

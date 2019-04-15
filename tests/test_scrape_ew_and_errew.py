@@ -35,10 +35,16 @@ def test_Scraper(test_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
     all_ew_data, good_ew_data_only = test_instance()
 
     # read in the 'good' csvs
-    test_good_1 = pd.read_csv(test_subdir + "all_good_01_102.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
-    test_good_2 = pd.read_csv(test_subdir + "all_good_02_058.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
-    test_good_3 = pd.read_csv(test_subdir + "bad_hbeta_wavel_99_999.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
-    test_good_4 = pd.read_csv(test_subdir + "fit_center_flag_99_999.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_1 = pd.read_csv(test_subdir + "all_good_01_120.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_2 = pd.read_csv(test_subdir + "all_good_01_121.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_3 = pd.read_csv(test_subdir + "all_good_01_122.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_4 = pd.read_csv(test_subdir + "all_good_01_123.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_5 = pd.read_csv(test_subdir + "all_good_02_101.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_6 = pd.read_csv(test_subdir + "all_good_02_102.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_7 = pd.read_csv(test_subdir + "all_good_02_103.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_8 = pd.read_csv(test_subdir + "all_good_02_104.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_9 = pd.read_csv(test_subdir + "bad_hbeta_wavel_99_999.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
+    test_good_0 = pd.read_csv(test_subdir + "fit_center_flag_99_999.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
     
     # read in the bad ones
     test_bad_1 = pd.read_csv(test_subdir + "fit_fail_flag_99_999.fits.robolines", header=13, delim_whitespace=True, index_col=False, usecols=np.arange(17))
@@ -51,6 +57,12 @@ def test_Scraper(test_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
         assert np.any(good_ew_data_only["mean"].isin([test_good_2["mean"][i]]))
         assert np.any(good_ew_data_only["EQW"].isin([test_good_3["EQW"][i]]))
         assert np.any(good_ew_data_only["eta"].isin([test_good_4["eta"][i]]))
+        assert np.any(good_ew_data_only["dmean"].isin([test_good_5["dmean"][i]]))
+        assert np.any(good_ew_data_only["mean"].isin([test_good_6["mean"][i]]))
+        assert np.any(good_ew_data_only["EQW"].isin([test_good_7["EQW"][i]]))
+        assert np.any(good_ew_data_only["eta"].isin([test_good_8["eta"][i]]))
+        assert np.any(good_ew_data_only["dmean"].isin([test_good_9["dmean"][i]]))
+        assert np.any(good_ew_data_only["mean"].isin([test_good_0["mean"][i]]))
 
     # any unique bits from the 'bad' csvs should not appear
     for j in range(0,len(test_good_1["dmean"][:])):
@@ -78,5 +90,25 @@ def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]
 
     print(test_source_subdir)
 
-    # run on fake data
-    test_data_to_plot = test_instance()
+    # run the pipeline function on fake data
+    unique_star_names, data_to_plot = test_instance()
+
+    # read in the test output from notebook_check_findHK.ipynb
+    output_notebook_check_findHK = pd.read_csv(config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"] + "output_notebook_check_findHK.csv")
+
+    data_to_plot.to_csv("junk.csv")
+    
+    # any unique bits from the output from notebook_check_findHK.ipynb should appear in the output from test_instance()
+    # (note there has to be a bit of tolerance from rounding in separate reductions)
+    for i in range(0,len(output_notebook_check_findHK["Balmer"][:])):
+        assert np.any(output_notebook_check_findHK["Balmer"].isin([data_to_plot["balmer"][i]]))
+        assert np.any(output_notebook_check_findHK["err_Balmer"].isin([data_to_plot["err_balmer"][i]]))
+        assert np.any(output_notebook_check_findHK["CaIIK"].isin([data_to_plot["K"][i]]))
+        assert np.any(output_notebook_check_findHK["err_CaIIK"].isin([data_to_plot["err_K"][i]]))
+
+    '''
+    # any unique bits from the 'bad' csvs should not appear
+    for j in range(0,len(test_good_1["dmean"][:])):
+        assert np.any(good_ew_data_only["flux"].isin([test_bad_1["flux"][j]])) == False
+        assert np.any(good_ew_data_only["EQW"].isin([test_bad_2["EQW"][j]])) == False
+    '''
