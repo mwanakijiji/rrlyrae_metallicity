@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ipdb
 import pickle
-from modules2 import *
+from rrlyrae_metallicity.modules2 import *
 
 class LitMetallicities():
     '''
@@ -12,69 +12,56 @@ class LitMetallicities():
     2.   initialize data set cross-referencing functionality
     '''
     
-    def __init__(self):
+    def __init__(self, source_dir = config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]):
     
         # stand-in that consists of our program star names
-        self.our_program_stars = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                             + "our_program_stars_names_only.csv")
+        self.our_program_stars = pd.read_csv(source_dir + "our_program_stars_names_only.csv")
         
         # Fe/H from Layden+ 1994; this may serve as the common basis for RRabs
-        self.layden_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "layden_1994_abundances.dat")
+        self.layden_feh = pd.read_csv(source_dir + "layden_1994_abundances.dat")
         # RES: "rather low"
         
         # Fe/H Clementini+ 1995
-        self.clementini_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                          + "clementini_1995_abundances.dat")
+        self.clementini_feh = pd.read_csv(source_dir + "clementini_1995_abundances.dat")
 
         # Fe/H Fernley+ 1996
-        self.fernley_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                       + "fernley_1996_abundances.dat")
+        self.fernley96_feh = pd.read_csv(source_dir + "fernley_1996_abundances.dat")
         # RES: 60,000, FeI & FeII, 5900-8100 A
+
+        # Fe/H from Fernley+ 1997
+        self.fernley97_feh = pd.read_csv(source_dir + "fernley_1997_abundances.dat")
+        # RES: 60,000, two FeII lines, 5900-8100 A
         
         # log(eps) from Lambert+ 1996
-        self.lambert_logeps = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                          + "lambert_1996_abundances.dat")
+        self.lambert_logeps = pd.read_csv(source_dir + "lambert_1996_abundances.dat")
         # RES: ~23,000, FeII + photometric models, 3600-9000 A
         
         # Fe/H from Wallerstein and Huang 2010, arXiv 1004.2017
-        self.wallerstein_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                           + "wallerstein_huang_2010_abundances.dat")
+        self.wallerstein_feh = pd.read_csv(source_dir + "wallerstein_huang_2010_abundances.dat")
         # RES: ~30,000, FeII
         
         # Fe/H from Chadid+ 2017 ApJ 835.2:187 (FeI and II lines)
-        self.chadid_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "chadid_2017_abundances.dat")
+        self.chadid_feh = pd.read_csv(source_dir + "chadid_2017_abundances.dat")
         # RES: 38000, FeI & FeII, 3400-9900 A
 
         # Fe/H from Liu+ 2013 Res Ast Astroph 13:1307
-        self.liu_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                   + "liu_2013_abundances.dat")
+        self.liu_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"] + "liu_2013_abundances.dat")
         # RES: ~60,000, FeI (& FeII?), 5100-6400 A
 
         # Fe/H from Nemec+ 2013
-        self.nemec_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                     + "nemec_2013_abundances.dat")
+        self.nemec_feh = pd.read_csv(source_dir + "nemec_2013_abundances.dat")
         # RES: ~65,000 or 36,000, FeI & FeII, 5150-5200 A
 
-        # Fe/H from Fernley+ 1997
-        self.fernley97_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                         + "fernley_1997_abundances.dat")
-        # RES: 60,000, two FeII lines, 5900-8100 A
-
         # Fe/H from Solano+ 1997
-        self.solano_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "solano_1997_abundances.dat")
+        self.solano_feh = pd.read_csv(source_dir + "solano_1997_abundances.dat")
         # RES: 22,000 & 19,000, strong FeI lines, 4160-4390 & 4070-4490 A
         
         # Fe/H from Pancino+ 2015 MNRAS 447:2404
-        self.pacino_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "pacino_2015_abundances.dat") 
+        self.pacino_feh = pd.read_csv(source_dir + "pacino_2015_abundances.dat") 
         # RES: >30,000, FeI (weighted average), 4000-8500 A
 
         # Fe/H from Sneden+ 2017
-        self.sneden_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "sneden_2017_abundances.dat")
+        self.sneden_feh = pd.read_csv(source_dir + "sneden_2017_abundances.dat")
         # RES: ~27,000 (at 5000 A), FeI & FeII, 3400-9000 A
 
 
@@ -98,14 +85,28 @@ class LitMetallicities():
         # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
         
         # Fe/H from Kemper+ 1982; this might serve as the common basis for RRcs
-        self.kemper_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                      + "kemper_1982_abundances.dat")
+        self.kemper_feh = pd.read_csv(source_dir + "kemper_1982_abundances.dat")
 
         # Fe/H from Govea+ 2014
         ## ## note: Govea+ has abundances for each phase value, and this includes NLTE phases; how to get single Fe/H?
-        self.govea_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]
-                                     + "govea_2014_abundances.dat")
-        
+        self.govea_feh = pd.read_csv(source_dir + "govea_2014_abundances.dat")
+
+        # put all read literature metallicities into a dictionary for testing
+        self.collated_feh = {"our_program_stars": self.our_program_stars,
+                         "layden_feh": self.layden_feh,
+                         "clementini_feh": self.clementini_feh,
+                         "lambert_logeps": self.lambert_logeps,
+                         "wallerstein_feh": self.wallerstein_feh,
+                         "chadid_feh": self.chadid_feh,
+                         "liu_feh": self.liu_feh,
+                         "nemec_feh": self.nemec_feh,
+                         "fernley96_feh": self.fernley96_feh,
+                         "fernley97_feh": self.fernley97_feh,
+                         "solano_feh": self.solano_feh,
+                         "pacino_feh": self.pacino_feh,
+                         "sneden_feh": self.sneden_feh,
+                         "kemper_feh": self.kemper_feh,
+                         "govea_feh": self.govea_feh}
 
         #####################
         
@@ -128,11 +129,18 @@ class LitMetallicities():
         err_Hdel_data_array = []
         Heps_data_array = []
         err_Heps_data_array = []
+
         
     def __call__(self):
         
         # make a list of all unique EMPIRICAL spectrum names
         uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
+
+        
+    def return_raw_data(self):
+
+        return self.collated_feh
+    
 
     def matchmaker(self, input_table, basis_table, highres_dataset_name):
         '''
