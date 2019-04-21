@@ -71,18 +71,18 @@ class LitMetallicities():
         # FeH = log(epsFe) - log(epsFe,sol)
         #     = log(epsFe) - log(NFe,sol/NH,sol)
         #     = log(epsFe) - 7.51 # value of 7.51 from Anstee+ 1997, MNRAS
-        self.lambert_logeps['feh'] = np.subtract(self.lambert_logeps['log_eps_fe_spec'], 7.51) 
+        self.lambert_logeps["feh"] = np.subtract(self.lambert_logeps["log_eps_fe_spec"], 7.51) 
         
         # average the values in Chadid from FeI and FeII lines
-        self.chadid_feh['feh'] = np.mean([self.chadid_feh['fehI'].values,self.chadid_feh['fehII'].values],axis=0)
+        self.chadid_feh["feh"] = np.mean([self.chadid_feh["fehI"].values,self.chadid_feh["fehII"].values],axis=0)
         
         ## ## INCLUDE SINGLE DATA PT FROM KOLENBERG+ 2010? (SEE CHADID+ 2017, FIG. 7)
         
         # FYI: average Fe/H values in Liu+ 2013 which were taken at different phases
-        # liu_feh.groupby(liu_feh['name'], axis=0, as_index=False).mean()
+        # liu_feh.groupby(liu_feh["name"], axis=0, as_index=False).mean()
         
         # FYI: average Fe/H values in Sneden+ 1997 which were taken at different epochs
-        # sneden_feh.groupby(sneden_feh['name'], axis=0, as_index=False).mean()
+        # sneden_feh.groupby(sneden_feh["name"], axis=0, as_index=False).mean()
         
         # Fe/H from Kemper+ 1982; this might serve as the common basis for RRcs
         self.kemper_feh = pd.read_csv(source_dir + "kemper_1982_abundances.dat")
@@ -137,23 +137,27 @@ class LitMetallicities():
     def __call__(self):
         
         # make a list of all unique EMPIRICAL spectrum names
-        uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
+        uniqueSpecNames = line_data.drop_duplicates(subset="empir_spec_name")["empir_spec_name"]
 
         
     def return_some_raw_data(self):
+        '''
+        Return some read-in data, for testing
+        '''
 
         return self.clementini_feh, self.pacino_feh
     
 
-    def matchmaker(self, input_table, basis_table, highres_dataset_name):
+    def matchmaker(self, input_table, basis_table, basis_dataset_name, highres_dataset_name):
         '''
         Find what stars are common to two input tables, and return array of FeHs from the first table
 
         INPUTS:
         input_table: table I'm interested in checking for overlapping stars 
-            (pandas dataframe with col ['name']: star name; col ['feh']: Fe/H)
+            (pandas dataframe with col ["name"]: star name; col ["feh"]: Fe/H)
         basis_table: table with the names for which I am looking for repeats in the other table
-            (pandas dataframe with col ['name']: star name; col ['feh']: Fe/H)
+            (pandas dataframe with col ["name"]: star name; col ["feh"]: Fe/H)
+        basis_dataset_name: string indicating the name of the basis dataset
         highres_dataset_name: string indicating the name of the highres dataset
 
         OUTPUTS:
@@ -173,17 +177,17 @@ class LitMetallicities():
         star_name_array = [] # name of star
 
         for row in range(0,len(input_table)): # scan over each row in input table
-            if (basis_table['name'] == input_table['name'][row]).any():
-                input_FeH = np.append(input_FeH,input_table['feh'][row])
-                basis_FeH = np.append(basis_FeH,basis_table.loc[basis_table['name'] == input_table['name'][row]]['feh'])
-                star_name_array = np.append(star_name_array,input_table['name'][row])
+            if (basis_table["name"] == input_table["name"][row]).any():
+                input_FeH = np.append(input_FeH,input_table["feh"][row])
+                basis_FeH = np.append(basis_FeH,basis_table.loc[basis_table["name"] == input_table["name"][row]]["feh"])
+                star_name_array = np.append(star_name_array,input_table["name"][row])
 
         d = dict()
-        d['name_star'] = star_name_array
-        d['FeH_highres'] = input_FeH
-        d['FeH_basis'] = basis_FeH
-        d['name_highres_dataset'] = np.repeat(highres_dataset_name, len(star_name_array))
-        d['name_basis_dataset'] = np.repeat(highres_dataset_name, len(star_name_array))
+        d["name_star"] = star_name_array
+        d["FeH_highres"] = input_FeH
+        d["FeH_basis"] = basis_FeH
+        d["name_highres_dataset"] = np.repeat(highres_dataset_name, len(star_name_array))
+        d["name_basis_dataset"] = np.repeat(basis_dataset_name, len(star_name_array))
         
         df = pd.DataFrame(data=d)
         
@@ -205,11 +209,11 @@ class LitMetallicities():
 
         OUTPUTS:
         df: concatenated frames containing 
-            ['name_star']: star_name_array
-            ['FeH_highres']: Fe/H from high-res study
-            ['FeH_basis']: Fe/H from basis set
-            ['name_highres_dataset']: string indicating the high-res dataset
-            ['name_basis_dataset']: string indicating the basis set
+            ["name_star"]: star_name_array
+            ["FeH_highres"]: Fe/H from high-res study
+            ["FeH_basis"]: Fe/H from basis set
+            ["name_highres_dataset"]: string indicating the high-res dataset
+            ["name_basis_dataset"]: string indicating the basis set
         '''
 
         # define the basis data set (like Layden 1994 for RRabs, or Kemper+ 1982 for RRcs)
@@ -217,33 +221,40 @@ class LitMetallicities():
             type_string = "ab"
             basis_set = self.layden_feh
             basis_string = "Layden RRab basis set" # string for plots
+            basis_name = "layden_1994"
         elif star_type == "RRc":
             type_string = "c"
             basis_set = self.kemper_feh
             basis_string = "Kemper RRc basis set"
+            basis_name = "kemper_1982"
         else:
             sys.exit("Error! No RR Lyrae subtype chosen.")
 
 
         ## match ALL available high-res studies with the basis set
-
-        pd_Lambert_1996 = self.matchmaker(self.lambert_logeps, 
-                                          basis_set, 
+        pd_Lambert_1996 = self.matchmaker(input_table = self.lambert_logeps, 
+                                          basis_table = basis_set,
+                                          basis_name = basis_dataset_name,
                                           highres_dataset_name="lambert_1996") # Lambert+ 1996 (logeps has already been converted to Fe/H)
-        pd_Nemec_2013 = self.matchmaker(self.nemec_feh, 
-                                        basis_set,
+        pd_Nemec_2013 = self.matchmaker(input_table = self.nemec_feh, 
+                                        basis_table = basis_set,
+                                        basis_name = basis_dataset_name,
                                         highres_dataset_name="nemec_2013") # Nemec+ 2013
-        pd_Chadid_2017 = self.matchmaker(self.chadid_feh, 
-                                         basis_set,
+        pd_Chadid_2017 = self.matchmaker(input_table = self.chadid_feh, 
+                                         basis_table = basis_set,
+                                         basis_name = basis_dataset_name,
                                          highres_dataset_name="chadid_2017") # Chadid+ 2017
-        pd_Fernley_1997 = self.matchmaker(self.fernley97_feh, 
-                                          basis_set,
+        pd_Fernley_1997 = self.matchmaker(input_table = self.fernley97_feh, 
+                                          basis_table = basis_set,
+                                          basis_name = basis_dataset_name,
                                           highres_dataset_name="fernley_1997") # Fernley+ 1997
-        pd_Solano_1997 = self.matchmaker(self.solano_feh, 
-                                         basis_set,
+        pd_Solano_1997 = self.matchmaker(input_table = self.solano_feh, 
+                                         basis_table = basis_set,
+                                         basis_name = basis_dataset_name,
                                          highres_dataset_name="solano_1997") # Solano+ 1997
-        pd_Wallerstein_2010 = self.matchmaker(self.wallerstein_feh, 
-                                              basis_set,
+        pd_Wallerstein_2010 = self.matchmaker(input_table = self.wallerstein_feh, 
+                                              basis_table = basis_set,
+                                              basis_name = basis_dataset_name,
                                               highres_dataset_name="wallerstein_2010") # Wallerstein 2010
 
         # for Liu+ 2013, we need to group multiple Fe/H values by star name
@@ -282,8 +293,8 @@ def return_offsets(data_postmatch, chadid_offset=True):
         
     OUTPUTS:
     df: dataframe containing
-    ['name_highres_dataset']: name indicating high-res study
-    ['offset_highres_dataset_residuals']: offset for the entire high-res 
+    ["name_highres_dataset"]: name indicating high-res study
+    ["offset_highres_dataset_residuals"]: offset for the entire high-res 
         dataset, which needs to be applied to the vector (FeH_highres-FeH_basis)
     '''
     
@@ -327,11 +338,11 @@ def return_offsets(data_postmatch, chadid_offset=True):
 
             # line_offset = np.add(line,net_offset)
 
-            print('-----------------')
-            print('Calculating offsets for dataset '+this_dataset_name)
-            print('Y_offset to add to residuals in order to overlap with Chadid+ 2017 at Fe/H=-1.25:')
+            print("-----------------")
+            print("Calculating offsets for dataset "+this_dataset_name)
+            print("Y_offset to add to residuals in order to overlap with Chadid+ 2017 at Fe/H=-1.25:")
             print(net_offset)
-            print('Number of overlapping stars:')
+            print("Number of overlapping stars:")
             print(len(this_dataset["FeH_basis"]))
 
             # append name of dataset and its offset to array
@@ -370,15 +381,15 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
 
     INPUTS:
     df_to_offset: dataframe containing Fe/H values which we want to find residuals for, offset, and map
-        ['name_star']: star name
-        ['FeH_highres']: Fe/H from high-res study
-        ['FeH_basis']: Fe/H from basis set
-        ['name_highres_dataset']: string indicating the high-res dataset
-        ['name_basis_dataset']: string indicating the basis set
+        ["name_star"]: star name
+        ["FeH_highres"]: Fe/H from high-res study
+        ["FeH_basis"]: Fe/H from basis set
+        ["name_highres_dataset"]: string indicating the high-res dataset
+        ["name_basis_dataset"]: string indicating the basis set
           
     df_offsets: dataframe containing the offset values and high-res dataset names
-        ['name_highres_dataset']: name indicating high-res study
-        ['offset_highres_dataset_residuals']: offset value to add to Fe/H values
+        ["name_highres_dataset"]: name indicating high-res study
+        ["offset_highres_dataset_residuals"]: offset value to add to Fe/H values
         
     OUTPUTS:
     d: dictionary with
@@ -398,11 +409,11 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
         
         this_dataset = df_to_offset[df_to_offset["name_highres_dataset"].str.match(this_dataset_name)]
         
-        #print('this_resid_offset')
-        #print(df_offsets['offset_highres_residuals'].loc[df_offsets['name_highres'] == this_dataset_name].values)
+        #print("this_resid_offset")
+        #print(df_offsets["offset_highres_residuals"].loc[df_offsets["name_highres"] == this_dataset_name].values)
         
         # retrieve the required offset
-        this_resid_offset = df_offsets['offset_highres_residuals'].loc[df_offsets['name_highres'] == this_dataset_name].values
+        this_resid_offset = df_offsets["offset_highres_residuals"].loc[df_offsets["name_highres"] == this_dataset_name].values
         
         if this_resid_offset: # if there is an offset that could be found for this dataset
             this_dataset["residuals_no_shift"] = np.subtract(this_dataset["FeH_highres"],this_dataset["FeH_basis"])
@@ -440,8 +451,8 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     limits = [-3.0,0.5]
     fig, axs = plt.subplots(2, 1, figsize=(10,10), sharex=True)
     
-    axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
-    axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle='--') # best-fit line
+    axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
+    axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle="--") # best-fit line
     axs[0].scatter(pd_merged["FeH_basis"], pd_merged["FeH_highres"]) # input vs. basis
     # for keeping data points separated by datasets, plot with a list comprehension
     [axs[0].scatter(dict_not_merged_this_basis[key]["FeH_basis"], 
@@ -455,17 +466,17 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
                 pd_merged["FeH_highres"][point]), 
             xytext=(pd_merged["FeH_basis"][point]+0.1, 
                     pd_merged["FeH_highres"][point]+0.06),
-            textcoords='data', ha='right', va='bottom',
+            textcoords="data", ha="right", va="bottom",
             fontsize=10,
-            arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+            arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
     
     axs[0].set_xlim(limits[0], limits[1])
     axs[0].set_ylabel("Fe/H, high-res; no offsets applied")
     axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres)+"; (blue line: 1-to-1; orange line: best fit)")
     axs[0].legend() # indicates high-res dataset names
     
-    axs[1].axhline(y=0, linestyle='--') # dashed line at y=0
-    axs[1].scatter(df_to_offset['FeH_basis'], np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])) # input vs. basis
+    axs[1].axhline(y=0, linestyle="--") # dashed line at y=0
+    axs[1].scatter(df_to_offset["FeH_basis"], np.subtract(df_to_offset["FeH_highres"],df_to_offset["FeH_basis"])) # input vs. basis
     axs[1].scatter(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], alpha=0.5) # input vs. basis
     # for keeping data points separated by datasets, plot with a list comprehension
     [axs[1].scatter(dict_not_merged_this_basis[key]["FeH_basis"], 
@@ -479,11 +490,11 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
                 pd_merged["residuals_shifted"][point]), 
             xytext=(pd_merged["FeH_basis"][point]+0.1, 
                     pd_merged["residuals_shifted"][point]+0.06),
-            textcoords='data', ha='right', va='bottom',
+            textcoords="data", ha="right", va="bottom",
             fontsize=10,
-            arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+            arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
     axs[1].set_xlabel("Fe/H, Basis")
-    axs[1].set_ylabel('Fe/H Residuals: high-res minus basis set')
+    axs[1].set_ylabel("Fe/H Residuals: high-res minus basis set")
     axs[1].set_title("m = "+str(m_merged_shifted_resid)+", b = "+str(b_merged_shifted_resid)+"; (blue line: zero)")
     axs[1].set_ylim([-1.5,1.5])
     axs[1].legend() # indicates high-res dataset names
@@ -496,16 +507,16 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
 
     
     print("Scatter in residuals before offsets:")
-    print(np.std(np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])))
+    print(np.std(np.subtract(df_to_offset["FeH_highres"],df_to_offset["FeH_basis"])))
     print("Number of data points:")
-    print(len(np.subtract(df_to_offset['FeH_highres'],df_to_offset['FeH_basis'])))
+    print(len(np.subtract(df_to_offset["FeH_highres"],df_to_offset["FeH_basis"])))
     print("-----")
     print("Scatter in residuals after offset shifts:")
     print(np.std(pd_merged["residuals_shifted"]))
     print(len(pd_merged["residuals_shifted"]))
     
-    #d['coeff_merged_highres'] = [m_merged_highres, b_merged_highres] # best-fit line coeffs for high-res vs. basis 
-    #d['coeff_merged_resid'] = [m_merged_resid, b_merged_resid] # best-fit line coeffs for (residuals: high-res minus basis) vs. basis 
+    #d["coeff_merged_highres"] = [m_merged_highres, b_merged_highres] # best-fit line coeffs for high-res vs. basis 
+    #d["coeff_merged_resid"] = [m_merged_resid, b_merged_resid] # best-fit line coeffs for (residuals: high-res minus basis) vs. basis 
     
     d = {
         "m_merged_highres": m_merged_highres,
@@ -597,11 +608,11 @@ class MetalBasisTypeSpecific(LitMetallicities):
         
         
         #rrab_matches
-        #['name_star']: star_name_array
-        #    ['FeH_highres']: Fe/H from high-res study
-        #    ['FeH_basis']: Fe/H from basis set
-        #    ['name_highres_dataset']: string indicating the high-res dataset
-        #    ['name_basis_dataset']
+        #["name_star"]: star_name_array
+        #    ["FeH_highres"]: Fe/H from high-res study
+        #    ["FeH_basis"]: Fe/H from basis set
+        #    ["name_highres_dataset"]: string indicating the high-res dataset
+        #    ["name_basis_dataset"]
         
         # save a plot of calibration program stars Fe/H
         # post-mapped Fe/H vs. basis set Fe/H
@@ -614,7 +625,7 @@ class MetalBasisTypeSpecific(LitMetallicities):
         def plot_mapping(input, mapped, title_string, plot_file_name):
             plt.clf()
             fig, axs = plt.subplots(1, 1, figsize=(10,10))
-            axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle='--') # make 1-to-1 line
+            axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
             axs.scatter(input["FeH_basis"], mapped) # input vs. basis
             axs.set_xlim(limits[0], limits[1])
             axs.set_ylabel("Fe/H, high-res")
@@ -629,9 +640,9 @@ class MetalBasisTypeSpecific(LitMetallicities):
                         mapped[point]), 
                     xytext=(input["FeH_basis"][point]+0.1, 
                         mapped[point]+0.06),
-                    textcoords='data', ha='right', va='bottom',
+                    textcoords="data", ha="right", va="bottom",
                     fontsize=10,
-                    arrowprops=dict(arrowstyle = '-', connectionstyle='arc3,rad=0'))
+                    arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
             fig.suptitle(title_string)
             plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + plot_file_name, overwrite=True)
 
@@ -664,18 +675,18 @@ class MetalBasisTypeSpecific(LitMetallicities):
         pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrab_offsets.pkl", "wb" ) )
         pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrc_offsets.pkl", "wb" ) )
         
-        print('BLAH BLAH')
+        print("BLAH BLAH")
 
         '''
-        fig.suptitle('Calculated Fe/H of calibration program stars\n('+type_string+' subtype)')
+        fig.suptitle("Calculated Fe/H of calibration program stars\n("+type_string+' subtype)")
         #fig.tight_layout()
-        plt.savefig('calculated_FeH_'+self.__plot_name, overwrite=True)
+        plt.savefig("calculated_FeH_'+self.__plot_name, overwrite=True)
         plt.clf()
 
         # write out
-        convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars['name']) # initialize
-        convert_to_df.columns = ['name'] # rename the column
-        convert_to_df['mapped_feh'] = pd.DataFrame.from_dict(dict_our_program_stars['mapped_feh']) # add the remapped Fe/H
+        convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars["name"]) # initialize
+        convert_to_df.columns = ["name"] # rename the column
+        convert_to_df["mapped_feh"] = pd.DataFrame.from_dict(dict_our_program_stars["mapped_feh"]) # add the remapped Fe/H
         no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
         '''
 
