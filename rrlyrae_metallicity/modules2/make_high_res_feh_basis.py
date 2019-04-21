@@ -232,34 +232,35 @@ class LitMetallicities():
 
 
         ## match ALL available high-res studies with the basis set
-        ## ## are these all the high-res studies I want?
+        ## ## are these all the high-res studies I want? are more? any fewer?
+        ## ## also indicate what tables, etc. in the papers these numbers are from
         pd_Lambert_1996 = self.matchmaker(input_table = self.lambert_logeps, 
                                           basis_table = basis_set,
-                                          basis_name = basis_dataset_name,
+                                          basis_dataset_name = basis_name,
                                           highres_dataset_name="lambert_1996") # Lambert+ 1996 (logeps has already been converted to Fe/H)
         pd_Nemec_2013 = self.matchmaker(input_table = self.nemec_feh, 
                                         basis_table = basis_set,
-                                        basis_name = basis_dataset_name,
+                                        basis_dataset_name = basis_name,
                                         highres_dataset_name="nemec_2013") # Nemec+ 2013
-        pd_Nemec_2013 = self.matchmaker(input_table = self.nemec_feh, 
+        pd_Pancino_2015 = self.matchmaker(input_table = self.pancino_feh, 
                                         basis_table = basis_set,
-                                        basis_name = basis_dataset_name,
-                                        highres_dataset_name="nemec_2013") # Nemec+ 2013
+                                        basis_dataset_name = basis_name,
+                                        highres_dataset_name="pancino_2015") # Pancino+ 2015
         pd_Chadid_2017 = self.matchmaker(input_table = self.chadid_feh, 
                                          basis_table = basis_set,
-                                         basis_name = basis_dataset_name,
+                                         basis_dataset_name = basis_name,
                                          highres_dataset_name="chadid_2017") # Chadid+ 2017
         pd_Fernley_1997 = self.matchmaker(input_table = self.fernley97_feh, 
                                           basis_table = basis_set,
-                                          basis_name = basis_dataset_name,
+                                          basis_dataset_name = basis_name,
                                           highres_dataset_name="fernley_1997") # Fernley+ 1997
         pd_Solano_1997 = self.matchmaker(input_table = self.solano_feh, 
                                          basis_table = basis_set,
-                                         basis_name = basis_dataset_name,
+                                         basis_dataset_name = basis_name,
                                          highres_dataset_name="solano_1997") # Solano+ 1997
         pd_Wallerstein_2010 = self.matchmaker(input_table = self.wallerstein_feh, 
                                               basis_table = basis_set,
-                                              basis_name = basis_dataset_name,
+                                              basis_dataset_name = basis_name,
                                               highres_dataset_name="wallerstein_2010") # Wallerstein 2010
 
         # for Liu+ 2013, we need to group multiple Fe/H values by star name
@@ -267,20 +268,24 @@ class LitMetallicities():
         self.liu_feh_grouped = self.liu_feh.groupby(self.liu_feh["name"], axis=0, as_index=False).mean()
         pd_Liu_2013 = self.matchmaker(input_table = self.liu_feh_grouped, 
                                       basis_table = basis_set,
+                                      basis_dataset_name = basis_name,
                                       highres_dataset_name = "liu_2013") # Liu+ 2013
 
-        # for Govea+ 2014, we need to group multiple Fe/H_I and Fe/H_II values by star name
+        # for Govea+ 2014, we need to group multiple Fe/H_I and Fe/H_II values by star name,
+        # and get single Fe/H_i values by averaging them for each star
         # (the grouping is done here rather than further upstream because otherwise a bug causes 
         # the grouped column to disappear)
         self.govea_feh_grouped = self.govea_feh.groupby(self.govea_feh["name"], axis=0, as_index=False).mean()
+        print(self.govea_feh_grouped)
         # now, average the Fe/H_I and Fe/H_II values to get single Fe/H values
         self.govea_feh_grouped["feh"] = self.govea_feh_grouped[["feIh","feIIh"]].mean(axis=1)
         pd_Govea_2014 = self.matchmaker(input_table = self.govea_feh_grouped, 
                                         basis_table = basis_set,
+                                        basis_dataset_name = basis_name,
                                         highres_dataset_name = "govea_2014") # Govea+ 2014
 
         # merge dataframes
-        pd_collected = [pd_Lambert_1996, pd_Nemec_2013, pd_Liu_2013, pd_Chadid_2017,
+        pd_collected = [pd_Lambert_1996, pd_Nemec_2013, pd_Pancino_2015, pd_Liu_2013, pd_Chadid_2017,
                         pd_Fernley_1997, pd_Solano_1997, pd_Wallerstein_2010, pd_Govea_2014]
         df = pd.concat(pd_collected).reset_index()
 
