@@ -92,6 +92,8 @@ class LitMetallicities():
         self.govea_feh = pd.read_csv(source_dir + "govea_2014_abundances.dat")
 
         # put all read literature metallicities into a dictionary for testing
+        '''
+        # this doesn't really work, putting dataframes into a dictionary
         self.collated_feh = {"our_program_stars": self.our_program_stars,
                          "layden_feh": self.layden_feh,
                          "clementini_feh": self.clementini_feh,
@@ -107,6 +109,7 @@ class LitMetallicities():
                          "sneden_feh": self.sneden_feh,
                          "kemper_feh": self.kemper_feh,
                          "govea_feh": self.govea_feh}
+        '''
 
         #####################
         
@@ -137,9 +140,9 @@ class LitMetallicities():
         uniqueSpecNames = line_data.drop_duplicates(subset='empir_spec_name')['empir_spec_name']
 
         
-    def return_raw_data(self):
+    def return_some_raw_data(self):
 
-        return self.collated_feh
+        return self.clementini_feh, self.pacino_feh
     
 
     def matchmaker(self, input_table, basis_table, highres_dataset_name):

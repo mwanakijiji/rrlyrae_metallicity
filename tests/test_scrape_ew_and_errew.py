@@ -88,8 +88,6 @@ def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]
                                                phase_subdir = test_phase_subdir,
                                                plot_write_subdir = test_write_plot_subdir)
 
-    print(test_source_subdir)
-
     # run the pipeline function on fake data
     unique_star_names, data_to_plot = test_instance()
 
