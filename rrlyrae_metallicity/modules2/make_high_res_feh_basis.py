@@ -57,7 +57,7 @@ class LitMetallicities():
         # RES: 22,000 & 19,000, strong FeI lines, 4160-4390 & 4070-4490 A
         
         # Fe/H from Pancino+ 2015 MNRAS 447:2404
-        self.pacino_feh = pd.read_csv(source_dir + "pacino_2015_abundances.dat") 
+        self.pancino_feh = pd.read_csv(source_dir + "pancino_2015_abundances.dat") 
         # RES: >30,000, FeI (weighted average), 4000-8500 A
 
         # Fe/H from Sneden+ 2017
@@ -105,7 +105,7 @@ class LitMetallicities():
                          "fernley96_feh": self.fernley96_feh,
                          "fernley97_feh": self.fernley97_feh,
                          "solano_feh": self.solano_feh,
-                         "pacino_feh": self.pacino_feh,
+                         "pancino_feh": self.pancino_feh,
                          "sneden_feh": self.sneden_feh,
                          "kemper_feh": self.kemper_feh,
                          "govea_feh": self.govea_feh}
@@ -145,7 +145,7 @@ class LitMetallicities():
         Return some read-in data, for testing
         '''
 
-        return self.clementini_feh, self.pacino_feh
+        return self.clementini_feh, self.pancino_feh
     
 
     def matchmaker(self, input_table, basis_table, basis_dataset_name, highres_dataset_name):
@@ -232,10 +232,15 @@ class LitMetallicities():
 
 
         ## match ALL available high-res studies with the basis set
+        ## ## are these all the high-res studies I want?
         pd_Lambert_1996 = self.matchmaker(input_table = self.lambert_logeps, 
                                           basis_table = basis_set,
                                           basis_name = basis_dataset_name,
                                           highres_dataset_name="lambert_1996") # Lambert+ 1996 (logeps has already been converted to Fe/H)
+        pd_Nemec_2013 = self.matchmaker(input_table = self.nemec_feh, 
+                                        basis_table = basis_set,
+                                        basis_name = basis_dataset_name,
+                                        highres_dataset_name="nemec_2013") # Nemec+ 2013
         pd_Nemec_2013 = self.matchmaker(input_table = self.nemec_feh, 
                                         basis_table = basis_set,
                                         basis_name = basis_dataset_name,
@@ -260,9 +265,9 @@ class LitMetallicities():
         # for Liu+ 2013, we need to group multiple Fe/H values by star name
         # (the grouping is done here rather than further up because a bug causes the grouped column to disappear)
         self.liu_feh_grouped = self.liu_feh.groupby(self.liu_feh["name"], axis=0, as_index=False).mean()
-        pd_Liu_2013 = self.matchmaker(self.liu_feh_grouped, 
-                                      basis_set,
-                                      highres_dataset_name="liu_2013") # Liu+ 2013
+        pd_Liu_2013 = self.matchmaker(input_table = self.liu_feh_grouped, 
+                                      basis_table = basis_set,
+                                      highres_dataset_name = "liu_2013") # Liu+ 2013
 
         # for Govea+ 2014, we need to group multiple Fe/H_I and Fe/H_II values by star name
         # (the grouping is done here rather than further upstream because otherwise a bug causes 
@@ -270,9 +275,9 @@ class LitMetallicities():
         self.govea_feh_grouped = self.govea_feh.groupby(self.govea_feh["name"], axis=0, as_index=False).mean()
         # now, average the Fe/H_I and Fe/H_II values to get single Fe/H values
         self.govea_feh_grouped["feh"] = self.govea_feh_grouped[["feIh","feIIh"]].mean(axis=1)
-        pd_Govea_2014 = self.matchmaker(self.govea_feh_grouped, 
-                                        basis_set,
-                                        highres_dataset_name="govea_2014") # Govea+ 2014
+        pd_Govea_2014 = self.matchmaker(input_table = self.govea_feh_grouped, 
+                                        basis_table = basis_set,
+                                        highres_dataset_name = "govea_2014") # Govea+ 2014
 
         # merge dataframes
         pd_collected = [pd_Lambert_1996, pd_Nemec_2013, pd_Liu_2013, pd_Chadid_2017,
