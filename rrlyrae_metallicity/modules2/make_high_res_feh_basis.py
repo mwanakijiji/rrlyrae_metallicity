@@ -45,7 +45,7 @@ class LitMetallicities():
         # RES: 38000, FeI & FeII, 3400-9900 A
 
         # Fe/H from Liu+ 2013 Res Ast Astroph 13:1307
-        self.liu_feh = pd.read_csv(config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"] + "liu_2013_abundances.dat")
+        self.liu_feh = pd.read_csv(source_dir + "liu_2013_abundances.dat")
         # RES: ~60,000, FeI (& FeII?), 5100-6400 A
 
         # Fe/H from Nemec+ 2013
@@ -275,8 +275,8 @@ class LitMetallicities():
         # and get single Fe/H_i values by averaging them for each star
         # (the grouping is done here rather than further upstream because otherwise a bug causes 
         # the grouped column to disappear)
+        ## ## note that the phases of these spectra are also averaged; maybe I should winnow them according to our own phase boundaries
         self.govea_feh_grouped = self.govea_feh.groupby(self.govea_feh["name"], axis=0, as_index=False).mean()
-        print(self.govea_feh_grouped)
         # now, average the Fe/H_I and Fe/H_II values to get single Fe/H values
         self.govea_feh_grouped["feh"] = self.govea_feh_grouped[["feIh","feIIh"]].mean(axis=1)
         pd_Govea_2014 = self.matchmaker(input_table = self.govea_feh_grouped, 
@@ -304,7 +304,7 @@ def return_offsets(data_postmatch, chadid_offset=True):
     OUTPUTS:
     df: dataframe containing
     ["name_highres_dataset"]: name indicating high-res study
-    ["offset_highres_dataset_residuals"]: offset for the entire high-res 
+    ["offset_highres_residuals"]: offset for the entire high-res 
         dataset, which needs to be applied to the vector (FeH_highres-FeH_basis)
     '''
     
@@ -320,13 +320,18 @@ def return_offsets(data_postmatch, chadid_offset=True):
         this_dataset_name = highres_names[dataset_num] # name of this dataset
         this_dataset = data_postmatch[data_postmatch["name_highres_dataset"].str.match(this_dataset_name)]
     
-        # need at least 3 data points
-        if (len(this_dataset["FeH_highres"]) > 2): 
+        # need at least N+1 data points
+        N = 2
+        if (len(this_dataset["FeH_highres"]) > N): 
     
             # find linear regression of residuals
             coeff = np.polyfit(this_dataset["FeH_basis"],
                                np.subtract(this_dataset["FeH_highres"],
                                            this_dataset["FeH_basis"]),1)
+            print("Data to fit residuals to:")
+            print(this_dataset)
+            print("Lin reg fit to residuals:")
+            print(coeff)
             limits = [-3.0,0.5] # Fe/H limits to display
             line = np.multiply(coeff[0],limits)+coeff[1] # points to plot linear regression
 
@@ -361,27 +366,15 @@ def return_offsets(data_postmatch, chadid_offset=True):
             #print(pd.DataFrame(dict_this, index=[dataset_num]))
             
             # append info from this dataset
-            print(dict_this)
-            print(list(dict_this.items()))
-            print(pd.DataFrame(dict_this))
+            #print(dict_this)
+            #print(list(dict_this.items()))
+            #print(pd.DataFrame(dict_this))
             df_offsets = df_offsets.append(pd.DataFrame(dict_this)) 
             index_counter += 1 # increase the counter
             
-        elif (len(this_dataset["FeH_highres"]) <= 2): 
-            
-            '''
-            # put in NaN offset
-            dict_this = {"name_highres": this_dataset_name,
-                         "offset_highres_residuals": np.nan}
-            #print(pd.DataFrame(dict_this, index=[dataset_num]))
-            
-            # append info from this dataset
-            df_offsets = df_offsets.append(pd.DataFrame(dict_this)) 
-            
-            index_counter += 1 # increase the counter
-            '''
+        elif (len(this_dataset["FeH_highres"]) <= N):
             pass
- 
+
     return df_offsets
 
 
