@@ -50,7 +50,6 @@ def main():
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
-    '''
 
     # scrape_ew_from_robo and calculate EWs + err_EW
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
@@ -58,11 +57,11 @@ def main():
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
     #mamluk2() # call instance
     ## ## END COMMENT
-
+    '''
     # findHK
     mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
     mamluk3() # call instance
-    
+
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 

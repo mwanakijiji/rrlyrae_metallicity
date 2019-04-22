@@ -53,6 +53,9 @@ class FeHplotter():
 
 
     def pickle_plot_info(self, name_star, feh_mapped_array):
+        '''
+        Find sigmas and pickle the info
+        '''
 
         x_vals, y_vals = self.cdf_fcn(np.ravel(feh_mapped_array))
 
