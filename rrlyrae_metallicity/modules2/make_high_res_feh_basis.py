@@ -419,8 +419,10 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
         this_resid_offset = df_offsets["offset_highres_residuals"].loc[df_offsets["name_highres"] == this_dataset_name].values
         
         if this_resid_offset: # if there is an offset that could be found for this dataset
-            this_dataset["residuals_no_shift"] = np.subtract(this_dataset["FeH_highres"],this_dataset["FeH_basis"])
-            this_dataset["residuals_shifted"] = np.add(this_dataset["residuals_no_shift"],this_resid_offset)
+            #this_dataset["residuals_no_shift"] = this_dataset.apply(lambda row: row['FeH_highres']-row['FeH_basis'])
+            this_dataset.loc[:,"residuals_no_shift"] = this_dataset["FeH_highres"] - this_dataset["FeH_basis"]
+            this_dataset.loc[:,"residuals_no_shift"] = this_dataset["FeH_highres"] - this_dataset["FeH_basis"]
+            this_dataset.loc[:,"residuals_shifted"] = this_dataset["residuals_no_shift"] + this_resid_offset
     
             # add dataframe to dictionary; 
             # each key corresponds to a high-res dataset, and each value is a dataframe (this is good for plotting)
@@ -429,8 +431,8 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
         else:
             continue
         
-    # merge ["residuals_shifted"] and ["FeH_highres"] across all 
-    # dataframes in the dictionary (this is good for finding net Fe/H mapping)
+    # merge ["residuals_shifted"] and ["FeH_highres"] across all dataframes
+    # (i.e., across all high-res studies) in the dictionary (for finding net Fe/H mapping)
     vals_of_interest = dict_not_merged_this_basis.copy()
     pd_merged = pd.concat(vals_of_interest.values(), ignore_index=True)
     
@@ -440,12 +442,16 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     # find best-fit line to Fe/H plot of high_res vs. basis 
     # (note that user may have used a flag to make Fe/H values be offset)
     limits = [-3.0,0.5] # Fe/H limits to display
-    
+
+    # regression line for high-res Fe/H
     m_merged_highres, b_merged_highres = np.polyfit(pd_merged["FeH_basis"], pd_merged["FeH_highres"], 1)
-    line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres # make best-fit line for high-res Fe/H
-    
+    line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres
+
+    # regression line for merged residuals
     m_merged_shifted_resid, b_merged_shifted_resid = np.polyfit(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], 1)
-    line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid # make best-fit line for residuals
+
+    # make best-fit line for residuals
+    line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid
 
     
     
