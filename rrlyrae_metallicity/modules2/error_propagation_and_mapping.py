@@ -20,6 +20,9 @@ from multiprocessing import Pool
 from rrlyrae_metallicity.modules2 import *
 
 class FeHplotter():
+    '''
+    Class containing a bunch of the functions we will use to map metallicities
+    '''
 
     def __init__(self):
         
@@ -52,9 +55,17 @@ class FeHplotter():
         return np.multiply(0.5,np.add(1., erf_return)) # (1/2)*(1 + erf(x*/sqrt(2)))
 
 
-    def pickle_plot_info(self, name_star, feh_mapped_array):
+    def pickle_plot_info(self,
+                         name_star,
+                         feh_mapped_array,
+                         write_pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
         '''
         Find sigmas and pickle the info
+
+        INPUTS:
+        name_star: string defining the star
+        feh_mapped_array: list of Fe/H values for this star, post-mapping
+        write_pickle_subdir: directory to write the pickled Fe/H info to
         '''
 
         x_vals, y_vals = self.cdf_fcn(np.ravel(feh_mapped_array))
@@ -106,28 +117,31 @@ class FeHplotter():
                 shortest_xrange = xvals_interp[idx_1sig_above] - xvals_interp[idx_1sig_here]
                 shortest_xrange_lower = xvals_interp[idx_1sig_here]
                 shortest_xrange_upper = xvals_interp[idx_1sig_above]
-                shortest_xrange_halfway = 0.5*np.subtract(shortest_xrange_upper,shortest_xrange_lower)+shortest_xrange_lower
+                shortest_xrange_halfway = 0.5*np.subtract(shortest_xrange_upper,shortest_xrange_lower) + shortest_xrange_lower
 
         # ---------------------------------------------------------------------------
 
         # test how gaussian the data is, based on earlier fit
-        print("K-S test")
-        print(stats.kstest(y_vals, 'norm', args=popt)[0])
-        print(stats.kstest(y_vals, 'norm', args=popt)[1])
-    
+        #print("K-S test")
+        #print(stats.kstest(y_vals, 'norm', args=popt)[0])
+        #print(stats.kstest(y_vals, 'norm', args=popt)[1])
+
         print("Fe/H at 50 percentile")
-        print(xvals_interp[idx])
+        feh_50_perc = xvals_interp[idx]
+        print(feh_50_perc)
 
         print("1-sigma interval")
-        print(xvals_interp[idx_1sig_low])
-        print(xvals_interp[idx_1sig_high])
+        feh_1sig_low = xvals_interp[idx_1sig_low]
+        feh_1sig_high = xvals_interp[idx_1sig_high]
+        print(feh_1sig_low)
+        print(feh_1sig_high)
 
         # pickle the data for this one star, to avoid choking the machine with too much plot-making all at once
         name_star_underscore = str(name_star).replace(" ", "_") # replace space with underscore
-        pickle_write_name = config["data_dirs"]["DIR_PICKLE"] + "plot_info_" + name_star_underscore + ".pkl"
+        pickle_write_name = write_pickle_subdir + "plot_info_" + name_star_underscore + ".pkl"
         cdf_gauss_info = self.cdf_gauss(x_vals, *popt)
         with open(pickle_write_name, "wb") as f:
-            pickle.dump((name_star,
+                pickle.dump((name_star,
                      feh_mapped_array,
                      x_vals,
                      y_vals,
@@ -140,17 +154,29 @@ class FeHplotter():
                      shortest_xrange_upper,
                      shortest_xrange_halfway), f)
 
+        # return FeH based on definition 1 (median and sigma brackets)
+        # and definition 2 (narrowest region containing 1-sigma worth of points)
+        return feh_1sig_low, feh_50_perc, feh_1sig_high, shortest_xrange_lower, shortest_xrange_halfway, shortest_xrange_upper
+
         
-    def write_cdf_hist_plot(self, name_star):
+    def write_cdf_hist_plot(self,
+                            name_star,
+                            read_pickle_subdir = config["data_dirs"]["DIR_PICKLE"],
+                            write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"]):
         '''
         Takes the pickled plot info and saves CDF and histogram plots
+
+        INPUTS:
+        name_star: string ID of the star
+        read_pickle_subdir: directory to read the pickled Fe/H info from
+        write_plot_subdir: directory to write the FYI plots to
         '''
 
         print("Making CDF and histogram plots of FeH for " + name_star + "...")
     
         # open the pickle file
         name_star_underscore = str(name_star).replace(" ", "_") # replace space with underscore
-        pickle_read_name = config["data_dirs"]["DIR_PICKLE"] + "plot_info_" + name_star_underscore + ".pkl"
+        pickle_read_name = read_pickle_subdir + "plot_info_" + name_star_underscore + ".pkl"
     
         with open(pickle_read_name, 'rb') as f:
             name_star,feh_mapped_array,x_vals,y_vals,xvals_interp,cdf_gauss_info,\
@@ -188,10 +214,11 @@ class FeHplotter():
 
 
 
-    def do_bootstrap(self):
+    def do_bootstrap(self,
+                     read_pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
         # read in actual data
         ## ## N.b. this is just the RRabs with RRab offsets for now
-        real_data_1 = pickle.load( open( config["data_dirs"]["DIR_PICKLE"]
+        real_data_1 = pickle.load( open( read_pickle_subdir
                                          + config["file_names"]["RRAB_RRAB_OFFSETS"], "rb" ) )
 
         # arrange the data in a way we can use
