@@ -17,7 +17,7 @@ from astropy.modeling.functional_models import Gaussian2D
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
 from multiprocessing import Pool
-from modules2 import *
+from rrlyrae_metallicity.modules2 import *
 
 class FeHplotter():
 
