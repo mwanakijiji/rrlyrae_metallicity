@@ -50,7 +50,7 @@ def main():
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
-    '''
+    
 
     # scrape_ew_from_robo and calculate EWs + err_EW
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
@@ -60,8 +60,11 @@ def main():
     ## ## END COMMENT
 
     # findHK
+    ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
     mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
     mamluk3() # call instance
+    ## ## END COMMENT
+    '''
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -71,7 +74,7 @@ def main():
     #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
 
     # obtain high-res metallicities for the program stars by mapping the basis set
-    make_high_res_feh_basis.MetalBasisTypeSpecific().calc_FeH_program_stars()
+    make_high_res_feh_basis.calc_FeH_program_stars()
     error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
 
     # put data into giant table, winnow data based on phase

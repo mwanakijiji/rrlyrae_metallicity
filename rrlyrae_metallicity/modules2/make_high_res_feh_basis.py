@@ -292,6 +292,34 @@ class LitMetallicities():
         return df
 
 
+def plot_mapping(input, mapped, title_string, plot_file_name, pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
+    plt.clf()
+    limits = [-3.0,0.5] # limits of Fe/H to plot
+    fig, axs = plt.subplots(1, 1, figsize=(10,10))
+    axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
+    axs.scatter(input["FeH_basis"], mapped) # input vs. basis
+    axs.set_xlim(limits[0], limits[1])
+    axs.set_ylabel("Fe/H, high-res")
+    axs.set_xlabel("Fe/H, basis")
+    # plot the as-is Fe/H values as reported in all the high-res basis sets
+    axs.scatter(input["FeH_basis"],input["FeH_highres"],
+                        alpha = 0.5,
+                        label = "FeH_highres_all_preshift")
+    # add star names
+    for point in range(0,len(input["name_star"])): 
+        axs.annotate(
+                    input["name_star"][point],
+                    xy=(input["FeH_basis"][point], 
+                        mapped[point]), 
+                    xytext=(input["FeH_basis"][point]+0.1, 
+                        mapped[point]+0.06),
+                    textcoords="data", ha="right", va="bottom",
+                    fontsize=10,
+                    arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
+    fig.suptitle(title_string)
+    plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + plot_file_name, overwrite=True)
+        
+
 def return_offsets(data_postmatch, chadid_offset=True):
     '''
     Fit linear regression to input high-res Fe/H and the basis set,
@@ -536,181 +564,141 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     
     return d
 
-
-class MetalBasisTypeSpecific(LitMetallicities):
+        
+def calc_FeH_program_stars():
     '''
-    Class to make metallicity bases specific to subtypes: RRab, RRc
+    Calculate metallicities for the program stars which form the basis of the
+    metallicity calibration, by using the remapping relationships found in make_basis_via_offsets()
+
+    INPUTS:
+    basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
     '''
+        
+    # get names of high-spectral-res stars appearing the the literature which have matches in
+    # the RRab or RRc basis sets
+    # (reminder: these return star names, Fe/H vals in basis set and high-res literature, and
+    # the name of the high-res dataset)
 
-    def __init__(self):
+    #rrab_matches
+    #    ["name_star"]: star_name_array
+    #    ["FeH_highres"]: Fe/H from high-res study
+    #    ["FeH_basis"]: Fe/H from basis set
+    #    ["name_highres_dataset"]: string indicating the high-res dataset
+    #    ["name_basis_dataset"]
         
-        super().__init__()
-        #self.__star_type = star_type
-        #self.__offset = offset
-        
-        
-    def calc_FeH_program_stars(self):
-        '''
-        Calculate metallicities for the program stars which form the basis of the
-        metallicity calibration, by using the remapping relationships found in make_basis_via_offsets()
-
-        INPUTS:
-        basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
-        '''
-        
-        # get names of high-spectral-res stars appearing the the literature which have matches in
-        # the RRab or RRc basis sets
-        # (reminder: these return star names, Fe/H vals in basis set and high-res literature, and
-        # the name of the high-res dataset)
-        rrab_matches = self.match_highres_w_basis("RRab")
-        rrc_matches = self.match_highres_w_basis("RRc")
+    # save a plot of calibration program stars Fe/H
+    # post-mapped Fe/H vs. basis set Fe/H
+    lit_metallicity_basis = LitMetallicities()
+    rrab_matches = lit_metallicity_basis.match_highres_w_basis("RRab")
+    rrc_matches = lit_metallicity_basis.match_highres_w_basis("RRc")
     
-        # find necessary offsets to FeH_highres-FeH_basis, for each high-res study
-        print("======= STEP 1a: CALCULATE RRAB OFFSETS ========")
-        rrab_offsets = return_offsets(data_postmatch = rrab_matches)
-        print("======= STEP 1a: PRINT RRAB OFFSETS ========")
-        print(rrab_offsets)
-        print("======= STEP 2a: CALCULATE RRC OFFSETS ========")
-        rrc_offsets = return_offsets(data_postmatch = rrc_matches)
-        print("======= STEP 2b: PRINT RRC OFFSETS ========")
-        print(rrc_offsets)
+    # find necessary offsets to FeH_highres-FeH_basis, for each high-res study
+    print("======= STEP 1a: CALCULATE RRAB OFFSETS ========")
+    rrab_offsets = return_offsets(data_postmatch = rrab_matches)
+    print("======= STEP 1a: PRINT RRAB OFFSETS ========")
+    print(rrab_offsets)
+    print("======= STEP 2a: CALCULATE RRC OFFSETS ========")
+    rrc_offsets = return_offsets(data_postmatch = rrc_matches)
+    print("======= STEP 2b: PRINT RRC OFFSETS ========")
+    print(rrc_offsets)
         
-        # get best-fit line info for the mappings, based on RRL sub-type and origin of offsets
-        print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
-        rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
+    # get best-fit line info for the mappings, based on RRL sub-type and origin of offsets
+    print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
+    rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                            df_offsets = rrab_offsets,
                                                            plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrab_offsets.png")
-        print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
-        rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
+    print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
+    rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                           df_offsets = rrc_offsets,
                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrc_offsets.png")
-        print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
-        rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
+    print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
+    rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                          df_offsets = rrc_offsets,
                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrc_offsets.png")
-        print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
-        rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
+    print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
+    rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                           df_offsets = rrab_offsets,
                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrab_offsets.png")
 
-        # use the bases to put Fe/H values on a common scale 
-        # i.e., to have ONE high-res-spectroscopically determined 
-        # Fe/H value for making the metallicity calibration
+    # use the bases to put Fe/H values on a common scale 
+    # i.e., to have ONE high-res-spectroscopically determined 
+    # Fe/H value for making the metallicity calibration
         
-        # mapping is
-        # [Fe/H]_highres_convention = m*[Fe/H]_basis_set + b   
+    # mapping is
+    # [Fe/H]_highres_convention = m*[Fe/H]_basis_set + b
         
-        # RRabs, using ab-based offsets
-        rrab_feh_highres_ab_offsets = np.add(rrab_basis_w_rrab_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
+    # RRabs, using ab-based offsets
+    rrab_feh_highres_ab_offsets = np.add(rrab_basis_w_rrab_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
                                          rrab_basis_w_rrab_offsets["b_merged_highres"])
-        print("zzz")
-        print(rrab_feh_highres_ab_offsets)
-        # RRabs, using c-based offsets
-        rrab_feh_highres_c_offsets = np.add(rrab_basis_w_rrc_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
+    print("zzz")
+    print(rrab_feh_highres_ab_offsets)
+    # RRabs, using c-based offsets
+    rrab_feh_highres_c_offsets = np.add(rrab_basis_w_rrc_offsets["m_merged_highres"]*rrab_matches["FeH_basis"],
                                          rrab_basis_w_rrc_offsets["b_merged_highres"])
-        print(rrab_feh_highres_c_offsets)
-        # RRcs, using ab-based offsets
-        rrc_feh_highres_ab_offsets = np.add(rrc_basis_w_rrab_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
+    print(rrab_feh_highres_c_offsets)
+    # RRcs, using ab-based offsets
+    rrc_feh_highres_ab_offsets = np.add(rrc_basis_w_rrab_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
                                         rrc_basis_w_rrab_offsets["b_merged_highres"])
-        print(rrc_feh_highres_ab_offsets)
-        # RRcs, using c-based offsets
-        rrc_feh_highres_c_offsets = np.add(rrc_basis_w_rrc_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
+    print(rrc_feh_highres_ab_offsets)
+    # RRcs, using c-based offsets
+    rrc_feh_highres_c_offsets = np.add(rrc_basis_w_rrc_offsets["m_merged_highres"]*rrc_matches["FeH_basis"],
                                        rrc_basis_w_rrc_offsets["b_merged_highres"])
-        print(rrc_feh_highres_c_offsets)
-        
-        
-        #rrab_matches
-        #["name_star"]: star_name_array
-        #    ["FeH_highres"]: Fe/H from high-res study
-        #    ["FeH_basis"]: Fe/H from basis set
-        #    ["name_highres_dataset"]: string indicating the high-res dataset
-        #    ["name_basis_dataset"]
-        
-        # save a plot of calibration program stars Fe/H
-        # post-mapped Fe/H vs. basis set Fe/H
-        
-        limits = [-3.0,0.5] # limits of Fe/H to plot
-
-        ######################
-        # PLOTS
-
-        def plot_mapping(input, mapped, title_string, plot_file_name):
-            plt.clf()
-            fig, axs = plt.subplots(1, 1, figsize=(10,10))
-            axs.plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
-            axs.scatter(input["FeH_basis"], mapped) # input vs. basis
-            axs.set_xlim(limits[0], limits[1])
-            axs.set_ylabel("Fe/H, high-res")
-            axs.set_xlabel("Fe/H, basis")
-            # plot the as-is Fe/H values as reported in all the high-res basis sets
-            axs.scatter(input["FeH_basis"],input["FeH_highres"],
-                        alpha = 0.5,
-                        label = "FeH_highres_all_preshift")
-            # add star names
-            for point in range(0,len(input["name_star"])): 
-                axs.annotate(
-                    input["name_star"][point],
-                    xy=(input["FeH_basis"][point], 
-                        mapped[point]), 
-                    xytext=(input["FeH_basis"][point]+0.1, 
-                        mapped[point]+0.06),
-                    textcoords="data", ha="right", va="bottom",
-                    fontsize=10,
-                    arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
-            fig.suptitle(title_string)
-            plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + plot_file_name, overwrite=True)
+    print(rrc_feh_highres_c_offsets)
 
         # RRabs with RRab offsets
-        plot_mapping(input = rrab_matches,
+    plot_mapping(input = rrab_matches,
                      mapped = rrab_feh_highres_ab_offsets,
                      title_string = "RRab Fe/H mapping, w/ ab-based offsets",
                      plot_file_name = "rrab_w_ab_offsets_basis.png")
 
-        # RRabs with RRc offsets
-        plot_mapping(input = rrab_matches,
+    # RRabs with RRc offsets
+    plot_mapping(input = rrab_matches,
                      mapped = rrab_feh_highres_c_offsets,
                      title_string = "RRab Fe/H mapping, w/ c-based offsets",
                      plot_file_name = "rrab_w_c_offsets_basis.png")
 
-        # RRcs with RRab offsets
-        plot_mapping(input = rrc_matches,
+    # RRcs with RRab offsets
+    plot_mapping(input = rrc_matches,
                      mapped = rrc_feh_highres_ab_offsets,
                      title_string = "RRc Fe/H mapping, w/ ab-based offsets",
                      plot_file_name = "rrc_w_ab_offsets_basis.png")
 
-        # RRabs with RRab offsets
-        plot_mapping(input = rrc_matches,
+    # RRabs with RRab offsets
+    plot_mapping(input = rrc_matches,
                      mapped = rrc_feh_highres_c_offsets,
                      title_string = "RRc Fe/H mapping, w/ c-based offsets",
                      plot_file_name = "rrc_w_c_offsets_basis.png")
 
-        pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrabs_rrab_offsets.pkl", "wb" ) )
-        pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrabs_rrc_offsets.pkl", "wb" ) )
-        pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrab_offsets.pkl", "wb" ) )
-        pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets], open( config["data_dirs"]["DIR_PICKLE"] + "info_rrcs_rrc_offsets.pkl", "wb" ) )
+    pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets],
+                     open( pickle_subdir + config["file_names"]["RRAB_RRAB_OFFSETS"], "wb" ) )
+    pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets],
+                     open( pickle_subdir + config["file_names"]["RRAB_RRC_OFFSETS"], "wb" ) )
+    pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets],
+                     open( pickle_subdir + config["file_names"]["RRC_RRAB_OFFSETS"], "wb" ) )
+    pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets],
+                     open( pickle_subdir + config["file_names"]["RRC_RRC_OFFSETS"], "wb" ) )
 
-        '''
-        fig.suptitle("Calculated Fe/H of calibration program stars\n("+type_string+' subtype)")
-        #fig.tight_layout()
-        plt.savefig("calculated_FeH_'+self.__plot_name, overwrite=True)
-        plt.clf()
+    '''
+    fig.suptitle("Calculated Fe/H of calibration program stars\n("+type_string+' subtype)")
+    #fig.tight_layout()
+    plt.savefig("calculated_FeH_'+__plot_name, overwrite=True)
+    plt.clf()
 
-        # write out
-        convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars["name"]) # initialize
-        convert_to_df.columns = ["name"] # rename the column
-        convert_to_df["mapped_feh"] = pd.DataFrame.from_dict(dict_our_program_stars["mapped_feh"]) # add the remapped Fe/H
-        no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
-        '''
+    # write out
+    convert_to_df = pd.DataFrame.from_dict(dict_our_program_stars["name"]) # initialize
+    convert_to_df.columns = ["name"] # rename the column
+    convert_to_df["mapped_feh"] = pd.DataFrame.from_dict(dict_our_program_stars["mapped_feh"]) # add the remapped Fe/H
+    no_return = convert_to_df.to_csv(write_loc + "mapped_feh.csv") # write out ## ## note 2 things: 1., this should be appeneded to our .csv with EWs; 2. there is no phase info here yet
+    '''
 
-        # PRINT m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
-        print("rrab_basis_w_rrab_offsets:")
-        print(rrab_basis_w_rrab_offsets)
-        print("rrab_basis_w_rrc_offsets:")
-        print(rrab_basis_w_rrc_offsets)
-        print("rrc_basis_w_rrc_offsets:")
-        print(rrc_basis_w_rrc_offsets)
-        print("rrc_basis_w_rrab_offsets:")
-        print(rrc_basis_w_rrab_offsets)     
-        
-        return 
+    # PRINT m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
+    print("rrab_basis_w_rrab_offsets:")
+    print(rrab_basis_w_rrab_offsets)
+    print("rrab_basis_w_rrc_offsets:")
+    print(rrab_basis_w_rrc_offsets)
+    print("rrc_basis_w_rrc_offsets:")
+    print(rrc_basis_w_rrc_offsets)
+    print("rrc_basis_w_rrab_offsets:")
+    print(rrc_basis_w_rrab_offsets)
 
+    return

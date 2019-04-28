@@ -216,6 +216,19 @@ class FeHplotter():
 
     def do_bootstrap(self,
                      read_pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
+        '''
+        Do bootstrap on high-res Fe/H values to find the mapping
+
+        INPUTS:
+        read_pickle_subdir: directory containing the pickle file of Fe/H data
+
+        OUTPUTS:
+        m_array: array of slopes for each bootstrap step
+        b_array: array of y-intercepts for each bootstrap step
+        params_list_star_feh: star names and basis set Fe/H ## ## for what?
+        data_1: original data which is fed into the bootstrap
+        '''
+        
         # read in actual data
         ## ## N.b. this is just the RRabs with RRab offsets for now
         real_data_1 = pickle.load( open( read_pickle_subdir
@@ -224,18 +237,18 @@ class FeHplotter():
         # arrange the data in a way we can use
         # N.b. This is NOT fake data; I'm just appropriating the old variable name
         ## ## Note the ersatz Layden errors for now; need to revisit this with values from his paper
-        fake_data_1 = { "star_name": real_data_1[0]["name_star"],
+        data_1 = { "star_name": real_data_1[0]["name_star"],
                 "feh_lit": real_data_1[0]["FeH_highres"],
                 "feh_layden": real_data_1[0]["FeH_basis"],
                 "err_feh_lit": np.zeros(len(real_data_1[0]["FeH_basis"])),
                 "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["FeH_basis"]))}
-        fake_dataset_1 = pd.DataFrame(data=fake_data_1)
+        dataset_1 = pd.DataFrame(data=data_1)
 
         
-        # # Find the linear regression line to high_res vs. basis Fe/H values
+        # # Find the linear regression line to high res literature Fe/H vs. basis set Fe/H values
         
         # Put Fe/H values into a useable form
-        feh_sample = np.transpose([fake_data_1["feh_layden"],fake_data_1["feh_lit"]])
+        feh_sample = np.transpose([data_1["feh_layden"],data_1["feh_lit"]])
 
         # Bootstrap
         N_samples = int(1e4)
@@ -244,7 +257,7 @@ class FeHplotter():
             bootresult = bootstrap(feh_sample, N_samples)
     
         # populate the arrays with bootstrap results
-        m_array = np.nan*np.ones(len(bootresult))
+        m_array = np.nan*np.ones(len(bootresult)) # initialize
         b_array = np.nan*np.ones(len(bootresult))
         for boot_n in range(0,len(bootresult)):
             test_fit = np.polyfit(bootresult[boot_n,:,0], bootresult[boot_n,:,1], 1)
@@ -252,20 +265,21 @@ class FeHplotter():
             b_array[boot_n] = test_fit[1]
     
         # consolidate info, remove extra dimension
-        name_star = fake_data_1["star_name"][:].values
-        feh_test = fake_data_1["feh_layden"][:].values
+        name_star = data_1["star_name"][:].values
+        feh_test = data_1["feh_layden"][:].values
         params_array = np.squeeze([[name_star],[feh_test]])
 
         # arrange into a list for parallel processing
         params_list_star_feh = list(np.transpose(params_array))
 
-        return m_array, b_array, params_list_star_feh, fake_data_1
+        return m_array, b_array, params_list_star_feh, data_1
 
 
 class FeHmapper(FeHplotter):
     
-    def __init__(self):
-        pass
+    def __init__(self, write_pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
+
+        self.write_pickle_subdir = write_pickle_subdir
 
     def __call__(self):
         pass  
@@ -293,7 +307,7 @@ class FeHmapper(FeHplotter):
         
         # take one basis set Fe/H (integral over a Gaussian) and find what the mapped value should be 
         N = 100 # number of samples to take within the Gaussian error around Layden's Fe/H value
-        gaussian_spread = 0.07
+        gaussian_spread = 0.07 ## ## change this in future
         layden_feh = feh_test # this is the discrete value
         feh_mapped_array = np.nan*np.ones((len(m_array),N)) # N_m_samples x N_Layden_samples
 
@@ -310,8 +324,8 @@ class FeHmapper(FeHplotter):
                 feh_mapped_array[sample_num][integal_piece] = feh_mapped_1sample
     
         # pickle plot info
-        self.pickle_plot_info(name_star,feh_mapped_array)
-
+        self.pickle_plot_info(name_star, feh_mapped_array, write_pickle_subdir = self.write_pickle_subdir)
+        
         print("Elapsed time:")
         print(str(time.time() - time_start))
         print("--------------------------")
@@ -322,7 +336,7 @@ class FeHmapper(FeHplotter):
         # do the bootstrap
         global m_array # have to make this global for multiprocessing to work
         global b_array
-        m_array, b_array, params_list_star_feh, fake_data_1 = self.do_bootstrap()
+        m_array, b_array, params_list_star_feh, data_1 = self.do_bootstrap()
 
         # parallel process the Fe/H info
         ncpu = multiprocessing.cpu_count()
@@ -332,7 +346,7 @@ class FeHmapper(FeHplotter):
 
         # now make and save the plots of Fe/H values
         # (this is done in series to avoid memory chokes)
-        for t in range(0,len(fake_data_1["star_name"])):
-            this_star = fake_data_1["star_name"][t]
+        for t in range(0,len(data_1["star_name"])):
+            this_star = data_1["star_name"][t]
             print("Writing Fe/H CDF for star " + this_star)
             self.write_cdf_hist_plot(this_star)
