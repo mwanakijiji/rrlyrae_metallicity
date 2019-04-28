@@ -319,8 +319,6 @@ class findHK():
 
         df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
         ## ## THIS IS AN ERSATZ FOR NOW; REAL PHASE VALUES NEED TO BE READ IN AT BEGINNING
-        #phase_array =
-        import ipdb; ipdb.set_trace()
         df_collation_real['phase'] = phase_array
         df_collation_real['FeH'] = feh_array
         df_collation_real['eFeH'] = err_feh_array

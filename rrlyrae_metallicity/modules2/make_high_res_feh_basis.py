@@ -565,7 +565,7 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     return d
 
         
-def calc_FeH_program_stars():
+def calc_FeH_program_stars(pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
     '''
     Calculate metallicities for the program stars which form the basis of the
     metallicity calibration, by using the remapping relationships found in make_basis_via_offsets()
@@ -573,22 +573,11 @@ def calc_FeH_program_stars():
     INPUTS:
     basis_set: basis set used for either RRab (such as Layden 1994) or RRc (such as Kemper+ 1982)
     '''
-        
-    # get names of high-spectral-res stars appearing the the literature which have matches in
-    # the RRab or RRc basis sets
-    # (reminder: these return star names, Fe/H vals in basis set and high-res literature, and
-    # the name of the high-res dataset)
 
-    #rrab_matches
-    #    ["name_star"]: star_name_array
-    #    ["FeH_highres"]: Fe/H from high-res study
-    #    ["FeH_basis"]: Fe/H from basis set
-    #    ["name_highres_dataset"]: string indicating the high-res dataset
-    #    ["name_basis_dataset"]
-        
-    # save a plot of calibration program stars Fe/H
-    # post-mapped Fe/H vs. basis set Fe/H
+    # instantiate literature metallicity values
     lit_metallicity_basis = LitMetallicities()
+
+    # RRab, RRc matches between high-res studies and basis sets
     rrab_matches = lit_metallicity_basis.match_highres_w_basis("RRab")
     rrc_matches = lit_metallicity_basis.match_highres_w_basis("RRc")
     
