@@ -292,7 +292,7 @@ class LitMetallicities():
         return df
 
 
-def plot_mapping(input, mapped, title_string, plot_file_name, pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
+def plot_mapping(input, mapped, title_string, plot_file_name, write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"]):
     plt.clf()
     limits = [-3.0,0.5] # limits of Fe/H to plot
     fig, axs = plt.subplots(1, 1, figsize=(10,10))
@@ -317,7 +317,7 @@ def plot_mapping(input, mapped, title_string, plot_file_name, pickle_subdir = co
                     fontsize=10,
                     arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
     fig.suptitle(title_string)
-    plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + plot_file_name, overwrite=True)
+    plt.savefig(write_plot_subdir + plot_file_name, overwrite=True)
         
 
 def return_offsets(data_postmatch, chadid_offset=True):
@@ -434,7 +434,6 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     dict_not_merged_this_basis = {}
     highres_names = df_to_offset["name_highres_dataset"].unique() # names of high-res datasets (which will also be the keys to dict_merged_this_basis)
     
-    
     # for each high-res dataset name, apply the offsets to Fe/H residuals
     for this_dataset_name in highres_names:    
         
@@ -450,8 +449,13 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
             #this_dataset["residuals_no_shift"] = this_dataset.apply(lambda row: row['FeH_highres']-row['FeH_basis'])
             this_dataset.loc[:,"residuals_no_shift"] = this_dataset["FeH_highres"] - this_dataset["FeH_basis"]
             this_dataset.loc[:,"residuals_no_shift"] = this_dataset["FeH_highres"] - this_dataset["FeH_basis"]
+
+            # add the residuals as found above
             this_dataset.loc[:,"residuals_shifted"] = this_dataset["residuals_no_shift"] + this_resid_offset
-    
+
+            # fold this correction into the non-residual Fe/H values
+            this_dataset.loc[:,"FeH_highres_post_shift"] = this_dataset["residuals_no_shift"] + this_resid_offset + this_dataset["FeH_basis"]
+            
             # add dataframe to dictionary; 
             # each key corresponds to a high-res dataset, and each value is a dataframe (this is good for plotting)
             dict_not_merged_this_basis[this_dataset_name] = this_dataset
@@ -472,8 +476,12 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     limits = [-3.0,0.5] # Fe/H limits to display
 
     # regression line for high-res Fe/H
+    ## ## this is NOT before adding in the shifts, correct?
     m_merged_highres, b_merged_highres = np.polyfit(pd_merged["FeH_basis"], pd_merged["FeH_highres"], 1)
     line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres
+
+    # regression line for high-res Fe/H AFTER adding the shifts back in
+    m_merged_highres_postshift, b_merged_highres_postshift = np.polyfit(pd_merged["FeH_basis"], pd_merged["FeH_highres_post_shift"], 1)
 
     # regression line for merged residuals
     m_merged_shifted_resid, b_merged_shifted_resid = np.polyfit(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], 1)
@@ -481,13 +489,12 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     # make best-fit line for residuals
     line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid
 
-    
-    
-    # save a plot (high_res vs. basis on top; residuals vs. basis on bottom)
+    # save a plot (raw high_res vs. basis on top; shifted residuals vs. basis in middle; corrected high_res vs. basis on bottom)
     plt.clf()
     limits = [-3.0,0.5]
-    fig, axs = plt.subplots(2, 1, figsize=(10,10), sharex=True)
-    
+    fig, axs = plt.subplots(3, 1, figsize=(10,15), sharex=True)
+
+    ## plot 0: raw high-res Fe/H
     axs[0].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
     axs[0].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres,[limits[0],limits[1]]),b_merged_highres), linestyle="--") # best-fit line
     axs[0].scatter(pd_merged["FeH_basis"], pd_merged["FeH_highres"]) # input vs. basis
@@ -506,12 +513,13 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
             textcoords="data", ha="right", va="bottom",
             fontsize=10,
             arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
-    
+
     axs[0].set_xlim(limits[0], limits[1])
     axs[0].set_ylabel("Fe/H, high-res; no offsets applied")
     axs[0].set_title("m = "+str(m_merged_highres)+", b = "+str(b_merged_highres)+"; (blue line: 1-to-1; orange line: best fit)")
     axs[0].legend() # indicates high-res dataset names
-    
+
+    ## plot 1: shifted residuals
     axs[1].axhline(y=0, linestyle="--") # dashed line at y=0
     axs[1].scatter(df_to_offset["FeH_basis"], np.subtract(df_to_offset["FeH_highres"],df_to_offset["FeH_basis"])) # input vs. basis
     axs[1].scatter(pd_merged["FeH_basis"], pd_merged["residuals_shifted"], alpha=0.5) # input vs. basis
@@ -535,13 +543,36 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     axs[1].set_title("m = "+str(m_merged_shifted_resid)+", b = "+str(b_merged_shifted_resid)+"; (blue line: zero)")
     axs[1].set_ylim([-1.5,1.5])
     axs[1].legend() # indicates high-res dataset names
-    
+
+    ## plot 2: shifted high-res Fe/H (the basis for the calibration!)
+    axs[2].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
+    axs[2].plot([limits[0],limits[1]],np.add(np.multiply(m_merged_highres_postshift,[limits[0],limits[1]]),b_merged_highres_postshift), linestyle="--") # best-fit line
+    axs[2].scatter(pd_merged["FeH_basis"], pd_merged["FeH_highres_post_shift"]) # input vs. basis
+    # for keeping data points separated by datasets, plot with a list comprehension
+    [axs[2].scatter(dict_not_merged_this_basis[key]["FeH_basis"], 
+                    dict_not_merged_this_basis[key]["FeH_highres_post_shift"], 
+                    label=key) for key in dict_not_merged_this_basis] 
+    # add star names
+    for point in range(0,len(pd_merged["FeH_basis"])): 
+        axs[2].annotate(
+            pd_merged["name_star"][point],
+            xy=(pd_merged["FeH_basis"][point], 
+                pd_merged["FeH_highres_post_shift"][point]), 
+            xytext=(pd_merged["FeH_basis"][point]+0.1, 
+                    pd_merged["FeH_highres_post_shift"][point]+0.06),
+            textcoords="data", ha="right", va="bottom",
+            fontsize=10,
+            arrowprops=dict(arrowstyle = "-", connectionstyle="arc3,rad=0"))
+
+    axs[2].set_xlim(limits[0], limits[1])
+    axs[2].set_ylabel("Fe/H, high-res; WITH offsets applied")
+    axs[2].set_title("m = "+str(m_merged_highres_postshift)+", b = "+str(b_merged_highres_postshift)+"; (blue line: 1-to-1; orange line: best fit)")
+    axs[2].legend() # indicates high-res dataset names
+
     #fig.suptitle("Finding remapping relation between\nhigh-res studies and basis dataset\n("+type_string+" subtype)")
     #fig.tight_layout()
     plt.savefig(plot_string, overwrite=True)
     plt.clf()
-
-
     
     print("Scatter in residuals before offsets:")
     print(np.std(np.subtract(df_to_offset["FeH_highres"],df_to_offset["FeH_basis"])))
@@ -634,7 +665,7 @@ def calc_FeH_program_stars(pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
                                        rrc_basis_w_rrc_offsets["b_merged_highres"])
     print(rrc_feh_highres_c_offsets)
 
-        # RRabs with RRab offsets
+    # RRabs with RRab offsets
     plot_mapping(input = rrab_matches,
                      mapped = rrab_feh_highres_ab_offsets,
                      title_string = "RRab Fe/H mapping, w/ ab-based offsets",
