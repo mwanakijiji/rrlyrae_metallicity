@@ -454,7 +454,7 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
             this_dataset.loc[:,"residuals_shifted"] = this_dataset["residuals_no_shift"] + this_resid_offset
 
             # fold this correction into the non-residual Fe/H values
-            this_dataset.loc[:,"FeH_highres_post_shift"] = this_dataset["residuals_no_shift"] + this_resid_offset + this_dataset["FeH_basis"]
+            this_dataset.loc[:,"FeH_highres_post_shift"] = this_dataset["FeH_highres"] + this_resid_offset
             
             # add dataframe to dictionary; 
             # each key corresponds to a high-res dataset, and each value is a dataframe (this is good for plotting)
@@ -476,7 +476,7 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     limits = [-3.0,0.5] # Fe/H limits to display
 
     # regression line for high-res Fe/H
-    ## ## this is NOT before adding in the shifts, correct?
+    # (note this is NOT before adding in the shifts)
     m_merged_highres, b_merged_highres = np.polyfit(pd_merged["FeH_basis"], pd_merged["FeH_highres"], 1)
     line_highres = np.multiply(m_merged_highres,limits)+b_merged_highres
 
@@ -590,7 +590,9 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
         "m_merged_highres": m_merged_highres,
         "b_merged_highres": b_merged_highres,
         "m_merged_shifted_resid": m_merged_shifted_resid,
-        "b_merged_shifted_resid": b_merged_shifted_resid
+        "b_merged_shifted_resid": b_merged_shifted_resid,
+        "m_merged_highres_postshift": m_merged_highres_postshift,
+        "b_merged_highres_postshift": b_merged_highres_postshift
     }
     
     return d
