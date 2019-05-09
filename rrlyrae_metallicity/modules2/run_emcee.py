@@ -46,9 +46,11 @@ def chi_sqd_fcn(xiPass, yiPass, ziPass, sig_xiPass, sig_yiPass, sig_ziPass, aPas
 
     return val
 
-# fcn: nat log of probability density
 def lnprob(walkerPos, TeffPass, measured_HPass, measured_FPass, measured_KPass, err_measured_HPass, err_measured_FPass, \
            err_measured_KPass):
+    '''
+    nat log of probability density
+    '''
     # walkerPos is the proposed walker position in N-D (likely 4-D) space (i.e., these are the inputs to the model)
     lp = lnprior(walkerPos) # prior
     if not np.isfinite(lp): # afoul of prior
@@ -71,10 +73,9 @@ def find_indices(lst, condition): # condition will be in form of an anonymous fu
 
 
 class RunEmcee():
-    
-    ##############################################################################
-    # STEP 5: RUN EMCEE ON THE SPACE, GET VALUES FOR a, b, c, d (applicable only to A)
-    ##############################################################################
+    '''
+    Run the emcee MCMC to obtain coefficients a, b, c, d
+    '''
     
     def __init__(self):
 
