@@ -201,7 +201,7 @@ class FeHplotter():
           + "{:.{}f}".format( shortest_xrange_halfway, 3) + ", +" + "{:.{}f}".format( np.subtract(shortest_xrange_upper,shortest_xrange_halfway), 3) 
           + ", -" + "{:.{}f}".format( np.subtract(shortest_xrange_halfway,shortest_xrange_lower), 3))
         plt.tight_layout()
-        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + name_star + "_cdf.pdf")
+        plt.savefig(write_plot_subdir + name_star + "_cdf.pdf")
         plt.close()
 
         plt.clf()
@@ -209,7 +209,7 @@ class FeHplotter():
         plt.title(name_star + "\n" + "std = "+str(np.std(np.ravel(feh_mapped_array))))
         plt.xlabel("Fe/H")
         plt.tight_layout()
-        plt.savefig(config["data_dirs"]["DIR_FYI_INFO"] + name_star + "_hist.pdf")
+        plt.savefig(write_plot_subdir + name_star + "_hist.pdf")
         plt.close()
 
 
