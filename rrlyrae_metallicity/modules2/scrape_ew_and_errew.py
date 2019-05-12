@@ -138,14 +138,15 @@ class findHK():
     
     def __init__(self,
                  source_subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"],
-                 phase_subdir = config["data_dirs"]["TEST_DIR_SRC"],
+                 phase_subdir = config["data_dirs"]["DIR_SRC"],
+                 hk_write_subdir = config["data_dirs"]["DIR_SRC"],
                  plot_write_subdir = config["data_dirs"]["DIR_FYI_INFO"],
                  verbose=False):
 
         self.source_subdir = source_subdir
         self.phase_subdir = phase_subdir
         self.scrapedEWfilename = self.source_subdir + config["file_names"]["MCD_LARGE_BAD_REMOVED"]
-        self.hkFileName = config["data_dirs"]["DIR_SRC"] + config["file_names"]["MORE_REALISTIC"]
+        self.hkFileName = hk_write_subdir + config["file_names"]["MORE_REALISTIC"]
         
         # read in line data
         print(self.scrapedEWfilename)

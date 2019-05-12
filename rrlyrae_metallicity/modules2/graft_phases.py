@@ -11,15 +11,16 @@ import glob
 from IPython.display import clear_output
 from astropy.io import fits
 import pickle
+from rrlyrae_metallicity.modules2 import *
 
 
-def graft_feh():
+def graft_feh(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"]):
     ## ## TACK PHASES ONTO LIST OF EWS FROM SPECTRA
     ## ## NEED TO GET RID OF THE 'FAKE' AT SOME POINT
     
     # read in star names first
     ## ## N.b. this is just the RRabs with RRab offsets for now
-    real_data_1 = pickle.load( open( config["data_dirs"]["DIR_PICKLE"] + "info_rrab_rrab_offsets.pkl", "rb" ) )
+    real_data_1 = pickle.load( open(pickle_source_dir  + "info_rrab_rrab_offsets.pkl", "rb" ) )
 
     # arrange the data in a way we can use
     # N.b. This is NOT fake data; I'm just appropriating the old variable name
@@ -36,7 +37,7 @@ def graft_feh():
     for t in range(0,len(fake_data_1["star_name"])):
         this_star = fake_data_1["star_name"][t]
         name_star_underscore = str(this_star).replace(" ", "_") # replace space with underscore
-        pickle_read_name = stem_pickled + "plot_info_" + name_star_underscore + ".pkl" # read the mapped Fe/H values
+        pickle_read_name = pickle_source_dir + "plot_info_" + name_star_underscore + ".pkl" # read the mapped Fe/H values
         with open(pickle_read_name, 'rb') as f:
                 name_star,feh_mapped_array,x_vals,y_vals,xvals_interp,cdf_gauss_info,\
                   idx,idx_1sig_low,idx_1sig_high,shortest_xrange_lower,\
@@ -65,7 +66,7 @@ def graft_feh():
     # the HK table rows corresponding to the empirical spectra for that star
     for star_num in range(0,len(final_star_feh["star_name_underscore"])):
         this_star = final_star_feh["star_name_underscore"][star_num]
-        print("Checking " + this_star)
+        print("Retrieving calculated Fe/H value for " + this_star)
         feh_center_this_star = final_star_feh["final_feh_center"][star_num]
         feh_lower_this_star = final_star_feh["final_feh_lower"][star_num]
         feh_upper_this_star = final_star_feh["final_feh_upper"][star_num]
@@ -85,14 +86,14 @@ def graft_feh():
     
     # pickle the table of H,K,phases,Fe/H
     ## ## NEED TO ADD STAR TYPE, TOO
-    pickle_write_name = config["data_dirs"]["DIR_PICKLE"] + "hk_final_feh_info.pkl"
+    pickle_write_name = pickle_source_dir + "hk_final_feh_info.pkl"
     with open(pickle_write_name, "wb") as f:
         pickle.dump(hk_ews, f)
     
     return
 
 
-def winnow():
+def winnow(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"]):
     '''
     This removes the program star spectra which are in the bad phase region
     '''
@@ -101,9 +102,9 @@ def winnow():
     min_good, max_good = phase_regions()
     
     # restore pickle file with all the H,K data
-    hk_data = pickle.load( open( config["data_dirs"]["DIR_PICKLE"] + config["FILE_NAMES"]["KH_FINAL_PKL"], "rb" ) )
+    hk_data = pickle.load( open( pickle_source_dir + config["FILE_NAMES"]["KH_FINAL_PKL"], "rb" ) )
     #hk_data_df = pd.DataFrame(hk_data)
-    print(hk_data)
+    print(hk_data.keys())
     
     # drop bad phases
     ## ## NOTE THAT THE DROPNA HERE SEEMS TO BE DROPPING ALL ROWS WITH ANY NANS IN IT (SOME OF THE RRC FEHS ARE NANS)

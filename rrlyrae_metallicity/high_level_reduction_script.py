@@ -43,14 +43,12 @@ def main():
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
     '''
     create_spec_realizations.create_spec_realizations_main()
-    '''
     ## ## END COMMENT
     
-    '''
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
-    
+    '''
 
     # scrape_ew_from_robo and calculate EWs + err_EW
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
@@ -64,7 +62,6 @@ def main():
     mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
     mamluk3() # call instance
     ## ## END COMMENT
-    '''
     
     # apply_interstellar_ca_absorption
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
@@ -76,7 +73,7 @@ def main():
     # obtain high-res metallicities for the program stars by mapping the basis set
     make_high_res_feh_basis.calc_FeH_program_stars()
     error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
-
+    
     # put data into giant table, winnow data based on phase
     graft_phases.graft_feh() # graft FeH values onto table 
     graft_phases.winnow() # remove data corresponding to bad phase values
