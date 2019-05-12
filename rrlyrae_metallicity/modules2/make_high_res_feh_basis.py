@@ -292,7 +292,13 @@ class LitMetallicities():
         return df
 
 
-def plot_mapping(input, mapped, title_string, plot_file_name, write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"]):
+def plot_mapping(input, mapped, title_string, plot_file_name, write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"], write_plot = True):
+
+    # if not plot is to be written
+
+    if write_plot == False:
+        return
+    
     plt.clf()
     limits = [-3.0,0.5] # limits of Fe/H to plot
     fig, axs = plt.subplots(1, 1, figsize=(10,10))

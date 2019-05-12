@@ -115,7 +115,8 @@ def test_return_offsets_and_make_basis(test_subdir = config["data_dirs"]["TEST_D
                                                              mapped = test_rrab_feh_highres_ab_offsets,
                                                              title_string = "*TEST* RRab Fe/H mapping, w/ ab-based offsets",
                                                              plot_file_name = "rrab_w_ab_offsets_basis.png",
-                                                             write_plot_subdir = config["data_dirs"]["TEST_DIR_FYI_INFO"])
+                                                             write_plot_subdir = config["data_dirs"]["TEST_DIR_FYI_INFO"],
+                                                             write_plot = False)
 
     # pickle info
     pickle.dump( [test_rrab_matches, test_rrab_feh_highres_ab_offsets],
