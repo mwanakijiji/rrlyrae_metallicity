@@ -105,10 +105,10 @@ class Scraper():
         # make an array consisting of the last character in each spectrum's flag
         print('huzzah')
         print(dfMaster_reset)
-        print(dfMaster_reset.flags)
+        #print(dfMaster_reset.flags)
         print(dfMaster_reset["flags"])
         print(dfMaster_reset.keys())
-        redFlagArray = ([u[-1] for u in dfMaster_reset.reset_index()["flags"]])
+        redFlagArray = ([u[-1] for u in dfMaster_reset["flags"]])
         # consider bad flags to be of any flag with a nonzero last character
         whereRedFlag = np.where(np.array(redFlagArray) != '0')
         
