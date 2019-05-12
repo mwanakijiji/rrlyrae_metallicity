@@ -103,7 +103,7 @@ class Scraper():
         ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
         # remove all rows with a flag ending with something other than zero (i.e., the fit is bad)
         # make an array consisting of the last character in each spectrum's flag
-        redFlagArray = ([u[-1] for u in dfMaster_reset.values().flags])
+        redFlagArray = ([u[-1] for u in dfMaster_reset["flags"]])
         # consider bad flags to be of any flag with a nonzero last character
         whereRedFlag = np.where(np.array(redFlagArray) != '0')
         
