@@ -11,3 +11,4 @@ env:
 before_install:
   - echo "$PATH"
   - echo "$TRAVIS_BUILD_DIR"
+  - python matplotlib_set.py
