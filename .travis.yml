@@ -10,3 +10,4 @@ env:
   - TRAVIS_BUILD_DIR=$TRAVIS_BUILD_DIR
 before_install:
   - echo "$PATH"
+  - echo "$TRAVIS_BUILD_DIR"
