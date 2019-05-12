@@ -74,6 +74,7 @@ def test_Scraper(test_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
 
 def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"],
                 test_phase_subdir = config["data_dirs"]["TEST_DIR_SRC"],
+                test_hk_write_subdir =  config["data_dirs"]["TEST_DIR_SRC"],
                 test_write_plot_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]):
 
     '''
@@ -88,6 +89,7 @@ def test_findHK(test_source_subdir = config["data_dirs"]["TEST_DIR_ROBO_OUTPUT"]
     ## ## ALSO NEED TO DEFINE LOCATION TO WRITE KH INFO TO, SO I CAN WRITE TO A TEST DIRECTORY
     test_instance = scrape_ew_and_errew.findHK(source_subdir = test_source_subdir,
                                                phase_subdir = test_phase_subdir,
+                                               hk_write_subdir = test_hk_write_subdir,
                                                plot_write_subdir = test_write_plot_subdir)
 
     # run the pipeline function on fake data
