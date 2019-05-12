@@ -1,6 +1,8 @@
 from rrlyrae_metallicity.modules2 import *
 from rrlyrae_metallicity.modules2 import graft_phases
 from rrlyrae_metallicity.modules2 import edification
+import matplotlib
+matplotlib.use('Agg')
 
 #import sys, os
 #myPath = os.path.dirname(os.path.abspath(__file__))

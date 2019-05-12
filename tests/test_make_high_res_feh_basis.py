@@ -1,5 +1,7 @@
 from rrlyrae_metallicity.modules2 import *
 from rrlyrae_metallicity.modules2 import make_high_res_feh_basis
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 import pandas as pd
 import pickle

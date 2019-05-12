@@ -1,5 +1,7 @@
 from rrlyrae_metallicity.modules2 import *
 from rrlyrae_metallicity.modules2 import scrape_ew_and_errew
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 import pandas as pd
 
