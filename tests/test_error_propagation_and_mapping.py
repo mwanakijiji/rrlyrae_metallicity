@@ -1,7 +1,7 @@
-from rrlyrae_metallicity.modules2 import *
-from rrlyrae_metallicity.modules2 import error_propagation_and_mapping
 import matplotlib
 matplotlib.use('Agg')
+from rrlyrae_metallicity.modules2 import *
+from rrlyrae_metallicity.modules2 import error_propagation_and_mapping
 import numpy as np
 import pandas as pd
 
