@@ -1,0 +1,19 @@
+## robospect -L lines.dat -C null --strict_width=16 AV_Peg_01_123.fits
+## Flags
+## ROBO_MAX_ITER:        0x000001
+## ROBO_FIT_FAIL:        0x000002
+## ROBO_FIT_IGNORED:     0x000004
+## ROBO_FIT_REFUSED:     0x000008
+## ROBO_ALT_REFUSED:     0x001000
+## ROBO_FIT_LARGE_SHIFT: 0x000010
+## ROBO_FIT_RECENTER:    0x000020
+## ROBO_FIT_BLEND:       0x000100
+## ROBO_FIT_DEBLEND:     0x000200
+## PARAMETER_UNITS:
+## Ang     Ang        Ang    Ang              Ang     Ang    Ang            Ang        Ang     Ang            mAng      mAng
+#x0        mean       sigma  flux     eta     dmean   dsigma dflux  deta    FWHM_mean  FWHM_s  FWHM_F         EQW       dEQW  chi    flags    group comment
+3933.6600  3933.4671  4.5865 -8.5609  0.0000    0.1866  0.1307  0.0735  0.0000  3933.1266  3.7951 -7.6978        8561      73.55  5.0495 0x100000     0 # 3933.66 CaII-K 
+3970.0750  3968.5063  4.9186 -8.5624  0.0000    0.1869  0.1401  0.0653  0.0000  3969.3875  4.2006 -7.6075        8562      65.29  3.8938 0x100000     0 # 3970.075 H-eps
+4101.7100  4101.8059  4.7796 -4.2653  0.0000    0.1106  0.0814  0.0180  0.0000  4101.1783  3.4428 -3.4036        4265      17.97  1.2872 0x100000     0 # 4101.71 H-del
+4340.4720  4341.0252  6.0195 -5.0060  0.0000    0.4545  0.3045  0.0669  0.0000  4340.5417  3.3150 -3.5864        5006      66.88  2.0620 0x100000     0 # 4340.472 H-gam
+4861.2900  4861.8382  6.5304 -5.4452  0.0000    0.2208  0.1629  0.0341  0.0000  4861.5334  2.4554 -3.1082        5445      34.12  1.1596 0x100000     0 # 4861.29 H-beta
