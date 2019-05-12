@@ -64,7 +64,7 @@ def lnprob(walkerPos, TeffPass, measured_HPass, measured_FPass, measured_KPass, 
 # fcn: prior
 def lnprior(theta): # theta is an array of parameter values
     aTest, bTest, cTest, dTest = theta
-    if (np.abs(aTest) < 20) and (np.abs(bTest) < 5) and (np.abs(cTest) < 10) and (np.abs(dTest) < 2): # top-hat priors
+    if (np.abs(aTest) < 40) and (np.abs(bTest) < 5) and (np.abs(cTest) < 20) and (np.abs(dTest) < 10): # top-hat priors
         return 0.0
     return -np.inf
 
@@ -105,10 +105,10 @@ class RunEmcee():
                                delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
 
         name = dfChoice['empir_spec_name']
-        caii = dfChoice['K']
-        ecaii = dfChoice['err_K']
-        ave = dfChoice['balmer']
-        eave = dfChoice['err_balmer']
+        caii = np.divide(dfChoice['K'],1000.) # EWs in table are in milliangstroms
+        ecaii = np.divide(dfChoice['err_K'],1000.)
+        ave = np.divide(dfChoice['balmer'],1000.)
+        eave = np.divide(dfChoice['err_balmer'],1000.)
 
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
         feh = dfChoice['final_feh_center']
@@ -118,6 +118,21 @@ class RunEmcee():
         phase = dfChoice['phase']
         #period = dfChoice.type
         #star_type = dataFloats[:,15]
+
+        print("name")
+        print(name)
+        print("caii")
+        print(caii)
+        print("ecaii")
+        print(ecaii)
+        print("ave")
+        print(ave)
+        print("eave")
+        print(eave)
+        print("feh")
+        print(feh)
+        print("efeh")
+        print(efeh)
         
         # fix some values
         Teff = 0.0586758 # from previous IDL runs (kind of deprecated; just appears as a constant in the MCMC)
