@@ -6,6 +6,7 @@ import time
 from os.path import dirname, realpath, sep, pardir
 import sys
 import pandas as pd
+from rrlyrae_metallicity.modules2 import *
 
 '''
 This is an emcee wrapper for fitting the Layden '94 metallicity calibration to equivalent widths of
@@ -77,16 +78,19 @@ class RunEmcee():
     Run the emcee MCMC to obtain coefficients a, b, c, d
     '''
     
-    def __init__(self):
+    def __init__(self,
+                 scraped_ew_source = config["data_dirs"]["DIR_BIN"] + config["file_names"]["KH_WINNOWED_FILE_NAME"],
+                 mcmc_text_output = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"],
+                 corner_plot_putput = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
-        self.scrapedEWfilename = config["data_dirs"]["DIR_BIN"] + config["file_names"]["KH_WINNOWED_FILE_NAME"]
+        self.scrapedEWfilename = scraped_ew_source
 
         # name of file of the MCMC output
-        self.filenameString = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"]
+        self.mcmc_text_output = mcmc_text_output
 
         # name of corner plot of the MCMC output
-        self.cornerFileString = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]
+        self.cornerFileString = corner_plot_putput
 
         # read in boundaries of good phase regions
         self.min_good, self.max_good = phase_regions()
@@ -181,13 +185,13 @@ class RunEmcee():
         print("Saving MCMC chains to text file ...")
 
         # post-burn-in calculate and save iteratively
-        f = open(self.filenameString, "w")
+        f = open(self.mcmc_text_output, "w")
         f.close()
         progBarWidth = 30
         start_time = time.time()
         for i, result in enumerate(sampler.sample(posAfterBurn, iterations=postBurnInLinks, storechain=True)):
             position = result[0]
-            f = open(self.filenameString, "a") # append
+            f = open(self.mcmc_text_output, "a") # append
             for k in range(position.shape[0]): # loop over number of chains
                 positionString = str(position[k]).strip("[]") # convert to string
                 f.write("{0:4d} {1:s}\n".format(k, " ".join(str(p) for p in position[k])))
@@ -210,7 +214,7 @@ class RunEmcee():
         print("Corner plot of MCMC posteriors written out.")
 
         # if its necessary to read in MCMC output again
-        #data = np.loadtxt(self.filenameString, usecols=range(1,5))
+        #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
 
         # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
         # https://emcee.readthedocs.io/en/stable/user/line.html#results
@@ -221,4 +225,4 @@ class RunEmcee():
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
         print("--------------------------")
-        print("MCMC data written to " + os.basename(self.filenameString))
+        print("MCMC data written to " + os.path.basename(self.mcmc_text_output))

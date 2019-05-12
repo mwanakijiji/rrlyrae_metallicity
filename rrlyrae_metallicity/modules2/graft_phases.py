@@ -102,7 +102,7 @@ def winnow(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"]):
     min_good, max_good = phase_regions()
     
     # restore pickle file with all the H,K data
-    hk_data = pickle.load( open( pickle_source_dir + config["FILE_NAMES"]["KH_FINAL_PKL"], "rb" ) )
+    hk_data = pickle.load( open( pickle_source_dir + config["file_names"]["KH_FINAL_PKL"], "rb" ) )
     #hk_data_df = pd.DataFrame(hk_data)
     print(hk_data.keys())
     

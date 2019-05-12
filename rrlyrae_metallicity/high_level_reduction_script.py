@@ -50,6 +50,7 @@ def main():
     run_robo.run_robospect()
     '''
 
+    '''
     # scrape_ew_from_robo and calculate EWs + err_EW
     mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
     print('----')
@@ -77,7 +78,8 @@ def main():
     # put data into giant table, winnow data based on phase
     graft_phases.graft_feh() # graft FeH values onto table 
     graft_phases.winnow() # remove data corresponding to bad phase values
-
+    '''
+    
     # run_emcee with input data_table_winnowed
     mamluk5 = run_emcee.RunEmcee()
     mamluk5() # call instance    
