@@ -47,7 +47,8 @@ def test_FeHplotter(test_subdir = config["data_dirs"]["TEST_DIR_LIT_HIGH_RES_FEH
     # make the plots; these will have to be checked by eye
     test_instance.write_cdf_hist_plot(name_star = fake_star_string,
                                       read_pickle_subdir = config["data_dirs"]["TEST_DIR_PICKLE"],
-                                      write_plot_subdir = config["data_dirs"]["TEST_DIR_PLOTS"])
+                                      write_plot_subdir = config["data_dirs"]["TEST_DIR_FYI_INFO"],
+                                      write_plot = False)
     
     # check to make sure these give values consistent with Gaussian distributions
     # (I'm not sure what better way to check this in an automated way...)

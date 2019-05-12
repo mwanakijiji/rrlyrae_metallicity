@@ -162,7 +162,8 @@ class FeHplotter():
     def write_cdf_hist_plot(self,
                             name_star,
                             read_pickle_subdir = config["data_dirs"]["DIR_PICKLE"],
-                            write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"]):
+                            write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"],
+                            write_plot = True):
         '''
         Takes the pickled plot info and saves CDF and histogram plots
 
@@ -170,6 +171,7 @@ class FeHplotter():
         name_star: string ID of the star
         read_pickle_subdir: directory to read the pickled Fe/H info from
         write_plot_subdir: directory to write the FYI plots to
+        write_plot: write plot or not
         '''
 
         print("Making CDF and histogram plots of FeH for " + name_star + "...")
@@ -182,7 +184,11 @@ class FeHplotter():
             name_star,feh_mapped_array,x_vals,y_vals,xvals_interp,cdf_gauss_info,\
               idx,idx_1sig_low,idx_1sig_high,shortest_xrange_lower,\
               shortest_xrange_upper,shortest_xrange_halfway = pickle.load(f)
-          
+
+        # if no plot is to be written
+        if write_plot = False:
+            return
+              
         plt.clf()
         plt.plot(x_vals, y_vals)
         plt.plot(x_vals, cdf_gauss_info, linestyle=":", color="k")
