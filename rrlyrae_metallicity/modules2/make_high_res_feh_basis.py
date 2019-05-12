@@ -294,8 +294,7 @@ class LitMetallicities():
 
 def plot_mapping(input, mapped, title_string, plot_file_name, write_plot_subdir = config["data_dirs"]["DIR_FYI_INFO"], write_plot = True):
 
-    # if not plot is to be written
-
+    # if plot is not to be written
     if write_plot == False:
         return
     

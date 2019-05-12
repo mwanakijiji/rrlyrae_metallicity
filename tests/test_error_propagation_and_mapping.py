@@ -71,7 +71,7 @@ def test_FeHplotter(test_subdir = config["data_dirs"]["TEST_DIR_LIT_HIGH_RES_FEH
     print(feh_2_high)
     '''
     
-    test_instance.do_bootstrap()
+    test_instance.do_bootstrap(read_pickle_subdir = config["data_dirs"]["TEST_DIR_PICKLE"])
 
 
 #def test_FeHmapper():
