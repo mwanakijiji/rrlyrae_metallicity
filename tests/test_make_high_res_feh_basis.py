@@ -92,7 +92,7 @@ def test_return_offsets_and_make_basis(test_subdir = config["data_dirs"]["TEST_D
 
     test_rrab_basis_w_rrab_offsets = make_high_res_feh_basis.make_basis_via_offsets(df_to_offset = test_rrab_matches,
                                                                   df_offsets = test_rrab_offsets,
-                                                                  plot_string = config["data_dirs"]["TEST_DIR_PLOTS"]+"test_rrab_w_rrab_offsets.png")
+                                                                  plot_string = config["data_dirs"]["TEST_DIR_PLOTS"]+"test_rrab_w_rrab_offsets.png", make_plot = False)
 
     # check found slopes and y-intercepts with those found
     # using independent means (see KH_check_workbook.xlsx)

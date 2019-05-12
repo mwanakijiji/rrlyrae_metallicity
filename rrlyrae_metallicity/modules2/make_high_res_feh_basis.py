@@ -406,7 +406,10 @@ def return_offsets(data_postmatch, chadid_offset=True):
     return df_offsets
 
 
-def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
+def make_basis_via_offsets(df_to_offset,
+                           df_offsets,
+                           plot_string,
+                           make_plot = True):
     '''
     Apply offsets (which may be from RRabs, RRcs, combo, etc.) to data to make a basis
 
@@ -421,6 +424,9 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
     df_offsets: dataframe containing the offset values and high-res dataset names
         ["name_highres_dataset"]: name indicating high-res study
         ["offset_highres_dataset_residuals"]: offset value to add to Fe/H values
+
+    plot_string: string of plot filename (if make_plot = True)
+    make_plot: write plot or not
         
     OUTPUTS:
     d: dictionary with
@@ -571,7 +577,9 @@ def make_basis_via_offsets(df_to_offset,df_offsets,plot_string):
 
     #fig.suptitle("Finding remapping relation between\nhigh-res studies and basis dataset\n("+type_string+" subtype)")
     #fig.tight_layout()
-    plt.savefig(plot_string, overwrite=True)
+    if make_plot:
+        plt.savefig(plot_string, overwrite=True)
+
     plt.clf()
     
     print("Scatter in residuals before offsets:")
@@ -628,19 +636,23 @@ def calc_FeH_program_stars(pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
     print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
     rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                            df_offsets = rrab_offsets,
-                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrab_offsets.png")
+                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrab_offsets.png",
+                                                           make_plot = True)
     print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
     rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                           df_offsets = rrc_offsets,
-                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrc_offsets.png")
+                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrc_offsets.png",
+                                                          make_plot = True)
     print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
     rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                          df_offsets = rrc_offsets,
-                                                         plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrc_offsets.png")
+                                                         plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrc_offsets.png",
+                                                         make_plot = True)
     print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
     rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                           df_offsets = rrab_offsets,
-                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrab_offsets.png")
+                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrab_offsets.png",
+                                                          make_plot = True)
 
     # use the bases to put Fe/H values on a common scale 
     # i.e., to have ONE high-res-spectroscopically determined 
