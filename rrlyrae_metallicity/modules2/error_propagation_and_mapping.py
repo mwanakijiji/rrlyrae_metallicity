@@ -186,7 +186,7 @@ class FeHplotter():
               shortest_xrange_upper,shortest_xrange_halfway = pickle.load(f)
 
         # if no plot is to be written
-        if write_plot = False:
+        if write_plot == False:
             return
               
         plt.clf()
