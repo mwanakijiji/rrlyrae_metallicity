@@ -126,7 +126,7 @@ def read_list(input_list):
        Numpy array of filenames
     '''   
        
-    filenames_arr = np.genfromtxt(input_list,'str',usecols = (0)) # col 0 contains the file names
+    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols = (0)) # col 0 contains the file names
     return(filenames_arr)
 
 def read_spec(spec_name):

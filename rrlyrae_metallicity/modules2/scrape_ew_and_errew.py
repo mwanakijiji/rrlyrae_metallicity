@@ -298,8 +298,25 @@ class findHK():
 
         # convert to Pandas DataFrame
         df_collation = pd.DataFrame(data=d)
+
+        # read in phase information
+        phase_info = pd.read_csv(self.phase_subdir + config["file_names"]["LIST_SPEC_PHASE"], sep = " ")
+
+        # paste phase info into the table of EWs		
+        phase_array = []
+        name_array = []		
+
+        # loop over each empirical spectrum name and populate the arrays
+        for q in range(0,len(df_collation['empir_spec_name'].values)):    		
+            name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()		
+            phase_this_one = phase_info['Phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()		
+            name_array = np.append(name_array,name_this_one)		
+            phase_array = np.append(phase_array,phase_this_one)
+        
         df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
 
+        df_collation_real['phase'] = phase_array
+        
         # write to csv
         df_collation_real.to_csv(self.hkFileName)
         print('----------------------------------------')
@@ -340,9 +357,10 @@ class findHK():
             ax.errorbar(x_data_badPhase,y_data_badPhase,linestyle='',fmt=markers[y],markerfacecolor='white',color=colors[y])
     
             # add star name
-            ax.annotate(unique_star_names[y], xy=(np.array(x_data.dropna())[0], 
-                                          np.array(y_data.dropna())[0]), 
-                xytext=(np.array(x_data.dropna())[0], np.array(y_data.dropna())[0]))
+            ax.annotate(unique_star_names[y],
+                        xy=(np.array(x_data.dropna())[0],
+                            np.array(y_data.dropna())[0]),
+                        xytext=(np.array(x_data.dropna())[0], np.array(y_data.dropna())[0]))
 
             
             

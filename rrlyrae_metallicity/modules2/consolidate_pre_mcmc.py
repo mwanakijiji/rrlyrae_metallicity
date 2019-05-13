@@ -107,7 +107,7 @@ def graft_feh(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
 
 
 def winnow_by_phase_type(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
-                         hk_winnowed_write_dir = config["data_dirs"]["DIR_BIN"]
+                         hk_winnowed_write_dir = config["data_dirs"]["DIR_BIN"],
                          remove_rrl_subtype = "c"):
     '''
     This removes the program star spectra which are in the bad phase region, or are the wrong RRL subtype
