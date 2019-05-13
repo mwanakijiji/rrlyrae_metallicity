@@ -23,7 +23,7 @@ def main():
     make_dirs()
     
     # Compile the C spectral normalization script
-    compile_normalization.compile_bkgrnd()
+    #compile_normalization.compile_bkgrnd()
 
     # Take list of unnormalized empirical spectra and generate noise-churned spectra
     #create_spec_realizations.create_spec_realizations_main()
@@ -37,17 +37,17 @@ def main():
     #scraper_instance() # call instance
 
     # find equivalent widths
-    find_HK_instance = scrape_ew_and_errew.findHK() # instantiate Balmer, CaIIK finder
-    find_HK_instance() # call instance
+    #find_HK_instance = scrape_ew_and_errew.findHK() # instantiate Balmer, CaIIK finder
+    #find_HK_instance() # call instance
     
     # apply_interstellar_ca_absorption (needed?)
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
     # apply offsets to Fe/H values, etc., to map Fe/H values based on a basis set, and pickle results
-    make_high_res_feh_basis.calc_FeH_program_stars()
+    #make_high_res_feh_basis.calc_FeH_program_stars()
     
     # bootstrap to obtain mapped Fe/H values with errors
-    error_propagation_and_mapping.FeHmapper().do()
+    #error_propagation_and_mapping.FeHmapper().do()
     
     # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs, errors; data is also winnowed based on phase
     consolidate_pre_mcmc.graft_feh() # graft mapped FeH values onto table of EWs

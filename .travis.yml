@@ -8,7 +8,6 @@ install:
   - pip install -e .
 
 script:
-  - python tests/test_matplotlib_set.py
   - pytest -vs tests/
 
 env:
