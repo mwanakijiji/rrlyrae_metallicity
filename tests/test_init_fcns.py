@@ -1,7 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
 from rrlyrae_metallicity.modules2 import *
-from rrlyrae_metallicity.modules2 import edification
 
 #import sys, os
 #myPath = os.path.dirname(os.path.abspath(__file__))
