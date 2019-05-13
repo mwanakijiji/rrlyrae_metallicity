@@ -1,7 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
 from rrlyrae_metallicity.modules2 import *
-from rrlyrae_metallicity.modules2 import graft_phases
 from rrlyrae_metallicity.modules2 import edification
 
 #import sys, os
@@ -12,10 +11,10 @@ from rrlyrae_metallicity.modules2 import edification
 #from junktest_compile_normalizations import compile_bkgrnd
 
 
+'''
 def test_config():
     assert edification.graft_feh() == '22'
 
-'''
 def test_getcwd():
     #junktest_compile_normalizations.compile_bkgrnd()
     # configuration data
