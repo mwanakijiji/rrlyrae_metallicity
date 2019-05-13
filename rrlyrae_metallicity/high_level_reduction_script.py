@@ -66,7 +66,7 @@ def main():
     
     # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs, errors; data is also winnowed based on phase
     consolidate_pre_mcmc.graft_feh() # graft mapped FeH values onto table of EWs
-    consolidate_pre_mcmc.winnow_by_phase() # remove data corresponding to bad phase values
+    consolidate_pre_mcmc.winnow_by_phase_type(remove_rrl_subtype = "c") # remove data corresponding to bad phase values, wrong type
     
     # run_emcee with input data_table_winnowed
     mamluk5 = run_emcee.RunEmcee()

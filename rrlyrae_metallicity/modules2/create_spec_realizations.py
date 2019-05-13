@@ -184,6 +184,17 @@ def create_spec_realizations_main(num = 100,
                                   bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
                                   final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
                                   verb=False):
+    '''
+    INPUTS:
+    num: number of spectrum realizations to make, per empirical spectrum
+    input_spec_list_dir: directory containing list of empirical spectra
+    unnorm_noise_churned_spectra_dir: directory to contain noise-churned spectrum realizations
+    bkgrnd_output_dir: directory to contain output of bkgrnd (spectra and fit continuua)
+    final_dir: directory to contain normalized spectrum realizations
+
+    OUTPUTS:
+    (text files written)
+    '''
 
     print("--------------------------")
     print("Making "+str(num)+" realizations of each empirical spectrum")
@@ -209,7 +220,7 @@ def create_spec_realizations_main(num = 100,
     bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
-    if verb == True: ## ## decode messages; are they used later? why take this step?
+    if verb == True: ## ## decode messages (are they used later? why take this step?)
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
         

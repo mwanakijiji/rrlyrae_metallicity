@@ -106,10 +106,16 @@ def graft_feh(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
     return
 
 
-def winnow_by_phase(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
-                    hk_winnowed_write_dir = config["data_dirs"]["DIR_BIN"]):
+def winnow_by_phase_type(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
+                         hk_winnowed_write_dir = config["data_dirs"]["DIR_BIN"]
+                         remove_rrl_subtype = "c"):
     '''
-    This removes the program star spectra which are in the bad phase region
+    This removes the program star spectra which are in the bad phase region, or are the wrong RRL subtype
+
+    INPUTS:
+    pickle_source_dir: directory containing
+    hk_winnowed_write_dir:
+    remove_rrl_subtype: RR Lyrae subtype to remove from analysis ("ab", "c", or none)
     '''
 
     # read in phase boundaries
@@ -123,11 +129,15 @@ def winnow_by_phase(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
     # drop bad phases
     ## ## NOTE THAT THE DROPNA HERE SEEMS TO BE DROPPING ALL ROWS WITH ANY NANS IN IT (SOME OF THE RRC FEHS ARE NANS)
     ## ## ALSO CHECK THAT WERE NOT LOSING V535 OR V445 THROUGH SILLY NAME DIFFERENCES
-    hk_data_winnowed = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
+    hk_data_winnowed_phase = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
+                                                    hk_data["phase"] < max_good)).dropna().reset_index()
+    hk_data_winnowed_rrl_type = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
                                                     hk_data["phase"] < max_good)).dropna().reset_index()
 
+    
+
     #hk_data_winnowed_file_name = "hk_data_winnowed.csv"
-    hk_data_winnowed.to_csv(hk_winnowed_write_dir + config["file_names"]["KH_WINNOWED_FILE_NAME"])
+    hk_data_winnowed.to_csv(hk_winnowed_write_dir + config["file_names"]["KH_WINNOWED_PHASE_SUBTYPE_FILE_NAME"])
     
     ## ## NEED TO WINNOW BY STAR TYPE, TOO
 

@@ -13,19 +13,34 @@ This is an emcee wrapper for fitting the Layden '94 metallicity calibration to e
 RR Lyrae spectra
 '''
 
-# Function definitions
-
-
-# fcn: Layden+ 1994 model (just for fitting end result)
 def rrmetal(hPass,fPass,pPass):
+    '''
+    Layden+ 1994 model
+
+    INPUTS:
+    hPass: Balmer EW (angstroms)
+    fPass: [Fe/H]
+    pPass: coefficients [a,b,c,d]
+
+    OUTPUTS:
+    kPass: CaIIK EW (angstroms)
+    '''
     kPass = pPass[0] + pPass[1]*hPass + pPass[2]*fPass + pPass[3]*hPass*fPass
     return kPass
 
-# fcn: chi-squared
+
 def chi_sqd_fcn(xiPass, yiPass, ziPass, sig_xiPass, sig_yiPass, sig_ziPass, aPass, bPass, cPass, dPass):
-    # xiPass: measured H
-    # yiPass: measured [Fe/H]
-    # ziPass: measured K
+    '''
+    Chi-squared
+
+    INPUTS:
+    xiPass: Balmer EW (angstroms)
+    yiPass: [Fe/H]
+    ziPass: CaIIK EW (angstroms)
+
+    OUTPUTS:
+    val: chi^2
+    '''
 
     # IDL syntax
     # numerator_i = (ziPass-aPass-bPass*xiPass-cPass*yiPass-dPass*xiPass*yiPass)**2
@@ -47,11 +62,16 @@ def chi_sqd_fcn(xiPass, yiPass, ziPass, sig_xiPass, sig_yiPass, sig_ziPass, aPas
 
     return val
 
+
 def lnprob(walkerPos, TeffPass, measured_HPass, measured_FPass, measured_KPass, err_measured_HPass, err_measured_FPass, \
            err_measured_KPass):
     '''
-    nat log of probability density
+    Nat log of probability density
+
+    OUTPUTS:
+    ln(prior*like)
     '''
+
     # walkerPos is the proposed walker position in N-D (likely 4-D) space (i.e., these are the inputs to the model)
     lp = lnprior(walkerPos) # prior
     if not np.isfinite(lp): # afoul of prior
@@ -61,15 +81,34 @@ def lnprob(walkerPos, TeffPass, measured_HPass, measured_FPass, measured_KPass, 
                                                 walkerPos[0], walkerPos[1], walkerPos[2], walkerPos[3])
     return lp + result # ln(prior*like)
 
-# fcn: prior
-def lnprior(theta): # theta is an array of parameter values
+
+def lnprior(theta):
+    '''
+    Prior
+
+    INPUTS:
+    theta: array of parameter values
+
+    OUTPUTS: 0 or -inf (top-hat priors only)
+    '''
     aTest, bTest, cTest, dTest = theta
     if (np.abs(aTest) < 40) and (np.abs(bTest) < 5) and (np.abs(cTest) < 20) and (np.abs(dTest) < 10): # top-hat priors
         return 0.0
     return -np.inf
 
-# fcn: equivalent of IDL 'where' function
-def find_indices(lst, condition): # condition will be in form of an anonymous function
+
+def find_indices(lst, condition):
+    '''
+    Stand-in equivalent of IDL 'where' function
+
+    INPUTS:
+    lst: list
+    condition: an anonymous function
+
+    RETURNS:
+    
+    '''
+    
     return [i for i, elem in enumerate(lst) if condition(elem)]
 
 
@@ -226,7 +265,9 @@ class RunEmcee():
         elapsed_time = time.time() - start_time
         sys.stdout.write(" Done!\n")
         sys.stdout.write("{0:s} {1:10d} {2:s}\n".format("Elapsed time: ", int(elapsed_time), "sec"))
-        sys.stdout.write("MCMC chains written out to file.\n")
+        print("--------------------------")
+        sys.stdout.write("MCMC chain data written out to")
+        sys.stdout.write(str(self.mcmc_text_output))
 
         # corner plot (requires 'storechain=True' in enumerate above)
         samples = sampler.chain[:, int(burnIn):, :].reshape((-1, ndim))
@@ -236,7 +277,8 @@ class RunEmcee():
                             show_titles=True, verbose=True, title_kwargs={"fontsize": 12})
         fig.savefig(self.cornerFileString)
         print("--------------------------")
-        print("Corner plot of MCMC posteriors written out.")
+        print("Corner plot of MCMC posteriors written out to")
+        print(str(self.cornerFileString))
 
         # if its necessary to read in MCMC output again
         #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
@@ -246,7 +288,8 @@ class RunEmcee():
         a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                                              zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 
-        print('Coefficients a, b, c, d, and errors (see corner plot):')
+        print("--------------------------")
+        print("Coefficients a, b, c, d, and errors (see corner plot):")
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
         print("--------------------------")
