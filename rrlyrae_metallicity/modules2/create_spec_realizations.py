@@ -185,7 +185,7 @@ def create_spec_realizations_main(num=100,
     print("Making "+str(num)+" realizations of each empirical spectrum")
     
     # Read list of empirical spectra
-    input_list = config["data_dirs"]["DIR_SRC"]+config["file_names"]["LIST_SPEC_PHASE"]
+    input_list = config["data_dirs"]["DIR_SRC"] + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     
     # Check to make sure outdir (to receive realizations of spectra) exists

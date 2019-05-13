@@ -79,18 +79,18 @@ class RunEmcee():
     '''
     
     def __init__(self,
-                 scraped_ew_source = config["data_dirs"]["DIR_BIN"] + config["file_names"]["KH_WINNOWED_FILE_NAME"],
-                 mcmc_text_output = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"],
-                 corner_plot_putput = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]):
+                 scraped_ew_source_dir = config["data_dirs"]["DIR_BIN"],
+                 mcmc_text_output_dir = config["data_dirs"]["DIR_BIN"],
+                 corner_plot_putput_dir = config["data_dirs"]["DIR_BIN"]):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
-        self.scrapedEWfilename = scraped_ew_source
+        self.scraped_ew_filename = scraped_ew_source_dir + config["file_names"]["KH_WINNOWED_FILE_NAME"]
 
         # name of file of the MCMC output
-        self.mcmc_text_output = mcmc_text_output
+        self.mcmc_text_output = mcmc_text_output_dir + config["file_names"]["MCMC_OUTPUT"]
 
         # name of corner plot of the MCMC output
-        self.cornerFileString = corner_plot_putput
+        self.cornerFileString = corner_plot_putput_dir + config["file_names"]["MCMC_CORNER"]
 
         # read in boundaries of good phase regions
         self.min_good, self.max_good = phase_regions()
@@ -100,8 +100,8 @@ class RunEmcee():
         # read in EWs, Fe/Hs, phases, errors, etc.
         print("--------------------------")
         print('Reading in data ...')
-        print(self.scrapedEWfilename)
-        dfChoice = pd.read_csv(self.scrapedEWfilename,
+        print(self.scraped_ew_filename)
+        dfChoice = pd.read_csv(self.scraped_ew_filename,
                                delim_whitespace = False) ## ## rename dfChoice and make dfChoice.Spectrum -> dfChoice["Spectrum etc.
 
         name = dfChoice['empir_spec_name']
@@ -133,6 +133,8 @@ class RunEmcee():
         print(feh)
         print("efeh")
         print(efeh)
+        print("phase")
+        print(phase)
         
         # fix some values
         Teff = 0.0586758 # from previous IDL runs (kind of deprecated; just appears as a constant in the MCMC)
@@ -147,8 +149,15 @@ class RunEmcee():
         sigma_c_layden = 0.285
         sigma_d_layden = 0.052
 
-        paramArray_0_Layden = [float(a_layden),float(b_layden),float(c_layden),float(d_layden)] # starting position, before adding a perturbation
-        sigmas_0_Layden = [float(sigma_a_layden),float(sigma_b_layden),float(sigma_c_layden),float(sigma_d_layden)]
+        # starting position, before adding a perturbation
+        paramArray_0_Layden = [float(a_layden),
+                               float(b_layden),
+                               float(c_layden),
+                               float(d_layden)]
+        sigmas_0_Layden = [float(sigma_a_layden),
+                           float(sigma_b_layden),
+                           float(sigma_c_layden),
+                           float(sigma_d_layden)]
 
         # remove high metallicity stars
         ## PUT INTO CONFIG FILE  
@@ -176,7 +185,8 @@ class RunEmcee():
         nwalkers = 8 # number of chains
 
         # convert the one starting point into a nwalkers*ndim array with gaussian-offset starting points
-        p0 = [np.add(paramArray_0_Layden,np.multiply(paramArray_0_Layden,1e-4*np.random.randn(ndim))) for i in range(nwalkers)]
+        p0 = [np.add(paramArray_0_Layden,
+                     np.multiply(paramArray_0_Layden,1e-4*np.random.randn(ndim))) for i in range(nwalkers)]
 
         # set up sampler
         sampler = emcee.EnsembleSampler(nwalkers,
@@ -240,4 +250,5 @@ class RunEmcee():
         print(a_mcmc,'\n',b_mcmc,'\n',c_mcmc,'\n',d_mcmc)
 
         print("--------------------------")
-        print("MCMC data written to " + os.path.basename(self.mcmc_text_output))
+        print("MCMC data written to ")
+        print(self.mcmc_text_output)

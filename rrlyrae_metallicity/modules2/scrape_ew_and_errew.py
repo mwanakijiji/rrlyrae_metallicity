@@ -294,45 +294,17 @@ class findHK():
              'err_balmer': self.err_H_data_array,
              'K': self.K_data_array,
              'err_K': self.err_K_data_array
-            }     
+            }
+
+        # convert to Pandas DataFrame
         df_collation = pd.DataFrame(data=d)
-
-        # read in a text file containing phase information
-        ## ## (NO- THIS SHOULD BE READ IN AT THE BEGINNING OF THE PIPELINE)
-        phase_info = pd.read_csv(self.phase_subdir + config["file_names"]["DETACHED_PHASES"])
-        
-        # paste phase info into the table of EWs
-        phase_array = []
-        feh_array = []
-        err_feh_array = []
-        name_array = []
-
-        # loop over each empirical spectrum name and populate the arrays
-        for q in range(0,len(df_collation['empir_spec_name'].values)):    
-            name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
-            phase_this_one = phase_info['phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
-            feh_this_one = phase_info['FeH'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
-            err_feh_this_one = phase_info['eFeH'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()
-            name_array = np.append(name_array,name_this_one)
-            phase_array = np.append(phase_array,phase_this_one)
-            feh_array = np.append(feh_array,feh_this_one)
-            err_feh_array = np.append(err_feh_array,err_feh_this_one)
-            #print('-----------')
-            #print(name_this_one)
-            #print(phase_this_one)
-            #print(feh_this_one)
-            #print(err_feh_this_one)
-
         df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
-        ## ## THIS IS AN ERSATZ FOR NOW; REAL PHASE VALUES NEED TO BE READ IN AT BEGINNING
-        df_collation_real['phase'] = phase_array
-        df_collation_real['FeH'] = feh_array
-        df_collation_real['eFeH'] = err_feh_array
 
         # write to csv
         df_collation_real.to_csv(self.hkFileName)
         print('----------------------------------------')
-        print('HK data written to ' + self.hkFileName)
+        print('HK data written to ')
+        print(str(self.hkFileName))
 
         # make plot: each color is a different star, open circles are bad phase region
         data_to_plot = pd.read_csv(self.hkFileName) # read data back in

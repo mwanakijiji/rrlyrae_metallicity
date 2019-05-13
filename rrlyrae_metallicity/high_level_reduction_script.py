@@ -7,7 +7,7 @@ from modules2 import \
      scrape_ew_and_errew, \
      make_high_res_feh_basis, \
      ca_correction, \
-     graft_phases, \
+     consolidate_pre_mcmc, \
      run_emcee, \
      error_propagation_and_mapping
 from subprocess import Popen,PIPE
@@ -29,7 +29,7 @@ def main():
     import ipdb; ipdb.set_trace()
     
     '''
-    Take list of unnormalized empirical spectra and generate synthetic spectra
+    Take list of unnormalized empirical spectra and generate noise-churned spectra
     '''
     
     # [outdir]/norm/ contains bkgrnd output
@@ -75,9 +75,10 @@ def main():
     make_high_res_feh_basis.calc_FeH_program_stars()
     error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
     
-    # put data into giant table, winnow data based on phase
-    graft_phases.graft_feh() # graft FeH values onto table 
-    graft_phases.winnow() # remove data corresponding to bad phase values
+    # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs; data is also winnowed based on phase
+    ## ## 
+    consolidate_pre_mcmc.graft_feh() # graft mapped FeH values onto table of EWs
+    consolidate_pre_mcmc.winnow_by_phase() # remove data corresponding to bad phase values
     '''
     
     # run_emcee with input data_table_winnowed
