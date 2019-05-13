@@ -173,6 +173,7 @@ class findHK():
         self.err_Heps_data_array = []
 
         # read in boundaries of good phase regions
+        # (these phase boundaries are not used for any calculations at this stage; only plotting)
         self.min_good, self.max_good = phase_regions()
 
         # indicate subdirectory where FYI plot will be written
@@ -304,18 +305,28 @@ class findHK():
 
         # paste phase info into the table of EWs		
         phase_array = []
-        name_array = []		
+        name_array = []
 
-        # loop over each empirical spectrum name and populate the arrays
+        # make new column for phase
+        df_collation["phase"] = np.nan
+
+        # get the spectrum names from phase_info without the '.dat'
+        phase_info_basename = phase_info['Spectrum'].str.split(".", n=1, expand=True)[:][0]
+
+        # loop over each empirical spectrum name and paste the phase into the array
         for q in range(0,len(df_collation['empir_spec_name'].values)):    		
-            name_this_one = phase_info['Spectrum'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()		
-            phase_this_one = phase_info['Phase'].where(phase_info['Spectrum'] == df_collation['empir_spec_name'][q]).dropna()		
-            name_array = np.append(name_array,name_this_one)		
-            phase_array = np.append(phase_array,phase_this_one)
+            empir_spec_this_one = phase_info['Spectrum'].where(phase_info_basename == df_collation['empir_spec_name'][q]).dropna()		
+            phase_this_one = phase_info['Phase'].where(phase_info_basename == df_collation['empir_spec_name'][q]).dropna()
+            #df_collation.iloc[q,"phase"] = phase_this_one.values[0]
+            df_collation.at[q,"phase"] = phase_this_one.values[0]
+            # check the name-phase combination is right
+            if (df_collation.at[q,"empir_spec_name"] == empir_spec_this_one.any().split(".")[0]):
+                continue
+            else:
+                print("Phases and spectrum names out of order!")
+                return
         
         df_collation_real = df_collation.dropna().copy(deep=True) # drop row of nans (probably redundant)
-
-        df_collation_real['phase'] = phase_array
         
         # write to csv
         df_collation_real.to_csv(self.hkFileName)
