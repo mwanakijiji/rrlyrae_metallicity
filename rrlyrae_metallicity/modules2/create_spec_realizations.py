@@ -178,18 +178,22 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 # Main Function
 # -------------
-def create_spec_realizations_main(num=100,
+def create_spec_realizations_main(num = 100,
+                                  input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
+                                  unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
+                                  bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
+                                  final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
                                   verb=False):
 
     print("--------------------------")
     print("Making "+str(num)+" realizations of each empirical spectrum")
     
     # Read list of empirical spectra
-    input_list = config["data_dirs"]["DIR_SRC"] + config["file_names"]["LIST_SPEC_PHASE"]
+    input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     
     # Check to make sure outdir (to receive realizations of spectra) exists
-    outdir = config["data_dirs"]["DIR_SYNTH_SPEC"]
+    outdir = unnorm_noise_churned_spectra_dir
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
            
@@ -197,15 +201,9 @@ def create_spec_realizations_main(num=100,
     name_list = list() # initialize
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
         name_list.extend(generate_realizations(list_arr[i],outdir,num))
-    
-    # Check to see if outdir/norm exists (for receiving output of binary bkgrnd, which includes the data and continuum trace) 
-    normdir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"]
-    ## ## below is redundant, since directories are checked earlier on in pipeline
-    #if not os.path.isdir(normdir):
-    #    os.mkdir(normdir)
         
     # Create input list of spectrum realization filenames
-    bkg_input_file = write_bckgrnd_input(name_list,outdir,normdir)
+    bkg_input_file = write_bckgrnd_input(name_list,outdir,bkgrnd_output_dir)
     
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
     bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
@@ -214,14 +212,9 @@ def create_spec_realizations_main(num=100,
     if verb == True: ## ## decode messages; are they used later? why take this step?
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
-
-    # Check to see if outdir/final exists (for receiving normalized output) exists
-    finaldir = os.path.join(outdir,'final')
-    if not os.path.isdir(finaldir):
-        os.mkdir(finaldir)
         
     # Normalize spectrum realizations
-    final_list = create_norm_spec(name_list, normdir, finaldir) # write files of normalized fluxes, and return list of those filenames
+    final_list = create_norm_spec(name_list, bkgrnd_output_dir, finaldir) # write files of normalized fluxes, and return list of those filenames
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')

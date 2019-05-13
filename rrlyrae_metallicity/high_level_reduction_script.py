@@ -34,52 +34,39 @@ def main():
     
     # [outdir]/norm/ contains bkgrnd output
     # [outdir]/final/ contains normalized spectra
-    
-    # the input_list of spectra requires
-    # col [0]: spectrum filename
-    # col [1]: RR type (ab, c)
-    # col [2]: phase (0. to 1.)
 
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    '''
-    create_spec_realizations.create_spec_realizations_main()
+    #create_spec_realizations.create_spec_realizations_main()
     ## ## END COMMENT
     
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
-    '''
 
-    '''
     # scrape_ew_from_robo and calculate EWs + err_EW
-    mamluk2 = scrape_ew_and_errew.Scraper() # create scraper instance
-    print('----')
+    scraper_instance = scrape_ew_and_errew.Scraper() # instantiate EW file scraper
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    mamluk2() # call instance
+    #scraper_instance() # call instance
     ## ## END COMMENT
 
     # findHK
     ## ## COMMENTED OUT TO SAVE TIME BUG-CHECKING
-    mamluk3 = scrape_ew_and_errew.findHK() # create findHK instance
-    mamluk3() # call instance
+    find_HK_instance = scrape_ew_and_errew.findHK() # instantiate Balmer, CaIIK finder
+    find_HK_instance() # call instance
     ## ## END COMMENT
     
-    # apply_interstellar_ca_absorption
+    # apply_interstellar_ca_absorption (needed?)
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
-    # THE FOLLOWING COMMAND IS OLD
-    ## make FeH basis from literature (stand-alone part of code)
-    #make_high_res_feh_basis.make_basis() ## ## make output of this bit get appended in cols to file corresp to scrapedEWdataFilename
-
-    # obtain high-res metallicities for the program stars by mapping the basis set
+    # apply offsets to Fe/H values, etc., to map Fe/H values based on a basis set, and pickle results
     make_high_res_feh_basis.calc_FeH_program_stars()
-    error_propagation_and_mapping.FeHmapper().do() # actually do the mapping here
     
-    # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs; data is also winnowed based on phase
-    ## ## 
+    # bootstrap to obtain mapped Fe/H values with errors
+    error_propagation_and_mapping.FeHmapper().do()
+    
+    # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs, errors; data is also winnowed based on phase
     consolidate_pre_mcmc.graft_feh() # graft mapped FeH values onto table of EWs
     consolidate_pre_mcmc.winnow_by_phase() # remove data corresponding to bad phase values
-    '''
     
     # run_emcee with input data_table_winnowed
     mamluk5 = run_emcee.RunEmcee()
