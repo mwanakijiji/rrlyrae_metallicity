@@ -217,15 +217,16 @@ def create_spec_realizations_main(num = 100,
     bkg_input_file = write_bckgrnd_input(name_list,outdir,bkgrnd_output_dir)
     
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
-    bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd","--smooth "+str(smooth_val),"--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
+    bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd","--smooth "+str(smooth_val),
+                    "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)],stdout=PIPE,stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
     if verb == True: ## ## decode messages (are they used later? why take this step?)
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
         
-    # Normalize spectrum realizations
-    final_list = create_norm_spec(name_list, bkgrnd_output_dir, finaldir) # write files of normalized fluxes, and return list of those filenames
+    # write files of normalized fluxes, and return list of those filenames
+    final_list = create_norm_spec(name_list, bkgrnd_output_dir, finaldir)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')

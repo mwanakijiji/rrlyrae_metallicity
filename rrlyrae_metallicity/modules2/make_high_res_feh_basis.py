@@ -414,6 +414,8 @@ def return_offsets(data_postmatch, chadid_offset=True):
 def make_basis_via_offsets(df_to_offset,
                            df_offsets,
                            plot_string,
+                           csv_string,
+                           feh_basis_csv_dir = config["data_dirs"]["DIR_FYI_INFO"],
                            make_plot = True):
     '''
     Apply offsets (which may be from RRabs, RRcs, combo, etc.) to data to make a basis
@@ -431,6 +433,7 @@ def make_basis_via_offsets(df_to_offset,
         ["offset_highres_dataset_residuals"]: offset value to add to Fe/H values
 
     plot_string: string of plot filename (if make_plot = True)
+    feh_basis_csv_dir: directory to contain the FYI csv of literature Fe/H values for making a basis
     make_plot: write plot or not
         
     OUTPUTS:
@@ -500,6 +503,9 @@ def make_basis_via_offsets(df_to_offset,
     # make best-fit line for residuals
     line_shifted_resid = np.multiply(m_merged_shifted_resid,limits)+b_merged_shifted_resid
 
+    # save the data to a csv
+    pd_merged.to_csv(feh_basis_csv_dir + csv_string + config["file_names"]["MERGED_LIT_FEH_CSV"])
+
     # save a plot (raw high_res vs. basis on top; shifted residuals vs. basis in middle; corrected high_res vs. basis on bottom)
     plt.clf()
     limits = [-3.0,0.5]
@@ -554,6 +560,7 @@ def make_basis_via_offsets(df_to_offset,
     axs[1].set_title("m = "+str(m_merged_shifted_resid)+", b = "+str(b_merged_shifted_resid)+"; (blue line: zero)")
     axs[1].set_ylim([-1.5,1.5])
     axs[1].legend() # indicates high-res dataset names
+
 
     ## plot 2: shifted high-res Fe/H (the basis for the calibration!)
     axs[2].plot([limits[0],limits[1]],[limits[0],limits[1]], linestyle="--") # make 1-to-1 line
@@ -642,21 +649,25 @@ def calc_FeH_program_stars(pickle_subdir = config["data_dirs"]["DIR_PICKLE"]):
     rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                            df_offsets = rrab_offsets,
                                                            plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrab_offsets.png",
+                                                           csv_string = "rrab_w_rrab_offsets",
                                                            make_plot = True)
     print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
     rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrab_matches,
                                                           df_offsets = rrc_offsets,
                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrab_w_rrc_offsets.png",
+                                                          csv_string = "rrab_w_rrc_offsets",
                                                           make_plot = True)
     print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
     rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                          df_offsets = rrc_offsets,
                                                          plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrc_offsets.png",
+                                                         csv_string = "rrc_w_rrc_offsets",
                                                          make_plot = True)
     print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
     rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset = rrc_matches,
                                                           df_offsets = rrab_offsets,
                                                           plot_string = config["data_dirs"]["DIR_FYI_INFO"]+"rrc_w_rrab_offsets.png",
+                                                          csv_string = "rrc_w_rrab_offsets",
                                                           make_plot = True)
 
     # use the bases to put Fe/H values on a common scale 

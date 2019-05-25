@@ -3,7 +3,11 @@ import os
 
 # configuration data
 config = configparser.ConfigParser() # for parsing values in .init file
+# config for reduction to find a, b, c, d
 config.read("rrlyrae_metallicity/modules2/config.ini")
+# config for applying a, b, c, d
+config_apply = configparser.ConfigParser()
+config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
 
 from setuptools import Distribution
 from setuptools.command.install import install
@@ -26,11 +30,17 @@ def get_setuptools_script_dir():
     command.run()
     return dist.install_scripts
 
-def make_dirs():
+def make_dirs(type = "apply_only"):
     '''
     Make directories for housing files/info if they don't already exist
     '''
 
+    # make directories for
+    # 1. reduction of spectra to find a, b, c, d (type = "abcd_reduction"), or
+    # 2. to apply the solution (type = "apply_only"; default)
+    if (type == "apply_only"):
+        config = config_apply # reassign if we just want to apply
+    
     # loop over all directory paths we will need
     for vals in config["data_dirs"]:
         abs_path_name = str(config["data_dirs"][vals])

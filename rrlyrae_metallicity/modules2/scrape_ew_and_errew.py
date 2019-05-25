@@ -9,9 +9,6 @@ from rrlyrae_metallicity.modules2 import *
 class Scraper():
     '''
     Scrape all the equivalent width info from the Robospect *.fits.robolines files
-
-    INPUTS:
-    subdir: subdirectory containing the Robospect output
     '''
         
     def __init__(self, subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"], verbose=False):

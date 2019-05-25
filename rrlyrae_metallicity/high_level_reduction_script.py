@@ -20,7 +20,7 @@ import ipdb
 def main():
 
     # Make all the directories
-    make_dirs()
+    make_dirs(type = "abcd_reduction")
     
     # Compile the C spectral normalization script
     #compile_normalization.compile_bkgrnd()
@@ -44,7 +44,7 @@ def main():
     ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
 
     # apply offsets to Fe/H values, etc., to map Fe/H values based on a basis set, and pickle results
-    #make_high_res_feh_basis.calc_FeH_program_stars()
+    make_high_res_feh_basis.calc_FeH_program_stars()
     
     # bootstrap to obtain mapped Fe/H values with errors
     #error_propagation_and_mapping.FeHmapper().do()
