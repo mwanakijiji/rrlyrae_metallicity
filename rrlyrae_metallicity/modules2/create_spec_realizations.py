@@ -226,7 +226,7 @@ def create_spec_realizations_main(num = 100,
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
     #bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd", "--smooth "+str(smooth_val),
     #                "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
-    bkgrnd = Popen([config["data_dirs"]["DIR_BIN"] + "/bkgrnd", "--smooth "+str(smooth_val),
+    bkgrnd = Popen([config["data_dirs"]["DIR_BIN"] + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
