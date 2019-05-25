@@ -1,16 +1,12 @@
 #!/usr/bin/python
 '''
-This module takes a list of spectra and generates normalized realizations using Gaussian Error.
-
-This module takes a list of spectra. First it generates 100 realizations of the spectra using the error bar to move the points around
-simulating Gaussian noise. Then it runs Ken Carrell's bkgrnd routine to determine the normalization and finally creates the normalized spectra.
+This module takes a list of spectra and normalizes them, without churning the spectrum noise.
 
 @package create_spec_realizations
-@author deleenm
+@author deleenm (of parent create_spec_realizations)
 @version \e \$Revision$
 @date \e \$Date$
 
-Usage: create_spec_realizations.py
 '''
 
 # -----------------------------
@@ -66,39 +62,7 @@ def create_norm_spec(name_list,
         outfile.close()
     
     return(new_name_list)  
-    
-def generate_realizations(spec_name,outdir,num):
-    '''
-    Calculates a Number of Realizations of a given spectrum using Gaussian Errorbars
-    
-    Arguments:
-        spec_name: The spectrum filename
-        outdir: The working directory
-        num: Number of realizations to generate
-    Returns:
-       A list of filenames for the realization spectra.
-    '''
-    spec_tab = read_spec(spec_name) # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
-    
-    basename = os.path.basename(spec_name) # shave off path stem
 
-    # generate realizations
-    new_name_list = list()
-    for i in range(num):
-        new_name = "{}_{:03d}".format(basename,i) # basename of spectrum realization
-        new_name_list.append(new_name) # don't need path info in spec_name list
-        new_name = os.path.join(outdir,new_name) # name of spectrum realization, with path
-        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux'] # add Gaussian error to the empirical flux
-        try:
-            outfile = open(new_name,'w')
-        except IOError:
-            print("File {} could not be opened!".format(new_name))
-        for j in range(len(new_flux)):
-            print("Writing out realization file " + os.path.basename(new_name))
-            outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j],new_flux[j]))
-        outfile.close()
-    return(new_name_list)
-    
 def read_bkgrnd_spec(spec_name):
     '''
     Reads in ascii spectra created by bckgrnd and returns numpy arrays of wavelength, flux, bckgrnd_flux
@@ -178,17 +142,14 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 # Main Function
 # -------------
-def create_spec_realizations_main(num = 100,
-                                  input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
-                                  unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
-                                  bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
-                                  final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
-                                  verb=False):
+def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
+                     unnorm_science_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
+                     bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
+                     final_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                     verb = False):
     '''
     INPUTS:
-    num: number of spectrum realizations to make, per empirical spectrum
-    input_spec_list_dir: directory containing list of empirical spectra
-    unnorm_noise_churned_spectra_dir: directory to contain noise-churned spectrum realizations
+    input_spec_list_dir: directory containing list of science spectra to normalize
     bkgrnd_output_dir: directory to contain output of bkgrnd (spectra and fit continuua)
     final_dir: directory to contain normalized spectrum realizations
 
@@ -197,31 +158,23 @@ def create_spec_realizations_main(num = 100,
     '''
 
     print("--------------------------")
-    print("Making "+str(num)+" realizations of each empirical spectrum")
+    print("Normalizing spectra")
     
-    # Read list of empirical spectra
-    input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
+    # Read list of science spectra to normalize
+    input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
     list_arr = read_list(input_list)
+
+    # Create input list of spectrum filenames
+    bkg_input_file = write_bckgrnd_input(name_list = name_list,
+                                         indir = unnorm_science_spectra_dir,
+                                         normdir = bkgrnd_output_dir)
     
-    # Check to make sure outdir (to receive realizations of spectra) exists
-    outdir = unnorm_noise_churned_spectra_dir
-    if not os.path.isdir(outdir):
-        os.mkdir(outdir)
-           
-    # Create realizations for each spectrum
-    name_list = list() # initialize
-    for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
-        name_list.extend(generate_realizations(list_arr[i],outdir,num))
-        
-    # Create input list of spectrum realization filenames
-    bkg_input_file = write_bckgrnd_input(name_list,outdir,bkgrnd_output_dir)
-    
-    # Normalize each spectrum realization (smoothing parameter is set in __init__)
+    # Normalize each spectrum (smoothing parameter is set in __init__)
     bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd", "--smooth "+str(smooth_val),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
-    if verb == True: ## ## decode messages (are they used later? why take this step?)
+    if verb == True:
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
         
@@ -236,7 +189,7 @@ if __name__ == '__main__':
     parser.add_argument('-v',action='store_true',help='Turn on verbosity')   
     #Put this in a dictionary    
     args = vars(parser.parse_args())
-    ret = create_spec_realizations_main(args['input_list'],args['o'],args['n'],args['v'])
+    ret = normalize_simple(args['input_list'],args['o'],args['n'],args['v'])
 
 ##
 #@mainpage
