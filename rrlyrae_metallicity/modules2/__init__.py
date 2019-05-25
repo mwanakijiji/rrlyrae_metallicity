@@ -30,20 +30,23 @@ def get_setuptools_script_dir():
     command.run()
     return dist.install_scripts
 
-def make_dirs(type = "apply_only"):
+def make_dirs(type = "apply_abcd"):
     '''
     Make directories for housing files/info if they don't already exist
     '''
+    import ipdb; ipdb.set_trace()
 
     # make directories for
-    # 1. reduction of spectra to find a, b, c, d (type = "abcd_reduction"), or
-    # 2. to apply the solution (type = "apply_only"; default)
-    if (type == "apply_only"):
-        config = config_apply # reassign if we just want to apply
+    # 1. reduction of spectra to find a, b, c, d (type = "find_abcd"), or
+    # 2. to apply the solution (type = "apply_abcd"; default)
+    if (type == "apply_abcd"):
+        config_choice = config_apply # reassign if we just want to apply
+    elif (type == "find_abcd"):
+        config_choice = config
     
     # loop over all directory paths we will need
-    for vals in config["data_dirs"]:
-        abs_path_name = str(config["data_dirs"][vals])
+    for vals in config_choice["data_dirs"]:
+        abs_path_name = str(config_choice["data_dirs"][vals])
         print("Directory exists: " + abs_path_name)
         
         # if directory does not exist, create it

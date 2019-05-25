@@ -16,15 +16,15 @@ import ipdb
 def main():
 
     # Make all the directories
-    make_dirs(type = "apply_only")
+    make_dirs(type = "apply_abcd")
     
     # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
-    # Take list of unnormalized empirical spectra and normalize them
+    # Take list of unnormalized empirical science spectra and normalize them
     create_spec_realizations.create_spec_realizations_main()
     
-    # run_robospect on normalized synthetic spectra
+    # run_robospect on normalized spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     #run_robo.run_robospect()
 

@@ -23,7 +23,7 @@ import sys
 from astropy.io import fits
 from astropy.table import Table
 import numpy as np
-from modules2 import *
+from rrlyrae_metallicity.modules2 import *
 
 # --------------------
 # Function Definitions

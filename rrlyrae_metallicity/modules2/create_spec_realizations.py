@@ -27,7 +27,7 @@ import sys
 from astropy.io import fits
 from astropy.table import Table
 import numpy as np
-from modules2 import *
+from rrlyrae_metallicity.modules2 import *
 
 # --------------------
 # Function Definitions
@@ -180,6 +180,7 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 def create_spec_realizations_main(num = 100,
                                   input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
+                                  unnorm_empirical_spectra_dir = config["data_dirs"]["DIR_RAW_SPEC_DATA"],
                                   unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
                                   bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
                                   final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
@@ -202,6 +203,8 @@ def create_spec_realizations_main(num = 100,
     # Read list of empirical spectra
     input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
+    print('list_arr')
+    print(list_arr)
     
     # Check to make sure outdir (to receive realizations of spectra) exists
     outdir = unnorm_noise_churned_spectra_dir
@@ -211,13 +214,19 @@ def create_spec_realizations_main(num = 100,
     # Create realizations for each spectrum
     name_list = list() # initialize
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
-        name_list.extend(generate_realizations(list_arr[i],outdir,num))
+        name_list.extend(generate_realizations(unnorm_empirical_spectra_dir+list_arr[i],outdir,num))
+    print('name_list')
+    print(name_list)
         
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list,outdir,bkgrnd_output_dir)
+    print('bkg_input_file')
+    print(bkg_input_file)
     
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
-    bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd", "--smooth "+str(smooth_val),
+    #bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd", "--smooth "+str(smooth_val),
+    #                "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
+    bkgrnd = Popen([config["data_dirs"]["DIR_BIN"] + "/bkgrnd", "--smooth "+str(smooth_val),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
