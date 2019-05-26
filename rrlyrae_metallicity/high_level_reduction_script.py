@@ -24,10 +24,10 @@ def main():
     make_dirs(type = "find_abcd")
     
     # Compile the C spectral normalization script
-    compile_normalization.compile_bkgrnd()
+    #compile_normalization.compile_bkgrnd()
 
     # Take list of unnormalized empirical spectra and generate noise-churned spectra
-    create_spec_realizations.create_spec_realizations_main(num = 2) ## ## just 2 realizations for testing (otherwise, 100)
+    #create_spec_realizations.create_spec_realizations_main(num = 2) ## ## just 2 realizations for testing (otherwise, 100)
     
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT

@@ -11,7 +11,10 @@ class Scraper():
     Scrape all the equivalent width info from the Robospect *.fits.robolines files
     '''
         
-    def __init__(self, subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"], verbose=False):
+    def __init__(self,
+                 subdir = config["data_dirs"]["DIR_ROBO_OUTPUT"],
+                 file_scraped_info = config["file_names"]["MCD_LARGE_BAD_REMOVED"],
+                 verbose=False):
         
         # directory containing the directory containing the *.fits.robolines files containing the EW info
         self.stem = '.' ## ##
@@ -24,7 +27,7 @@ class Scraper():
         self.fileList = sorted(fileListUnsorted)
 
         # EW info will get scraped into this
-        self.writeOutFilename = self.subdir+config["file_names"]["MCD_LARGE_BAD_REMOVED"]
+        self.writeOutFilename = self.subdir + self.file_scraped_info
 
         # return tables of EW data?
         self.verbose = verbose

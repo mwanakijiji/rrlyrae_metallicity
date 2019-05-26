@@ -23,11 +23,9 @@ def compile_bkgrnd():
             # but what if I'm not using a conda environment? I won't know where to move it, beyond just get_setuptools_script_dir()
             shutil.copy(config["data_dirs"]["DIR_BIN"] + "bkgrnd",
                         get_setuptools_script_dir())
-            #shutil.copy(config["data_dirs"]["DIR_BIN"] + "bkgrnd",
-            #            get_setuptools_script_dir())
  
         try:
             # (why is removal of original file not working without throwing an error??)
-            check_call(["rm","-rf",config["data_dirs"]["DIR_BIN"] + "bkgrnd"]) 
+            check_call(["rm","-rf",get_setuptools_script_dir() + "bkgrnd"]) 
         except CalledProcessError:
             print("Binary bkgrnd not removed from original location")

@@ -160,7 +160,7 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SYNTH_
     print("--------------------------")
     print("Normalizing spectra")
     
-    # Read list of science spectra to normalize
+    # Read list of science spectra to normalize and apply calibration to
     input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
     list_arr = read_list(input_list)
 
