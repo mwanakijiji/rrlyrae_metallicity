@@ -325,7 +325,8 @@ class FeHmapper(FeHplotter):
     
             # loop over all (m,b) combinations found further above
             for sample_num in range(0,len(m_array)):
-    
+
+                ## ## is it layden_feh*(1. + offset) or (layden_feh + offset) ?
                 feh_mapped_1sample = m_array[sample_num]*layden_feh*(1. + offset) + b_array[sample_num]
                 feh_mapped_array[sample_num][integal_piece] = feh_mapped_1sample
     
