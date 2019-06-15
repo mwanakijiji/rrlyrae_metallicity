@@ -38,6 +38,9 @@ def run_robospect():
         args = ['./src/robospect', '-F', '-P', 'rs.out', p]
         q = subprocess.call(args, shell=True)
 
+        # command we have used a lot
+        #robospect -L lines.dat -C null --strict_width=16 X_Ari__10.dat
+
 
 # N.b. Wrapper should catch anything that robospect tries to print to terminal 
 # (3 pipes in any process: StdIn, StdOut, and StdError)

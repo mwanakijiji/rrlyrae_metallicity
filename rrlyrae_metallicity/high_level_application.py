@@ -19,7 +19,7 @@ def main():
     make_dirs(type = "apply_abcd")
     
     # Compile the C spectral normalization script
-    #compile_normalization.compile_bkgrnd() ## will have to update Xcode before this works
+    compile_normalization.compile_bkgrnd() ## will have to update Xcode before this works
 
     # Take list of unnormalized empirical science spectra and normalize them
     #normalize_simple.normalize_simple() ## will have to debug this once compile_bkgrnd() stuff fixed
