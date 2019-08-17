@@ -18,13 +18,13 @@ def main():
 
     #import ipdb; ipdb.set_trace()
     # Make all the directories
-    '''
-    make_dirs(type = "find_abcd") # find_abcd as opposed to apply_abcd
+
+    make_dirs(objective = "find_abcd") # find_abcd as opposed to apply_abcd
 
     #import ipdb; ipdb.set_trace()
     # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
-
+    '''
     #import ipdb; ipdb.set_trace()
     # Take list of unnormalized empirical spectra and generate noise-churned spectra
     ## ## just 2 realizations for testing (otherwise, 100)
