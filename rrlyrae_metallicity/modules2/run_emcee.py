@@ -123,7 +123,9 @@ class RunEmcee():
                  corner_plot_putput_dir = config["data_dirs"]["DIR_BIN"]):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
-        self.scraped_ew_filename = scraped_ew_source_dir + config["file_names"]["KH_WINNOWED_FILE_NAME"]
+        ## ## at development stage, just winnow by phase; worry about also winnowing here by subtype later
+        #self.scraped_ew_filename = scraped_ew_source_dir + config["file_names"]["KH_WINNOWED_PHASE_SUBTYPE_FILE_NAME"]
+        self.scraped_ew_filename = scraped_ew_source_dir + config["file_names"]["KH_WINNOWED_PHASE_ONLY_FILE_NAME"]
 
         # name of file of the MCMC output
         self.mcmc_text_output = mcmc_text_output_dir + config["file_names"]["MCMC_OUTPUT"]

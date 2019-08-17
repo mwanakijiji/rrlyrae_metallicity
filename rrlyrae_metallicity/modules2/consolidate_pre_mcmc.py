@@ -131,13 +131,15 @@ def winnow_by_phase_type(pickle_source_dir = config["data_dirs"]["DIR_PICKLE"],
     ## ## ALSO CHECK THAT WERE NOT LOSING V535 OR V445 THROUGH SILLY NAME DIFFERENCES
     hk_data_winnowed_phase = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
                                                     hk_data["phase"] < max_good)).dropna().reset_index()
-    hk_data_winnowed_rrl_type = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
-                                                    hk_data["phase"] < max_good)).dropna().reset_index()
+
+    ## ## drop by type, too?
+    #hk_data_winnowed_rrl_type = hk_data.where(np.logical_and(hk_data["phase"] > min_good,
+    #                                                hk_data["phase"] < max_good)).dropna().reset_index()
 
     
 
     #hk_data_winnowed_file_name = "hk_data_winnowed.csv"
-    hk_data_winnowed.to_csv(hk_winnowed_write_dir + config["file_names"]["KH_WINNOWED_PHASE_SUBTYPE_FILE_NAME"])
+    hk_data_winnowed_phase.to_csv(hk_winnowed_write_dir + config["file_names"]["KH_WINNOWED_PHASE_ONLY_FILE_NAME"])
     
     ## ## NEED TO WINNOW BY STAR TYPE, TOO
 

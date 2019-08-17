@@ -224,7 +224,12 @@ def create_spec_realizations_main(num = 100,
     print(bkg_input_file)
     
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
+    '''
+    # I used this snippet before re-installing Anaconda
     bkgrnd = Popen([get_setuptools_script_dir() + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
+                    "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
+    '''
+    bkgrnd = Popen([str(config["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
@@ -233,7 +238,7 @@ def create_spec_realizations_main(num = 100,
         print(err.decode("utf-8"))
         
     # write files of normalized fluxes, and return list of those filenames
-    final_list = create_norm_spec(name_list, bkgrnd_output_dir, finaldir)
+    final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
