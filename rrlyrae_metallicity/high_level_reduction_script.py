@@ -16,17 +16,15 @@ from modules2 import \
 
 def main():
 
-    #import ipdb; ipdb.set_trace()
-    # Make all the directories
-
-    make_dirs(objective = "find_abcd") # find_abcd as opposed to apply_abcd
-
-    #import ipdb; ipdb.set_trace()
-    # Compile the C spectral normalization script
-    compile_normalization.compile_bkgrnd()
+    # make all the directories
     '''
-    #import ipdb; ipdb.set_trace()
-    # Take list of unnormalized empirical spectra and generate noise-churned spectra
+    make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
+
+    # compile the C spectral normalization script
+    compile_normalization.compile_bkgrnd()
+
+    # Take list of unnormalized empirical spectra and generate
+    # noise-churned spectra
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 2)
 
@@ -35,26 +33,22 @@ def main():
     #run_robo.run_robospect()
 
     # scrape_ew_from_robo and calculate EWs + err_EW
-    #scraper_instance = scrape_ew_and_errew.Scraper() # instantiate EW file scraper
-    #scraper_instance() # call instance
+    scraper_instance = scrape_ew_and_errew.Scraper()
+    scraper_instance() # call instance
 
     # find equivalent widths
-    #find_HK_instance = scrape_ew_and_errew.findHK() # instantiate Balmer, CaIIK finder
-    #find_HK_instance() # call instance
-
-    # apply_interstellar_ca_absorption (needed?)
-    ## ## ca_correction.ca_corrxn("maps_EW(CaNa)_20150318.fits")
+    find_HK_instance = scrape_ew_and_errew.findHK()
+    find_HK_instance() # call instance
 
     # apply offsets to Fe/H values, etc., to map Fe/H values based
     # on a basis set, and pickle results
-    make_high_res_feh_basis.calc_FeH_program_stars()
+    make_high_res_feh_basis.calc_feh_program_stars()
 
     # bootstrap to obtain mapped Fe/H values with errors
-    #error_propagation_and_mapping.FeHmapper().do()
+    error_propagation_and_mapping.feh_mapper().do()
     '''
-    # consolidate data to feed into the MCMC: K and Balmer EWs, mapped Fe/Hs,
-    # errors; data is also winnowed based on phase
-    consolidate_pre_mcmc.graft_feh() # graft mapped FeH values onto table of EWs
+    # graft mapped FeH values onto table of EWs
+    consolidate_pre_mcmc.graft_feh()
     # remove data corresponding to bad phase values, wrong type
     consolidate_pre_mcmc.winnow_by_phase_type(remove_rrl_subtype="c")
 

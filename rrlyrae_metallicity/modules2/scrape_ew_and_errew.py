@@ -32,7 +32,7 @@ class Scraper():
         self.file_list = sorted(file_list_unsorted)
 
         # EW info will get scraped into this
-        self.write_out_filename = self.subdir + self.file_scraped_info
+        self.write_out_filename = subdir + file_scraped_info
 
         # return tables of EW data?
         self.verbose = verbose

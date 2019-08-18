@@ -8,12 +8,13 @@ import multiprocessing
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import optimize
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
 from multiprocessing import Pool
 from rrlyrae_metallicity.modules2 import *
 
-class FeHplotter():
+class feh_plotter():
     '''
     Class containing a bunch of the functions we will use to map metallicities
     '''
@@ -71,7 +72,7 @@ class FeHplotter():
         x_vals, y_vals = self.cdf_fcn(np.ravel(feh_mapped_array))
 
         # fit a Gaussian
-        popt, pcov = scipy.optimize.curve_fit(self.cdf_gauss, x_vals, y_vals)
+        popt, pcov = optimize.curve_fit(self.cdf_gauss, x_vals, y_vals)
 
         print("Line parameters")
         print(popt)
@@ -263,10 +264,10 @@ class FeHplotter():
         # N.b. This is NOT fake data; I'm just appropriating the old variable name
         ## ## Note the ersatz Layden errors for now; need to revisit this with values from his paper
         data_1 = { "star_name": real_data_1[0]["name_star"],
-                "feh_lit": real_data_1[0]["FeH_highres"],
-                "feh_layden": real_data_1[0]["FeH_basis"],
-                "err_feh_lit": np.zeros(len(real_data_1[0]["FeH_basis"])),
-                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["FeH_basis"]))}
+                "feh_lit": real_data_1[0]["feh_highres"],
+                "feh_layden": real_data_1[0]["feh_basis"],
+                "err_feh_lit": np.zeros(len(real_data_1[0]["feh_basis"])),
+                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["feh_basis"]))}
         #dataset_1 = pd.DataFrame(data=data_1)
 
 
@@ -300,7 +301,7 @@ class FeHplotter():
         return m_array, b_array, params_list_star_feh, data_1
 
 
-class FeHmapper(FeHplotter):
+class feh_mapper(feh_plotter):
 
     def __init__(self,
                  write_pickle_subdir=config["data_dirs"]["DIR_PICKLE"]):

@@ -38,10 +38,10 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
     # N.b. This is NOT fake data; I'm just appropriating the old variable name
     ## ## Note the ersatz Layden errors for now; need to revisit this with values from his paper
     data_1 = { "star_name": real_data_1[0]["name_star"],
-                "feh_lit": real_data_1[0]["FeH_highres"],
-                "feh_layden": real_data_1[0]["FeH_basis"],
-                "err_feh_lit": np.zeros(len(real_data_1[0]["FeH_basis"])),
-                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["FeH_basis"]))}
+                "feh_lit": real_data_1[0]["feh_highres"],
+                "feh_layden": real_data_1[0]["feh_basis"],
+                "err_feh_lit": np.zeros(len(real_data_1[0]["feh_basis"])),
+                "err_feh_layden": 0.07*np.ones(len(real_data_1[0]["feh_basis"]))}
     #dataset_1 = pd.DataFrame(data=data_1)
 
     # loop over each star to read in the calculated metallicities
