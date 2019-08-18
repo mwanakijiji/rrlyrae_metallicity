@@ -1,18 +1,19 @@
 '''
-This is the high-level script which runs all the pieces of the pipeline
+This is the high-level script which runs all the pieces of the pipeline to
+obtain updated Layden coefficients [a, b, c, d]
 '''
 
 import sys
 from modules2 import *
-from modules2 import \
-     compile_normalization, \
-     create_spec_realizations, \
-     scrape_ew_and_errew, \
-     make_high_res_feh_basis, \
-     ca_correction, \
-     consolidate_pre_mcmc, \
-     run_emcee, \
-     error_propagation_and_mapping
+from modules2 import (compile_normalization,
+                      create_spec_realizations,
+                      run_robo,
+                      scrape_ew_and_errew,
+                      make_high_res_feh_basis,
+                      ca_correction,
+                      consolidate_pre_mcmc,
+                      run_emcee,
+                      error_propagation_and_mapping)
 
 def main():
 
@@ -23,15 +24,16 @@ def main():
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
-    # Take list of unnormalized empirical spectra and generate
-    # noise-churned spectra
+    # Take list of unnormalized empirical spectra and noise-churned the
+    # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 2)
+    '''
 
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
-    #run_robo.run_robospect()
-
+    run_robo.run_robospect()
+    '''
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
@@ -46,7 +48,7 @@ def main():
 
     # bootstrap to obtain mapped Fe/H values with errors
     error_propagation_and_mapping.feh_mapper().do()
-    '''
+
     # graft mapped FeH values onto table of EWs
     consolidate_pre_mcmc.graft_feh()
     # remove data corresponding to bad phase values, wrong type
@@ -55,7 +57,7 @@ def main():
     # run_emcee with input data_table_winnowed
     emcee_instance = run_emcee.RunEmcee()
     emcee_instance() # call instance
-
+    '''
 
 # entry point
 if __name__ == '__main__':

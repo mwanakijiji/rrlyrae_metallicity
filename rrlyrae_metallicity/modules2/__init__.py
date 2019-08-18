@@ -44,7 +44,7 @@ def make_dirs(objective="apply_abcd"):
     # 1. reduction of spectra to find a, b, c, d (objective = "find_abcd"), or
     # 2. to apply the solution (objective = "apply_abcd"; default)
     if (objective == "apply_abcd"):
-        config_choice = config_apply # reassign if we just want to apply
+        config_choice = config_apply
     elif (objective == "find_abcd"):
         config_choice = config
 

@@ -142,14 +142,16 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 # Main Function
 # -------------
-def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
+def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
                      unnorm_science_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
-                     bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
-                     final_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                     bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SCI_SPEC_NORM"],
+                     final_dir = config_apply["data_dirs"]["DIR_SCI_SPEC_NORM_FINAL"],
                      verb = False):
     '''
     INPUTS:
-    input_spec_list_dir: directory containing list of science spectra to normalize
+    input_spec_list_dir: directory containing a file containing a list of names of science
+        spectra which we want to normalize and find the Fe/H from
+    unnorm_science_spectra_dir: directory which actually contains the science spectra
     bkgrnd_output_dir: directory to contain output of bkgrnd (spectra and fit continuua)
     final_dir: directory to contain normalized spectrum realizations
 
@@ -164,13 +166,16 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SYNTH_
     input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
     list_arr = read_list(input_list)
 
-    # Create input list of spectrum filenames
+    # make list of stemless filenames for the normalized spectra
+    name_list = [s + "_norm" for s in list_arr]
+
+    # create list of full filenames of normalized spectra which will be written
     bkg_input_file = write_bckgrnd_input(name_list = name_list,
                                          indir = unnorm_science_spectra_dir,
                                          normdir = bkgrnd_output_dir)
     
     # Normalize each spectrum (smoothing parameter is set in __init__)
-    bkgrnd = Popen([get_setuptools_script_dir() + "/bkgrnd", "--smooth "+str(smooth_val),
+    bkgrnd = Popen([str(config_apply["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
@@ -183,15 +188,10 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SYNTH_
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
-    parser.add_argument('input_list',help='List of spectra to process.')
-    parser.add_argument('-o',default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')
-    parser.add_argument('-n',type=int,default=100,metavar='Num',help='Number of Realizations (Default 100).')
-    parser.add_argument('-v',action='store_true',help='Turn on verbosity')   
+    parser.add_argument('input_list', help='List of spectra to process.')
+    parser.add_argument('-o', default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')
+    parser.add_argument('-n', type=int, default=100, metavar='Num', help='Number of Realizations (Default 100).')
+    parser.add_argument('-v', action='store_true', help='Turn on verbosity')   
     #Put this in a dictionary    
     args = vars(parser.parse_args())
     ret = normalize_simple(args['input_list'],args['o'],args['n'],args['v'])
-
-##
-#@mainpage
- #@copydetails  create_spec_realizations
-    

@@ -35,8 +35,8 @@ def create_norm_spec(name_list,
                      normdir,
                      finaldir):
     '''
-    Create final normalized spectra, using the output from the bkgrnd routine (which puts out wavelength, flux, and continuum flux, but
-    not the actual normalized flux)
+    Create final normalized spectra, using the output from the bkgrnd routine (which
+    puts out wavelength, flux, and continuum flux, but not the actual normalized flux)
 
     Arguments:
         name_list: List of Realization file names (no path info)
@@ -50,17 +50,24 @@ def create_norm_spec(name_list,
 
     for spec in name_list: # loop through spectrum realizations
 
-        spec_name = os.path.join(normdir, spec) # spectrum realization file name (as output by bkgrnd), with relative path info
-        spec_tab = read_bkgrnd_spec(spec_name) # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
-        new_name = os.path.join(finaldir, spec) # output file name of final, normalized spectrum, with relative path info
-        new_name_list.append(new_name) # add to list
+        # spectrum realization file name (as output by bkgrnd), with relative path info
+        spec_name = os.path.join(normdir, spec)
+        # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
+        spec_tab = read_bkgrnd_spec(spec_name)
+        # output file name of final, normalized spectrum, with relative path info
+        new_name = os.path.join(finaldir, spec)
+        # add to list
+        new_name_list.append(new_name)
 
         try:
-            outfile = open(new_name, 'w') # open file to write normalized spectrum to
+            # open file to write normalized spectrum to
+            outfile = open(new_name, 'w')
         except IOError:
             print("File {} could not be opened!".format(new_name))
         for j in range(len(spec_tab['wavelength'])):
-            outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j], spec_tab['flux'][j]/spec_tab['bckgrnd_flux'][j])) # do the division to normalize and write out
+            # do the division to normalize and write out
+            outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j],
+                                               spec_tab['flux'][j]/spec_tab['bckgrnd_flux'][j]))
 
         outfile.close()
 
@@ -77,17 +84,22 @@ def generate_realizations(spec_name, outdir, num):
     Returns:
        A list of filenames for the realization spectra.
     '''
-    spec_tab = read_spec(spec_name) # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
+    # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
+    spec_tab = read_spec(spec_name)
 
     basename = os.path.basename(spec_name) # shave off path stem
 
     # generate realizations
     new_name_list = list()
     for i in range(num):
-        new_name = "{}_{:03d}".format(basename, i) # basename of spectrum realization
-        new_name_list.append(new_name) # don't need path info in spec_name list
-        new_name = os.path.join(outdir, new_name) # name of spectrum realization, with path
-        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux'] # add Gaussian error to the empirical flux
+        # basename of spectrum realization
+        new_name = "{}_{:03d}".format(basename, i)
+        # don't need path info in spec_name list
+        new_name_list.append(new_name)
+        # name of spectrum realization, with path
+        new_name = os.path.join(outdir, new_name)
+        # add Gaussian error to the empirical flux
+        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux']
         try:
             outfile = open(new_name, 'w')
         except IOError:
@@ -111,7 +123,8 @@ def read_bkgrnd_spec(spec_name):
        bckgrnd_flux: Numpy array of flux error
     '''
 
-    spec_tab = Table.read(spec_name, format='ascii.no_header', names=['wavelength', 'flux', 'bckgrnd_flux'])
+    spec_tab = Table.read(spec_name, format='ascii.no_header',
+                          names=['wavelength', 'flux', 'bckgrnd_flux'])
 
     return(spec_tab)
 
@@ -125,7 +138,8 @@ def read_list(input_list):
        Numpy array of filenames
     '''
 
-    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols=(0)) # col 0 contains the file names
+    # col 0 contains the file names
+    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols=(0))
     return(filenames_arr)
 
 def read_spec(spec_name):
@@ -143,7 +157,8 @@ def read_spec(spec_name):
        error: Numpy array of flux error
     '''
 
-    spec_tab = Table.read(spec_name, format='ascii.no_header', names=['wavelength', 'flux', 'error'])
+    spec_tab = Table.read(spec_name, format='ascii.no_header',
+                          names=['wavelength', 'flux', 'error'])
 
     return(spec_tab)
 
@@ -252,8 +267,3 @@ if __name__ == '__main__':
     #Put this in a dictionary
     args = vars(parser.parse_args())
     ret = create_spec_realizations_main(args['input_list'], args['o'], args['n'], args['v'])
-
-##
-#@mainpage
- #@copydetails  create_spec_realizations
-
