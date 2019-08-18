@@ -133,8 +133,7 @@ class Scraper():
         bad_synth_spectra_uniq = bad_synth_spectra.drop_duplicates()
         # keep only the spectra that have all lines well-fit
         df_master_reset_drop_bad_spectra = df_master_reset.where(
-            ~df_master_reset['synth_spec_name'].isin(bad_synth_spectra_uniq)
-            )
+            ~df_master_reset['synth_spec_name'].isin(bad_synth_spectra_uniq))
 
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
