@@ -1,46 +1,45 @@
-import subprocess
-from subprocess import call
-from subprocess import Popen
-import shlex
-import pandas as pd
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-import os, os.path
-from os import listdir
-from os.path import isfile, join
-import pandas as pd
-import sys
-from pylab import * 
+'''
+Calls Robospect to find EWs of the normalized, noise-churned spectra
+'''
+
+import os
 import glob
-from IPython.display import clear_output
-from astropy.io import fits
+from rrlyrae_metallicity.modules2 import *
 
 
-def run_robospect():
-### THIS NOT WORKING!!!
+def run_robospect(norm_spec_source_dir=config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                  robo_dir=config["data_dirs"]["DIR_ROBO"]):
+    '''
+    INPUTS:
+    norm_spec_source_dir: directory containing the normalized spectra
+    robo_dir: directory of the robospect.py repo
 
-    ##############################################################################
-    # STEP 3: RUN ROBOSPECT ON ANY SPECTRA AND WRITE OUT EW VALUES AS *.c.dat FILES (applicable to A and B)
-    ##############################################################################
+    OUTPUTS:
+    (writes files to disk)
+    '''
 
-    print("Running Robospect")
-    
-    # for applying to synthetic spectra 
+    # for applying to synthetic spectra
 
     # accumulate list of filenames of normalized synthetic spectra
-    fileNameList = glob.glob("../*_*.c.dat") # (or search whatever other directory the *.c.dat files are in)
+    ## ## this is the non-testing command
+    #file_name_list = glob.glob(norm_spec_source_dir+"*.dat_*")
+    ## ## this is the test command
+    file_name_list = glob.glob(robo_dir+"tmp/"+"*.dat")
 
-    # for-loop to write out *.robolines and *.robospect files
-    for p in fileNameList: 
-        # default command: (-F: find all lines; -P: sets path of output files)
-        # robospect -F -P rs.out example.dat
-        args = ['./src/robospect', '-F', '-P', 'rs.out', p]
-        q = subprocess.call(args, shell=True)
+    for p in file_name_list:
 
-        # command we have used a lot
-        #robospect -L lines.dat -C null --strict_width=16 X_Ari__10.dat
+        print("Running Robospect on "+p)
 
+        ## NEW COMMAND FOR 1 SPECTRUM
+        ## rSpect.py -i 1 ./tmp/input_spectrum.dat -P /tmp/output_base_name --line_list ./tmp/lines.dat
+        #args = ["python", robo_dir+"rSpect.py", "-i", "1", p,
+        #        "-P", robo_dir+"tmp/output_base_name", "--line-list", robo_dir+"tmp/lines.dat"]
+        #q = subprocess.call(args, shell=True)
 
-# N.b. Wrapper should catch anything that robospect tries to print to terminal 
-# (3 pipes in any process: StdIn, StdOut, and StdError)
+        os.system("python " + robo_dir + "rSpect.py -i 1 " +
+                  robo_dir + "tmp/input_spectrum.dat -P" +
+                  robo_dir + "tmp/output_base_name --line_list " +
+                  robo_dir + "tmp/lines.dat")
+
+    print("Done with Robospect")
+    print("-------------------")
