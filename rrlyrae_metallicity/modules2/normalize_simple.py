@@ -112,7 +112,9 @@ def read_spec(spec_name):
 
 def write_bckgrnd_input(name_list,indir,normdir):
     '''
-    Create input file for the bckgrnd program
+    Create input file for the bckgrnd program. This consists of a file
+    with a header containing the input and output directories, followed
+    by a list of stemless filenames of the spectra.
     
     Arguments:
         name_list: List of Realization file names (no path info)
@@ -136,6 +138,7 @@ def write_bckgrnd_input(name_list,indir,normdir):
     outfile.write("{} {}\n".format(indir,normdir))
     for j in range(len(name_list)):
         outfile.write("{}\n".format(name_list[j]))
+        print(name_list[j])
     outfile.close()
     return(bckgrnd_input)
 
@@ -162,20 +165,29 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
     print("--------------------------")
     print("Normalizing spectra")
     
-    # Read list of science spectra to normalize and apply calibration to
+    # read file containing list of stemless filenames of science spectra to normalize and
+    # apply calibration to. Note the input science spectra need to have two columns:
+    # [0]: wavelength (angstroms); [1]: unnormalized flux
     input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
     list_arr = read_list(input_list)
 
-    # make list of stemless filenames for the normalized spectra
-    name_list = [s + "_norm" for s in list_arr]
+    #print(list_arr)
 
-    # create list of full filenames of normalized spectra which will be written
+    # make list of stemless filenames for the normalized spectra
+    #name_list = list_arr
+    ##name_list = [s + "_norm" for s in list_arr]
+    ## ## ersatz
+    name_list = ['spec-2609-54476-0201g001.dat', 'spec-2609-54476-0201g002.dat']
+
+    # create file with list of bkgrnd output filenames
     bkg_input_file = write_bckgrnd_input(name_list = name_list,
                                          indir = unnorm_science_spectra_dir,
                                          normdir = bkgrnd_output_dir)
+
+    import ipdb; ipdb.set_trace()
     
     # Normalize each spectrum (smoothing parameter is set in __init__)
-    bkgrnd = Popen([str(config_apply["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(["reduc_params"]["SMOOTH"]),
+    bkgrnd = Popen([str(config_apply["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config_apply["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
     
@@ -184,7 +196,7 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
         print(err.decode("utf-8"))
         
     # write files of normalized fluxes, and return list of those filenames
-    final_list = create_norm_spec(name_list, bkgrnd_output_dir, finaldir)
+    final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
