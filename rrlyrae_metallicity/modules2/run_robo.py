@@ -24,22 +24,26 @@ def run_robospect(norm_spec_source_dir=config["data_dirs"]["DIR_SYNTH_SPEC_NORM_
     ## ## this is the non-testing command
     #file_name_list = glob.glob(norm_spec_source_dir+"*.dat_*")
     ## ## this is the test command
-    file_name_list = glob.glob(robo_dir+"tmp/"+"*.dat")
+    file_name_list = glob.glob(robo_dir+"tmp/"+"*.smo")
 
     for p in file_name_list:
 
-        print("Running Robospect on "+p)
+        print("Running Robospect on "+p + " \n")
 
-        ## NEW COMMAND FOR 1 SPECTRUM
-        ## rSpect.py -i 1 ./tmp/input_spectrum.dat -P /tmp/output_base_name --line_list ./tmp/lines.dat
-        #args = ["python", robo_dir+"rSpect.py", "-i", "1", p,
-        #        "-P", robo_dir+"tmp/output_base_name", "--line-list", robo_dir+"tmp/lines.dat"]
-        #q = subprocess.call(args, shell=True)
+        # define string for output base names
+        file_specific_string = p.split(".")[-2].split("/")[-1]
 
-        os.system("python " + robo_dir + "rSpect.py -i 1 " +
+        os.system("python " +
+                  robo_dir + "rSpect.py -i 4 " +
                   robo_dir + "tmp/input_spectrum.dat -P" +
-                  robo_dir + "tmp/output_base_name --line_list " +
-                  robo_dir + "tmp/lines.dat")
+                  robo_dir + "tmp/" + file_specific_string +
+                  " --line_list " + robo_dir + "tmp/ll " +
+                  "-C name null " +
+                  "-D name null " +
+                  "-N name boxcar " +
+                  "-I range 10.0 " +
+                  "-F chi_window 20.0 " +
+                  "-vvvv")
 
     print("Done with Robospect")
     print("-------------------")
