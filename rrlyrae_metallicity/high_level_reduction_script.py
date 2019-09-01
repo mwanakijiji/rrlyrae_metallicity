@@ -16,9 +16,8 @@ from modules2 import (compile_normalization,
                       error_propagation_and_mapping)
 
 def main():
-
-    # make all the directories
     '''
+    # make all the directories
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
 
     # compile the C spectral normalization script
@@ -29,7 +28,6 @@ def main():
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 2)
     '''
-
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()

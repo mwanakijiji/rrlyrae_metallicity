@@ -205,6 +205,9 @@ def create_spec_realizations_main(num = 100,
     INPUTS:
     num: number of spectrum realizations to make, per empirical spectrum
     input_spec_list_dir: directory containing list of empirical spectra
+    unnorm_empirical_spectra_dir: directory of empirical spectra (or, if they are actually
+        synthetic spectra, these are the original synthetic spectra which we will generate
+        multiple realizations of)
     unnorm_noise_churned_spectra_dir: directory to contain noise-churned spectrum realizations
     bkgrnd_output_dir: directory to contain output of bkgrnd (spectra and fit continuua)
     final_dir: directory to contain normalized spectrum realizations
