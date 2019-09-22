@@ -7,9 +7,9 @@ import glob
 from rrlyrae_metallicity.modules2 import *
 
 
-def run_robospect(norm_spec_source_dir=config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
-                  norm_spec_deposit_dir=config["data_dirs"]["DIR_ROBO_OUTPUT"],
-                  robo_dir=config["data_dirs"]["DIR_ROBO"]):
+def run_robospect(norm_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                  norm_spec_deposit_dir = config["data_dirs"]["DIR_ROBO_OUTPUT"],
+                  robo_dir = config["data_dirs"]["DIR_ROBO"]):
     '''
     INPUTS:
     norm_spec_source_dir: directory containing the normalized spectra
@@ -25,15 +25,19 @@ def run_robospect(norm_spec_source_dir=config["data_dirs"]["DIR_SYNTH_SPEC_NORM_
     ## ## note that I have put in a specific string to look for
     ## ## in the file name here; this might be a weakness later on
     file_name_list = glob.glob(norm_spec_source_dir+"*.smo*")
+    print('norm_spec_source_dir')
+    print(norm_spec_source_dir)
     ## ## this is the test command
     #file_name_list = glob.glob(robo_dir+"tmp/"+"*.smo")
 
-    for p in file_name_list[0:3]:
+    for p in file_name_list:
 
         print("Running Robospect on "+ p + " \n")
 
         # define string for output base names
-        file_specific_string = p.split(".")[-2].split("/")[-1]
+        #file_specific_string = p.split(".")[-2].split("/")[-1]
+        ## ## the below is specific to *smo* files
+        file_specific_string = p.split("/")[-1]
 
         # example rSpect command:
         ## python rSpect.py -i 4       ['Run four iterations of the full fitting loop,

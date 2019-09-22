@@ -20,14 +20,15 @@ class Scraper():
                  file_scraped_info=config["file_names"]["MCD_LARGE_BAD_REMOVED"],
                  verbose=False):
 
-        # directory containing the directory containing the *.fits.robolines
-        # files containing the EW info
+        # directory containing the *.fits.robolines
+        # files with the EW info
         self.stem = '.' ## ##
         # subdirectory containing the *.c.dat files
         self.subdir = subdir ## ##
 
         # get list of filenames without the path
-        file_list_long = glob.glob(self.subdir+'/'+'*.fits.robolines')
+        ## ## note the string being sought here is specific to RW's synthetic spectra; this is a weakness here and needs to be fixed later!
+        file_list_long = glob.glob(self.subdir+'/'+'[012345679]*robolines')
         file_list_unsorted = [os.path.basename(x) for x in file_list_long]
         self.file_list = sorted(file_list_unsorted)
 
@@ -70,15 +71,31 @@ class Scraper():
 
         df_master = pd.DataFrame() # initialize
 
+        print('FILE LIST')
+        print(self.file_list)
+        print(self.file_list[116])
+
         # loop over all filenames of realizations of empirical spectra, extract line data
         for t in range(0, len(self.file_list)):
 
             # read in Robospect output
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
-                             header=13,
+                             skiprows=17,
+                             delim_whitespace=True,
+                             index_col=False,
+                             usecols=[0,2,3,6,7,10,11,13,14,15,16,18],
+                             names=["#x0","mean","EQW","flux","7","10","11","13","14","chi","flags","line_name"])
+            ##names=["#x0","mean","sigma","flux","7","10","11","EQW","14","chi","flags","line_name"]
+            ## old command here 
+            '''
+            df = pd.read_csv(self.subdir+'/'+self.file_list[t],
+                             header=16,
                              delim_whitespace=True,
                              index_col=False,
                              usecols=np.arange(17))
+            '''
+            print(df['#x0'])
+            print(self.file_list[t])
 
             # check lines are in the right order
             line_order_check(df['#x0'])
@@ -96,12 +113,18 @@ class Scraper():
                                               index=df.index)
 
             # names of empirical spectra
+            ## ## the below is the command for RW's synthetic spectra
+            df['empir_spec_name'] = pd.Series(self.file_list[t].split(".")[0],
+                                              index=df.index)
+            ## ## the below is the old command, for the McD spectra
+            '''
             df['empir_spec_name'] = pd.Series(self.file_list[t].split(".")[0][0:-4],
                                               index=df.index)
+            '''
 
             #df['star_name'] = pd.Series(self.file_list[t].split("__")[0], index=df.index)
 
-            # names of the abif (sorption lines
+            # names of the absorption lines
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
 
             # print progress
@@ -225,6 +248,8 @@ class findHK():
         # loop over every EMPIRICAL spectrum and assemble SYNTHETIC data into arrays
         for p in range(0, len(np.array(unique_spec_names.values))):
 
+            print('unique')
+            print(unique_spec_names)
             print("Synthetic data being assembled corresponding to spectrum "+\
                   np.array(unique_spec_names)[p])
             # extract all synthetic data corresponding to this empirical spectrum
@@ -406,6 +431,9 @@ class findHK():
         unique_star_names = data_to_plot.drop_duplicates(
             subset=['star_name'])['star_name'].values
 
+        print('unique_star_names')
+        print(unique_star_names)
+
         # plot data points
         cmap = plt.get_cmap(name='jet')
         fig = plt.figure(figsize=(20, 10))
@@ -427,6 +455,11 @@ class findHK():
             err_y_data = data_to_plot['err_K'].where(
                 data_to_plot['star_name'] == unique_star_names[y])
 
+            empirical_spectrum_names = data_to_plot['empir_spec_name'].where(
+                data_to_plot['star_name'] == unique_star_names[y])
+
+            #import ipdb; ipdb.set_trace()
+
             # plot, and keep the same color for each star
             #color_this_star = cmap(float(y)/len(unique_star_names))
             ax.errorbar(x_data,
@@ -437,6 +470,7 @@ class findHK():
                         fmt=markers[y],
                         markerfacecolor=colors[y],
                         color=colors[y])
+
 
             bad_phase_locs = np.logical_or(data_to_plot['phase'] > self.max_good,
                                            data_to_plot['phase'] < self.min_good)
@@ -457,6 +491,17 @@ class findHK():
                             np.array(y_data.dropna())[0]),
                         xytext=(np.array(x_data.dropna())[0],
                                 np.array(y_data.dropna())[0]))
+
+            # overplot the name of the empirical spectrum at each data point
+            #import ipdb; ipdb.set_trace()
+            empirical_spectra_names_this_star = np.array(empirical_spectrum_names.dropna())
+            for spec_annotate_num in range(0,len(empirical_spectra_names_this_star)):
+                ax.annotate(empirical_spectra_names_this_star[spec_annotate_num],
+                        xy=(np.array(x_data.dropna())[spec_annotate_num],
+                            np.array(y_data.dropna())[spec_annotate_num]),
+                        xytext=(np.array(x_data.dropna())[spec_annotate_num],
+                                np.array(y_data.dropna())[spec_annotate_num]),
+                        fontsize=6)
 
 
 
