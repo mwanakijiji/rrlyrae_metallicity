@@ -493,7 +493,8 @@ def make_basis_via_offsets(df_to_offset,
         this_resid_offset = (df_offsets["offset_highres_residuals"].
                              loc[df_offsets["name_highres"] == this_dataset_name].values)
 
-        if this_resid_offset: # if there is an offset that could be found for this dataset
+        # if there is an offset that could be found for this dataset
+        if this_resid_offset:
             this_dataset.loc[:, "residuals_no_shift"] = (this_dataset["feh_highres"] -
                                                          this_dataset["feh_basis"])
             this_dataset.loc[:, "residuals_no_shift"] = (this_dataset["feh_highres"] -
@@ -531,7 +532,7 @@ def make_basis_via_offsets(df_to_offset,
     # (note this is NOT before adding in the shifts)
     m_merged_highres, b_merged_highres = np.polyfit(pd_merged["feh_basis"],
                                                     pd_merged["feh_highres"], 1)
-    line_highres = np.multiply(m_merged_highres, limits)+b_merged_highres
+    line_highres = np.multiply(m_merged_highres, limits) + b_merged_highres
 
     # regression line for high-res Fe/H AFTER adding the shifts back in
     m_merged_highres_postshift, b_merged_highres_postshift = np.polyfit(pd_merged["feh_basis"],
@@ -542,7 +543,7 @@ def make_basis_via_offsets(df_to_offset,
                                                                 pd_merged["residuals_shifted"], 1)
 
     # make best-fit line for residuals
-    line_shifted_resid = (np.multiply(m_merged_shifted_resid, limits)+
+    line_shifted_resid = (np.multiply(m_merged_shifted_resid, limits) +
                           b_merged_shifted_resid)
 
     # save the data to a csv
