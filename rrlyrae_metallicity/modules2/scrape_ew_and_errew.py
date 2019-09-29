@@ -531,7 +531,7 @@ class findHK():
         df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
 
-        '''
+ 
         plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
         plt.errorbar(df_20m10["balmer"], df_20m10["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
         plt.errorbar(df_20m15["balmer"], df_20m15["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
@@ -557,7 +557,7 @@ class findHK():
         plt.errorbar(df_25p00["balmer"], df_25p00["K"], yerr= , xerr= , marker="None")
         plt.errorbar(df_30p02["balmer"], df_30p02["K"], yerr= , xerr= , marker="None")
         plt.errorbar(df_25p02["balmer"], df_25p02["K"], yerr= , xerr= , marker="None")
-        '''
+
         
         plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW ($\AA$)')
