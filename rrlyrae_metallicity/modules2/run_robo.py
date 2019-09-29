@@ -6,7 +6,8 @@ import os
 import glob
 import multiprocessing
 from rrlyrae_metallicity.modules2 import *
-    
+
+
 class RunRobo:
 
     def __init__(self, config_data = config):

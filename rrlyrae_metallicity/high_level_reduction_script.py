@@ -29,7 +29,6 @@ def main():
     create_spec_realizations.create_spec_realizations_main(num = 100)
     '''
     # run_robospect on normalized synthetic spectra
-    ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.main()
     '''
     # scrape_ew_from_robo and calculate EWs + err_EW

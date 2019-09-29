@@ -505,8 +505,6 @@ class findHK():
                                 np.array(y_data.dropna())[spec_annotate_num]),
                         fontsize=6)
 
-            #import ipdb; ipdb.set_trace()
-
         # connect lines between each 'star'; that is, with the same gravity and metallicity
         df_20m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m10')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20m15 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m15')].sort_values(by=["empir_spec_name"]).reset_index()
@@ -533,31 +531,40 @@ class findHK():
         df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
 
-        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m10["balmer"], df_20m10["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m15["balmer"], df_20m15["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m20["balmer"], df_20m20["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m25["balmer"], df_20m25["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m30["balmer"], df_20m30["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20p02["balmer"], df_20p02["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None", alpha = 0.3)
-        plt.plot(df_20p00["balmer"], df_20p00["K"], marker="None", alpha = 0.3)
-        plt.plot(df_25m05["balmer"], df_25m05["K"], marker="None")
-        plt.plot(df_25m10["balmer"], df_25m10["K"], marker="None")
-        plt.plot(df_25m15["balmer"], df_25m15["K"], marker="None")
-        plt.plot(df_25m20["balmer"], df_25m20["K"], marker="None")
-        plt.plot(df_25m25["balmer"], df_25m25["K"], marker="None")
-        plt.plot(df_25m30["balmer"], df_25m30["K"], marker="None")
-        plt.plot(df_30m05["balmer"], df_30m05["K"], marker="None")
-        plt.plot(df_30m10["balmer"], df_30m10["K"], marker="None")
-        plt.plot(df_30m15["balmer"], df_30m15["K"], marker="None")
-        plt.plot(df_30m20["balmer"], df_30m20["K"], marker="None")
-        plt.plot(df_30m25["balmer"], df_30m25["K"], marker="None")
-        plt.plot(df_30m30["balmer"], df_30m30["K"], marker="None")
-        plt.plot(df_30p00["balmer"], df_30p00["K"], marker="None")
-        plt.plot(df_25p00["balmer"], df_25p00["K"], marker="None")
-        plt.plot(df_30p02["balmer"], df_30p02["K"], marker="None")
-        plt.plot(df_25p02["balmer"], df_25p02["K"], marker="None")
+        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m10["balmer"], df_20m10["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m15["balmer"], df_20m15["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m20["balmer"], df_20m20["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m25["balmer"], df_20m25["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m30["balmer"], df_20m30["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20p02["balmer"], df_20p02["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20p00["balmer"], df_20p00["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_25m05["balmer"], df_25m05["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25m10["balmer"], df_25m10["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25m15["balmer"], df_25m15["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25m20["balmer"], df_25m20["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25m25["balmer"], df_25m25["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25m30["balmer"], df_25m30["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m05["balmer"], df_30m05["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m10["balmer"], df_30m10["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m15["balmer"], df_30m15["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m20["balmer"], df_30m20["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m25["balmer"], df_30m25["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30m30["balmer"], df_30m30["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30p00["balmer"], df_30p00["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25p00["balmer"], df_25p00["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_30p02["balmer"], df_30p02["K"], yerr= , xerr= , marker="None")
+        plt.errorbar(df_25p02["balmer"], df_25p02["K"], yerr= , xerr= , marker="None")
+
+            ax.errorbar(x_data,
+                        y_data,
+                        yerr=err_y_data,
+                        xerr=err_x_data,
+                        linestyle='',
+                        fmt=markers[y],
+                        markerfacecolor=colors[y],
+                        color=colors[y])
 
         plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW ($\AA$)')
@@ -566,9 +573,13 @@ class findHK():
         plt.savefig(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
 
         plt.ylim([0,10])
-        plt.savefig(self.plot_write_subdir + "junk_" + config["file_names"]["KH_PLOT_NAME"])
+        plt.savefig(self.plot_write_subdir + "stretched_" + config["file_names"]["KH_PLOT_NAME"])
         
         plt.close()
+
+        print("HK plots saved as ")
+        print(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
+        print(self.plot_write_subdir + "stretched_" + config["file_names"]["KH_PLOT_NAME"])
 
         # return stuff to enable testing
         return unique_star_names, data_to_plot
