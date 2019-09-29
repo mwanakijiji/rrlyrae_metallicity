@@ -19,7 +19,7 @@ def main():
 
     # make all the directories
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
-    
+    '''
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
@@ -30,8 +30,8 @@ def main():
     '''
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
-    run_robo.run_robospect()
-
+    run_robo.main()
+    '''
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance

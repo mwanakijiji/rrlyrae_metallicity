@@ -4,6 +4,7 @@ Initialization
 
 import configparser
 import os
+import multiprocessing
 from setuptools import Distribution
 from setuptools.command.install import install
 
@@ -14,6 +15,8 @@ config.read("rrlyrae_metallicity/modules2/config.ini")
 # config for applying a, b, c, d
 config_apply = configparser.ConfigParser()
 config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
+
+ncpu = multiprocessing.cpu_count()
 
 # The class OnlyGetScriptPath() and function get_setuptools_script_dir()
 # are from the setup.py script in the Apogee repository by jobovy
