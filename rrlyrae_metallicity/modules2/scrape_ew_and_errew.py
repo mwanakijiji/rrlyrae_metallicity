@@ -486,11 +486,13 @@ class findHK():
                         color=colors[y])
 
             # add star name
+            '''
             ax.annotate(unique_star_names[y],
                         xy=(np.array(x_data.dropna())[0],
                             np.array(y_data.dropna())[0]),
                         xytext=(np.array(x_data.dropna())[0],
                                 np.array(y_data.dropna())[0]))
+            '''
 
             # overplot the name of the empirical spectrum at each data point
             #import ipdb; ipdb.set_trace()
@@ -531,13 +533,15 @@ class findHK():
         df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
 
-        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None")
-        plt.plot(df_20m10["balmer"], df_20m10["K"], marker="None")
-        plt.plot(df_20m15["balmer"], df_20m15["K"], marker="None")
-        plt.plot(df_20m20["balmer"], df_20m20["K"], marker="None")
-        plt.plot(df_20m25["balmer"], df_20m25["K"], marker="None")
-        plt.plot(df_20m30["balmer"], df_20m30["K"], marker="None")
-        plt.plot(df_20p02["balmer"], df_20p02["K"], marker="None")
+        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m10["balmer"], df_20m10["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m15["balmer"], df_20m15["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m20["balmer"], df_20m20["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m25["balmer"], df_20m25["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m30["balmer"], df_20m30["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20p02["balmer"], df_20p02["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None", alpha = 0.3)
+        plt.plot(df_20p00["balmer"], df_20p00["K"], marker="None", alpha = 0.3)
         plt.plot(df_25m05["balmer"], df_25m05["K"], marker="None")
         plt.plot(df_25m10["balmer"], df_25m10["K"], marker="None")
         plt.plot(df_25m15["balmer"], df_25m15["K"], marker="None")
@@ -554,8 +558,6 @@ class findHK():
         plt.plot(df_25p00["balmer"], df_25p00["K"], marker="None")
         plt.plot(df_30p02["balmer"], df_30p02["K"], marker="None")
         plt.plot(df_25p02["balmer"], df_25p02["K"], marker="None")
-        plt.plot(df_20m05["balmer"], df_20m05["K"], marker="None")
-        plt.plot(df_20p00["balmer"], df_20p00["K"], marker="None")
 
         plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW ($\AA$)')

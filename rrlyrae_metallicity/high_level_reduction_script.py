@@ -19,15 +19,15 @@ def main():
 
     # make all the directories
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
-    '''
+    
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
-    create_spec_realizations.create_spec_realizations_main(num = 2)
-
+    create_spec_realizations.create_spec_realizations_main(num = 100)
+    '''
     # run_robospect on normalized synthetic spectra
     ## ## IMPLEMENT THE PYTHON VERSION OF ROBOSPECT WHEN ITS OUT
     run_robo.run_robospect()
@@ -46,11 +46,11 @@ def main():
 
     # bootstrap to obtain mapped Fe/H values with errors
     error_propagation_and_mapping.feh_mapper().do()
-    '''
+
     # graft mapped FeH values onto table of EWs
     #consolidate_pre_mcmc.graft_feh() # this is for empirical spectra, which have a Fe/H basis
     consolidate_pre_mcmc.graft_feh(synthetic=True) # this is for synthetic spectra, which have Fe/H in the file name
-    '''
+
     # remove data corresponding to bad phase values, wrong type
     consolidate_pre_mcmc.winnow_by_phase_and_type(remove_rrl_subtype="c")
 
