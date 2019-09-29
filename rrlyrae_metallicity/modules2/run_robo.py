@@ -61,7 +61,7 @@ class RunRobo:
         ##                               --C. Waters]
 
         os.system("python " +
-              self.robo_dir + "rSpect.py -i 4 " +
+              self.robo_dir + "bin/rSpect.py -i 4 " +
               str(file_name) +
               " -P " + self.norm_spec_deposit_dir + file_specific_string +
               " --line_list " + self.robo_dir + "tmp/ll" +
