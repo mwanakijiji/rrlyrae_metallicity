@@ -442,6 +442,8 @@ class findHK():
         # make set of colors/markers I can loop over
         colors = ['red', 'blue', 'orange', 'teal', 'black', 'green', 'purple']*10
         markers = ['o', '^', '>', 's', '<']*10
+
+        '''
         for y in range(0, len(unique_star_names)):
             # loop over every star, overlay the set of points for that star on the plot
 
@@ -484,15 +486,13 @@ class findHK():
                         fmt=markers[y],
                         markerfacecolor='white',
                         color=colors[y])
-
-            # add star name
-            '''
+        
+            # add star nam
             ax.annotate(unique_star_names[y],
                         xy=(np.array(x_data.dropna())[0],
                             np.array(y_data.dropna())[0]),
                         xytext=(np.array(x_data.dropna())[0],
                                 np.array(y_data.dropna())[0]))
-            '''
 
             # overplot the name of the empirical spectrum at each data point
             #import ipdb; ipdb.set_trace()
@@ -504,6 +504,7 @@ class findHK():
                         xytext=(np.array(x_data.dropna())[spec_annotate_num],
                                 np.array(y_data.dropna())[spec_annotate_num]),
                         fontsize=6)
+        '''
 
         # connect lines between each 'star'; that is, with the same gravity and metallicity
         df_20m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m10')].sort_values(by=["empir_spec_name"]).reset_index()
@@ -531,33 +532,31 @@ class findHK():
         df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
 
- 
-        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m10["balmer"], df_20m10["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m15["balmer"], df_20m15["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m20["balmer"], df_20m20["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m25["balmer"], df_20m25["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m30["balmer"], df_20m30["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20p02["balmer"], df_20p02["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20p00["balmer"], df_20p00["K"], yerr= , xerr= , marker="None", linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_25m05["balmer"], df_25m05["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25m10["balmer"], df_25m10["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25m15["balmer"], df_25m15["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25m20["balmer"], df_25m20["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25m25["balmer"], df_25m25["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25m30["balmer"], df_25m30["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m05["balmer"], df_30m05["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m10["balmer"], df_30m10["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m15["balmer"], df_30m15["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m20["balmer"], df_30m20["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m25["balmer"], df_30m25["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30m30["balmer"], df_30m30["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30p00["balmer"], df_30p00["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25p00["balmer"], df_25p00["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_30p02["balmer"], df_30p02["K"], yerr= , xerr= , marker="None")
-        plt.errorbar(df_25p02["balmer"], df_25p02["K"], yerr= , xerr= , marker="None")
-
+        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m10["balmer"], df_20m10["K"], yerr=df_20m10["err_K"], xerr=df_20m10["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m15["balmer"], df_20m15["K"], yerr=df_20m15["err_K"], xerr=df_20m15["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m20["balmer"], df_20m20["K"], yerr=df_20m20["err_K"], xerr=df_20m20["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m25["balmer"], df_20m25["K"], yerr=df_20m25["err_K"], xerr=df_20m25["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m30["balmer"], df_20m30["K"], yerr=df_20m30["err_K"], xerr=df_20m30["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20p02["balmer"], df_20p02["K"], yerr=df_20p02["err_K"], xerr=df_20p02["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_20p00["balmer"], df_20p00["K"], yerr=df_20p00["err_K"], xerr=df_20p00["err_balmer"], linestyle = "--", alpha = 0.1)
+        plt.errorbar(df_25m05["balmer"], df_25m05["K"], yerr=df_25m05["err_K"], xerr=df_25m05["err_balmer"])
+        plt.errorbar(df_25m10["balmer"], df_25m10["K"], yerr=df_25m10["err_K"], xerr=df_25m10["err_balmer"])
+        plt.errorbar(df_25m15["balmer"], df_25m15["K"], yerr=df_25m15["err_K"], xerr=df_25m15["err_balmer"])
+        plt.errorbar(df_25m20["balmer"], df_25m20["K"], yerr=df_25m20["err_K"], xerr=df_25m20["err_balmer"])
+        plt.errorbar(df_25m25["balmer"], df_25m25["K"], yerr=df_25m25["err_K"], xerr=df_25m25["err_balmer"])
+        plt.errorbar(df_25m30["balmer"], df_25m30["K"], yerr=df_25m30["err_K"], xerr=df_25m30["err_balmer"])
+        plt.errorbar(df_30m05["balmer"], df_30m05["K"], yerr=df_30m05["err_K"], xerr=df_30m05["err_balmer"])
+        plt.errorbar(df_30m10["balmer"], df_30m10["K"], yerr=df_30m10["err_K"], xerr=df_30m10["err_balmer"])
+        plt.errorbar(df_30m15["balmer"], df_30m15["K"], yerr=df_30m15["err_K"], xerr=df_30m15["err_balmer"])
+        plt.errorbar(df_30m20["balmer"], df_30m20["K"], yerr=df_30m20["err_K"], xerr=df_30m20["err_balmer"])
+        plt.errorbar(df_30m25["balmer"], df_30m25["K"], yerr=df_30m25["err_K"], xerr=df_30m25["err_balmer"])
+        plt.errorbar(df_30m30["balmer"], df_30m30["K"], yerr=df_30m30["err_K"], xerr=df_30m30["err_balmer"])
+        plt.errorbar(df_30p00["balmer"], df_30p00["K"], yerr=df_30p00["err_K"], xerr=df_30p00["err_balmer"])
+        plt.errorbar(df_25p00["balmer"], df_25p00["K"], yerr=df_25p00["err_K"], xerr=df_25p00["err_balmer"])
+        plt.errorbar(df_30p02["balmer"], df_30p02["K"], yerr=df_30p02["err_K"], xerr=df_30p02["err_balmer"])
+        plt.errorbar(df_25p02["balmer"], df_25p02["K"], yerr=df_25p02["err_K"], xerr=df_25p02["err_balmer"])
         
         plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW ($\AA$)')
