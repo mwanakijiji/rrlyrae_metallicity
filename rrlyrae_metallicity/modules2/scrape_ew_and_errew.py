@@ -308,6 +308,7 @@ class findHK():
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
 
             # the error bars
+            print("Hbet std being calculated from " + str(len(Hbet_data)) "noise-churned spectra.")
             err_Hbet_data = np.nanstd(Hbet_data)
             err_Hgam_data = np.nanstd(Hgam_data)
             err_rHgam_data = np.nanstd(rHgam_data)
@@ -395,9 +396,7 @@ class findHK():
         df_collation["phase"] = np.nan
 
         # get the spectrum names from phase_info without the '.dat'
-        phase_info_basename = phase_info['Spectrum'].str.split(".",
-                                                               n=1,
-                                                               expand=True)[:][0]
+        phase_info_basename = phase_info['Spectrum'].str.split(".",n=1,expand=True)[:][0]
 
         # loop over each empirical spectrum name and paste the phase into the array
         for q in range(0, len(df_collation['empir_spec_name'].values)):
