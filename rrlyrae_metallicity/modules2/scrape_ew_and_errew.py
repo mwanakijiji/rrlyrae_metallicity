@@ -308,7 +308,7 @@ class findHK():
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
 
             # the error bars
-            print("Hbet std being calculated from " + str(len(Hbet_data)) "noise-churned spectra.")
+            print("Hbet std being calculated from " + str(len(Hbet_data)) + "noise-churned spectra.")
             err_Hbet_data = np.nanstd(Hbet_data)
             err_Hgam_data = np.nanstd(Hgam_data)
             err_rHgam_data = np.nanstd(rHgam_data)
