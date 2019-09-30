@@ -32,9 +32,10 @@ def main():
     run_robo.main()
 
     # scrape_ew_from_robo and calculate EWs + err_EW
+    '''
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
-    '''
+
     # find equivalent widths
     find_HK_instance = scrape_ew_and_errew.findHK()
     find_HK_instance() # call instance
