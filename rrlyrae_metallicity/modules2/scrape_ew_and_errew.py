@@ -8,6 +8,7 @@ import glob
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.pylab as pl
 from rrlyrae_metallicity.modules2 import *
 
 class Scraper():
@@ -532,31 +533,96 @@ class findHK():
         df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
 
-        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m10["balmer"], df_20m10["K"], yerr=df_20m10["err_K"], xerr=df_20m10["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m15["balmer"], df_20m15["K"], yerr=df_20m15["err_K"], xerr=df_20m15["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m20["balmer"], df_20m20["K"], yerr=df_20m20["err_K"], xerr=df_20m20["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m25["balmer"], df_20m25["K"], yerr=df_20m25["err_K"], xerr=df_20m25["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m30["balmer"], df_20m30["K"], yerr=df_20m30["err_K"], xerr=df_20m30["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20p02["balmer"], df_20p02["K"], yerr=df_20p02["err_K"], xerr=df_20p02["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_20p00["balmer"], df_20p00["K"], yerr=df_20p00["err_K"], xerr=df_20p00["err_balmer"], linestyle = "--", alpha = 0.1)
-        plt.errorbar(df_25m05["balmer"], df_25m05["K"], yerr=df_25m05["err_K"], xerr=df_25m05["err_balmer"])
-        plt.errorbar(df_25m10["balmer"], df_25m10["K"], yerr=df_25m10["err_K"], xerr=df_25m10["err_balmer"])
-        plt.errorbar(df_25m15["balmer"], df_25m15["K"], yerr=df_25m15["err_K"], xerr=df_25m15["err_balmer"])
-        plt.errorbar(df_25m20["balmer"], df_25m20["K"], yerr=df_25m20["err_K"], xerr=df_25m20["err_balmer"])
-        plt.errorbar(df_25m25["balmer"], df_25m25["K"], yerr=df_25m25["err_K"], xerr=df_25m25["err_balmer"])
-        plt.errorbar(df_25m30["balmer"], df_25m30["K"], yerr=df_25m30["err_K"], xerr=df_25m30["err_balmer"])
-        plt.errorbar(df_30m05["balmer"], df_30m05["K"], yerr=df_30m05["err_K"], xerr=df_30m05["err_balmer"])
-        plt.errorbar(df_30m10["balmer"], df_30m10["K"], yerr=df_30m10["err_K"], xerr=df_30m10["err_balmer"])
-        plt.errorbar(df_30m15["balmer"], df_30m15["K"], yerr=df_30m15["err_K"], xerr=df_30m15["err_balmer"])
-        plt.errorbar(df_30m20["balmer"], df_30m20["K"], yerr=df_30m20["err_K"], xerr=df_30m20["err_balmer"])
-        plt.errorbar(df_30m25["balmer"], df_30m25["K"], yerr=df_30m25["err_K"], xerr=df_30m25["err_balmer"])
-        plt.errorbar(df_30m30["balmer"], df_30m30["K"], yerr=df_30m30["err_K"], xerr=df_30m30["err_balmer"])
-        plt.errorbar(df_30p00["balmer"], df_30p00["K"], yerr=df_30p00["err_K"], xerr=df_30p00["err_balmer"])
-        plt.errorbar(df_25p00["balmer"], df_25p00["K"], yerr=df_25p00["err_K"], xerr=df_25p00["err_balmer"])
-        plt.errorbar(df_30p02["balmer"], df_30p02["K"], yerr=df_30p02["err_K"], xerr=df_30p02["err_balmer"])
-        plt.errorbar(df_25p02["balmer"], df_25p02["K"], yerr=df_25p02["err_K"], xerr=df_25p02["err_balmer"])
+        # establish color map
+        n = 16
+        colors = pl.cm.jet(np.linspace(0,1,n))
+
+        # definition for making the annotation a bit simpler
+        def annotate_fcn(ax_pass,stuff_2_plot):
+            for spec_annotate_num in range(0,len(stuff_2_plot)):
+                ax_pass.annotate(stuff_2_plot["empir_spec_name"][spec_annotate_num],
+                        xy=(stuff_2_plot["balmer"][spec_annotate_num],stuff_2_plot["K"][spec_annotate_num]),fontsize=6)
+            
+        ax.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m05)
+        ax.errorbar(df_20p00["balmer"], df_20p00["K"], yerr=df_20p00["err_K"], xerr=df_20p00["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20p00)
+        ax.errorbar(df_20m10["balmer"], df_20m10["K"], yerr=df_20m10["err_K"], xerr=df_20m10["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m10)
+        ax.errorbar(df_20m15["balmer"], df_20m15["K"], yerr=df_20m15["err_K"], xerr=df_20m15["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m15)
+        ax.errorbar(df_20m20["balmer"], df_20m20["K"], yerr=df_20m20["err_K"], xerr=df_20m20["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m20)
+        ax.errorbar(df_20m25["balmer"], df_20m25["K"], yerr=df_20m25["err_K"], xerr=df_20m25["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m25)
+        ax.errorbar(df_20m30["balmer"], df_20m30["K"], yerr=df_20m30["err_K"], xerr=df_20m30["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20m30)
+        ax.errorbar(df_20p02["balmer"], df_20p02["K"], yerr=df_20p02["err_K"], xerr=df_20p02["err_balmer"],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        annotate_fcn(ax,df_20p02)
+        #ax.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"],
+        #             fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+
+        ax.errorbar(df_25m30["balmer"], df_25m30["K"], yerr=df_25m30["err_K"], xerr=df_25m30["err_balmer"], linestyle="-", color=colors[0],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m30)
+        ax.errorbar(df_25m25["balmer"], df_25m25["K"], yerr=df_25m25["err_K"], xerr=df_25m25["err_balmer"], linestyle="-", color=colors[1],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m25)        
+        ax.errorbar(df_25m20["balmer"], df_25m20["K"], yerr=df_25m20["err_K"], xerr=df_25m20["err_balmer"], linestyle="-", color=colors[2],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m20)
+        ax.errorbar(df_25m15["balmer"], df_25m15["K"], yerr=df_25m15["err_K"], xerr=df_25m15["err_balmer"], linestyle="-", color=colors[3],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m15)
+        ax.errorbar(df_25m10["balmer"], df_25m10["K"], yerr=df_25m10["err_K"], xerr=df_25m10["err_balmer"], linestyle="-", color=colors[4],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m10)
+        ax.errorbar(df_25m05["balmer"], df_25m05["K"], yerr=df_25m05["err_K"], xerr=df_25m05["err_balmer"], linestyle="-", color=colors[5],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25m05)
+        ax.errorbar(df_25p00["balmer"], df_25p00["K"], yerr=df_25p00["err_K"], xerr=df_25p00["err_balmer"], linestyle="-", color=colors[6],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25p00)
+        ax.errorbar(df_25p02["balmer"], df_25p02["K"], yerr=df_25p02["err_K"], xerr=df_25p02["err_balmer"], linestyle="-", color=colors[7],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_25p02)
+        ax.errorbar(df_30m30["balmer"], df_30m30["K"], yerr=df_30m30["err_K"], xerr=df_30m30["err_balmer"], linestyle="-", color=colors[8],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m30)
+        ax.errorbar(df_30m25["balmer"], df_30m25["K"], yerr=df_30m25["err_K"], xerr=df_30m25["err_balmer"], linestyle="-", color=colors[9],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m25)
+        ax.errorbar(df_30m20["balmer"], df_30m20["K"], yerr=df_30m20["err_K"], xerr=df_30m20["err_balmer"], linestyle="-", color=colors[10],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m20)
+        ax.errorbar(df_30m15["balmer"], df_30m15["K"], yerr=df_30m15["err_K"], xerr=df_30m15["err_balmer"], linestyle="-", color=colors[11],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m15)
+        ax.errorbar(df_30m10["balmer"], df_30m10["K"], yerr=df_30m10["err_K"], xerr=df_30m10["err_balmer"], linestyle="-", color=colors[12],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m10)
+        ax.errorbar(df_30m05["balmer"], df_30m05["K"], yerr=df_30m05["err_K"], xerr=df_30m05["err_balmer"], linestyle="-", color=colors[13],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30m05)
+        ax.errorbar(df_30p00["balmer"], df_30p00["K"], yerr=df_30p00["err_K"], xerr=df_30p00["err_balmer"], linestyle="-", color=colors[14],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30p00)
+        ax.errorbar(df_30p02["balmer"], df_30p02["K"], yerr=df_30p02["err_K"], xerr=df_30p02["err_balmer"], linestyle="-", color=colors[15],
+                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
+        annotate_fcn(ax,df_30p02)
+
+
+
+
+
         
         plt.title('KH plot\n(unfilled markers = bad phase region)')
         plt.ylabel('CaIIK EW ($\AA$)')

@@ -27,18 +27,18 @@ def main():
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 100)
-    '''
+
     # run_robospect on normalized synthetic spectra
     run_robo.main()
-    '''
+
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
-
+    '''
     # find equivalent widths
     find_HK_instance = scrape_ew_and_errew.findHK()
     find_HK_instance() # call instance
-
+    '''
     # apply offsets to Fe/H values, etc., to map Fe/H values based
     # on a basis set, and pickle results
     make_high_res_feh_basis.calc_feh_program_stars()
