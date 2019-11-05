@@ -186,6 +186,7 @@ class RunEmcee():
         ecaii = np.divide(df_choice['err_K'], 1000.)
         ave = np.divide(df_choice['balmer'], 1000.)
         eave = np.divide(df_choice['err_balmer'], 1000.)
+        import ipdb; ipdb.set_trace()
 
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
         feh = df_choice['final_feh_center']
@@ -313,7 +314,7 @@ class RunEmcee():
         sys.stdout.write("{0:s} {1:10d} {2:s}\n".format("Elapsed time: ",
                                                         int(elapsed_time), "sec"))
         print("--------------------------")
-        sys.stdout.write("MCMC chain data written out to")
+        sys.stdout.write("MCMC chain data written out to\n")
         sys.stdout.write(str(self.mcmc_text_output))
 
         # corner plot (requires 'storechain=True' in enumerate above)

@@ -100,6 +100,7 @@ def generate_realizations(spec_name, outdir, num):
         new_name = os.path.join(outdir, new_name)
         # add Gaussian error to the empirical flux
         new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux']
+
         try:
             outfile = open(new_name, 'w')
         except IOError:
@@ -233,9 +234,9 @@ def create_spec_realizations_main(num = 100,
     # Create realizations for each spectrum
     name_list = list() # initialize
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
-        name_list.extend(generate_realizations(unnorm_empirical_spectra_dir+list_arr[i],
-                                               outdir,
-                                               num))
+        name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+list_arr[i],
+                                               outdir=outdir,
+                                               num=num))
     print('name_list')
     print(name_list)
 

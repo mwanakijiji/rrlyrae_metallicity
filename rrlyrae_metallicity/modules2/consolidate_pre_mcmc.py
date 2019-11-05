@@ -86,6 +86,8 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
     hk_ews["final_feh_center"] = np.nan
     hk_ews["final_feh_lower"] = np.nan
     hk_ews["final_feh_upper"] = np.nan
+    hk_ews["Teff"] = np.nan
+    hk_ews["logg"] = np.nan
 
     # loop over each star name (of which our program stars are a subset)
     # and paste the FeH values to the HK table rows corresponding to the
@@ -115,27 +117,41 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
     elif synthetic:
         print("SYNTHETIC")
         for synth_spec_num in range(0, len(hk_ews["empir_spec_name"])):
-            print("Num " + str(synth_spec_num) + "out of " + str(len(hk_ews["empir_spec_name"])))
+            print("Num " + str(synth_spec_num) + " out of " + str(len(hk_ews["empir_spec_name"])))
             this_synth_spectrum_name = hk_ews["empir_spec_name"][synth_spec_num]
 
             # Fe/H is negative (given RW's naming convention)
             if ("m" in this_synth_spectrum_name):
-                print("m is in")
                 feh_center_this_star = -0.1*np.float(this_synth_spectrum_name.split("m")[1])
                 feh_lower_this_star = np.float(feh_center_this_star)
                 feh_upper_this_star = np.float(feh_center_this_star)
             # Fe/H is positive
             elif ("p" in this_synth_spectrum_name):
-                print("p is in")
                 feh_center_this_star = 0.1*np.float(this_synth_spectrum_name.split("p")[1])
                 feh_lower_this_star = np.float(feh_center_this_star)
                 feh_upper_this_star = np.float(feh_center_this_star)
+            Teff_this_star = int(this_synth_spectrum_name.split("m")[0][0:4])
+            logg_this_star = np.divide(int(this_synth_spectrum_name.split("m")[0][4:6]),10)
+
             hk_ews["final_feh_center"].iloc[synth_spec_num] = feh_center_this_star
             hk_ews["final_feh_lower"].iloc[synth_spec_num] = feh_lower_this_star
             hk_ews["final_feh_upper"].iloc[synth_spec_num] = feh_upper_this_star
+            hk_ews["Teff"].iloc[synth_spec_num] = Teff_this_star
+            hk_ews["logg"].iloc[synth_spec_num] = logg_this_star
+
+        ### START HERE
+        # now remove the synthetic spectra with Teff<6000, Teff>7500, logg=2
+        # ... this functionality should be moved
+        hk_ews = hk_ews[hk_ews.Teff >= 6000]
+        hk_ews = hk_ews[hk_ews.Teff <= 7500]
+        hk_ews = hk_ews[hk_ews.logg > 2]
+        hk_ews = hk_ews.reset_index()
+        # ... then find Fe/H abcd; this is 'infinte S/N'
+        # ... then check the spectra with xmgrace to see why there are some error large KH bars 
+        # ... then put in more realistic noise and repeat
 
     # fyi
-    #hk_ews.to_csv('junk.csv')
+    hk_ews.to_csv('junk.csv')
 
     print("HK_EWS")
     print(hk_ews)
@@ -181,9 +197,9 @@ def winnow_by_phase_and_type(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"]
                                                     hk_data["phase"] < max_good)).dropna().reset_index()
 
     ## ## drop by type, too?
-    hk_data_winnowed_phase_and_type = hk_data_winnowed_phase.where(np.logical_and(hk_data["phase"] > min_good,
-                                                hk_data["phase"] < max_good)).dropna().reset_index()
-
+    #hk_data_winnowed_phase_and_type = hk_data_winnowed_phase.where(np.logical_and(hk_data["phase"] > min_good,
+    #                                            hk_data["phase"] < max_good)).dropna().reset_index()
+    hk_data_winnowed_phase_and_type = hk_data_winnowed_phase
 
 
     #hk_data_winnowed_file_name = "hk_data_winnowed.csv"
