@@ -47,7 +47,7 @@ class Scraper():
             N.b. This checks the wavelengths using the given line list
             values (and not the fitted centers)
             '''
-
+            print(line_centers[0])
             if ((line_centers[0] < 3933.660-10) or
                 (line_centers[0] > 3933.660+10)): # CaIIK
                 print('Lines not matching!')
@@ -72,16 +72,16 @@ class Scraper():
 
         df_master = pd.DataFrame() # initialize
 
-        print('FILE LIST')
-        print(self.file_list)
-        print(self.file_list[116])
+        #print('FILE LIST')
+        #print(self.file_list)
+        #print(self.file_list[116])
 
         # loop over all filenames of realizations of empirical spectra, extract line data
         for t in range(0, len(self.file_list)):
 
             # read in Robospect output
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
-                             skiprows=17,
+                             skiprows=19,
                              delim_whitespace=True,
                              index_col=False,
                              usecols=[0,2,3,6,7,10,11,13,14,15,16,18],
@@ -95,8 +95,8 @@ class Scraper():
                              index_col=False,
                              usecols=np.arange(17))
             '''
-            print(df['#x0'])
-            print(self.file_list[t])
+            #print(df['#x0'])
+            #print(self.file_list[t])
 
             # check lines are in the right order
             line_order_check(df['#x0'])
