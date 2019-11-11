@@ -85,7 +85,7 @@ class Scraper():
                              delim_whitespace=True,
                              index_col=False,
                              usecols=[0,2,3,6,7,10,11,13,14,15,16,18],
-                             names=["#x0","mean","EQW","flux","7","10","11","13","14","chi","flags","line_name"])
+                             names=["#x0","mean","10","flux","7","EQW","11","13","14","chi","flags","line_name"])
             ##names=["#x0","mean","sigma","flux","7","10","11","EQW","14","chi","flags","line_name"]
             ## old command here 
             '''
@@ -537,38 +537,122 @@ class findHK():
         colors = pl.cm.jet(np.linspace(0,1,n))
 
         # definition for making the annotation a bit simpler
-        def annotate_fcn(ax_pass,stuff_2_plot):
+        def annotate_fcn(ax_pass, stuff_2_plot):
             for spec_annotate_num in range(0,len(stuff_2_plot)):
                 ax_pass.annotate(stuff_2_plot["empir_spec_name"][spec_annotate_num],
                         xy=(stuff_2_plot["balmer"][spec_annotate_num],stuff_2_plot["K"][spec_annotate_num]),fontsize=6)
-            
-        ax.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m05)
-        ax.errorbar(df_20p00["balmer"], df_20p00["K"], yerr=df_20p00["err_K"], xerr=df_20p00["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20p00)
-        ax.errorbar(df_20m10["balmer"], df_20m10["K"], yerr=df_20m10["err_K"], xerr=df_20m10["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m10)
-        ax.errorbar(df_20m15["balmer"], df_20m15["K"], yerr=df_20m15["err_K"], xerr=df_20m15["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m15)
-        ax.errorbar(df_20m20["balmer"], df_20m20["K"], yerr=df_20m20["err_K"], xerr=df_20m20["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m20)
-        ax.errorbar(df_20m25["balmer"], df_20m25["K"], yerr=df_20m25["err_K"], xerr=df_20m25["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m25)
-        ax.errorbar(df_20m30["balmer"], df_20m30["K"], yerr=df_20m30["err_K"], xerr=df_20m30["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20m30)
-        ax.errorbar(df_20p02["balmer"], df_20p02["K"], yerr=df_20p02["err_K"], xerr=df_20p02["err_balmer"],
-                     fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
-        annotate_fcn(ax,df_20p02)
-        #ax.errorbar(df_20m05["balmer"], df_20m05["K"], yerr=df_20m05["err_K"], xerr=df_20m05["err_balmer"],
-        #             fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
+        # definition for making the dashed-line plots a bit simpler
+        def dashed_line_plot(ax_pass,df_pass):
+            ax_pass.errorbar(df_pass["balmer"], df_pass["K"], yerr=df_pass["err_K"], xerr=df_pass["err_balmer"],
+                        fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5, linestyle = "--", alpha = 0.2)
 
+        dashed_line_plot(ax,df_20m05)
+        annotate_fcn(ax,df_20m05)
+
+        dashed_line_plot(ax,df_20p00)
+        annotate_fcn(ax,df_20p00)
+
+        dashed_line_plot(ax,df_20m10)
+        annotate_fcn(ax,df_20m10)
+        
+        dashed_line_plot(ax,df_20m15)
+        annotate_fcn(ax,df_20m15)
+        
+        dashed_line_plot(ax,df_20m20)
+        annotate_fcn(ax,df_20m20)
+        
+        dashed_line_plot(ax,df_20m25)
+        annotate_fcn(ax,df_20m25)
+        
+        dashed_line_plot(ax,df_20m30)
+        annotate_fcn(ax,df_20m30)
+        
+        dashed_line_plot(ax,df_20p02)
+        annotate_fcn(ax,df_20p02)
+        
+        dashed_line_plot(ax,df_25m30)
+        annotate_fcn(ax,df_25m30)
+        
+        dashed_line_plot(ax,df_25m25)
+        annotate_fcn(ax,df_25m25)
+        
+        dashed_line_plot(ax,df_25m20)
+        annotate_fcn(ax,df_25m20)
+        
+        dashed_line_plot(ax,df_25m15)
+        annotate_fcn(ax,df_25m15)
+        
+        dashed_line_plot(ax,df_25m10)
+        annotate_fcn(ax,df_25m10)
+        
+        dashed_line_plot(ax,df_25m05)
+        annotate_fcn(ax,df_25m05)
+        
+        dashed_line_plot(ax,df_25p00)
+        annotate_fcn(ax,df_25p00)
+        
+        dashed_line_plot(ax,df_25p02)
+        annotate_fcn(ax,df_25p02)
+        
+        dashed_line_plot(ax,df_30m30)
+        annotate_fcn(ax,df_30m30)
+        
+        dashed_line_plot(ax,df_30m25)
+        annotate_fcn(ax,df_30m25)
+        
+        dashed_line_plot(ax,df_30m20)
+        annotate_fcn(ax,df_30m20)
+        
+        dashed_line_plot(ax,df_30m15)
+        annotate_fcn(ax,df_30m15)
+        
+        dashed_line_plot(ax,df_30m10)
+        annotate_fcn(ax,df_30m10)
+        
+        dashed_line_plot(ax,df_30m05)
+        annotate_fcn(ax,df_30m05)
+        
+        dashed_line_plot(ax,df_30p00)
+        annotate_fcn(ax,df_30p00)
+        
+        dashed_line_plot(ax,df_30p02)
+        annotate_fcn(ax,df_30p02)
+
+        # now remove data for Teff<6000K and Teff>7500K
+        df_25m30 = df_25m30.where(np.logical_and(df_25m30["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m30["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m25 = df_25m25.where(np.logical_and(df_25m25["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m25["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m20 = df_25m20.where(np.logical_and(df_25m20["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m20["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m15 = df_25m15.where(np.logical_and(df_25m15["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m15["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m10 = df_25m10.where(np.logical_and(df_25m10["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m10["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m05 = df_25m05.where(np.logical_and(df_25m05["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25m05["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25p00 = df_25p00.where(np.logical_and(df_25p00["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25p00["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25p02 = df_25p02.where(np.logical_and(df_25p02["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_25p02["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m30 = df_30m30.where(np.logical_and(df_30m30["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m30["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m25 = df_30m25.where(np.logical_and(df_30m25["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m25["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m20 = df_30m20.where(np.logical_and(df_30m20["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m20["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m15 = df_30m15.where(np.logical_and(df_30m15["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m15["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m10 = df_30m10.where(np.logical_and(df_30m10["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m10["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m05 = df_30m05.where(np.logical_and(df_30m05["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30m05["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30p00 = df_30p00.where(np.logical_and(df_30p00["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30p00["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30p02 = df_30p02.where(np.logical_and(df_30p02["empir_spec_name"].str[:4].astype(int) >= 6000,
+                                      df_30p02["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+
+        # solid line plots, of data which we want to use for the calibration
         ax.errorbar(df_25m30["balmer"], df_25m30["K"], yerr=df_25m30["err_K"], xerr=df_25m30["err_balmer"], linestyle="-", color=colors[0],
                      fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
         annotate_fcn(ax,df_25m30)
@@ -617,7 +701,8 @@ class findHK():
         ax.errorbar(df_30p02["balmer"], df_30p02["K"], yerr=df_30p02["err_K"], xerr=df_30p02["err_balmer"], linestyle="-", color=colors[15],
                      fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
         annotate_fcn(ax,df_30p02)
-
+        
+        import ipdb; ipdb.set_trace()
 
 
 
