@@ -99,6 +99,7 @@ def generate_realizations(spec_name, outdir, num):
         # name of spectrum realization, with path
         new_name = os.path.join(outdir, new_name)
         # add Gaussian error to the empirical flux
+        #import ipdb; ipdb.set_trace()
         new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux']
 
         try:

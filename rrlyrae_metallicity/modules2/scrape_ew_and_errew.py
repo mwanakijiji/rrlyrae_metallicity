@@ -80,14 +80,31 @@ class Scraper():
         for t in range(0, len(self.file_list)):
 
             # read in Robospect output
+            '''
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
                              skiprows=19,
                              delim_whitespace=True,
                              index_col=False,
-                             usecols=[0,2,3,6,7,10,11,13,14,15,16,18],
-                             names=["#x0","mean","10","flux","7","EQW","11","13","14","chi","flags","line_name"])
+                             usecols=[    0,     2,   3,     6,  7,   11,  13,  14,   15,     16,         18],
+                             names=  ["#x0","mean","3","flux","7","EQW","13","14","15","flags","line_name"])
+            '''
+            df = pd.read_csv(self.subdir+'/'+self.file_list[t],
+                             skiprows=19,
+                             delim_whitespace=True,
+                             index_col=False,
+                             usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+                             names=  ["#x0","[1","mean","gaussianSigma","gaussianAmp",
+                                        "[2","uncertaintyMu","uncertaintySigma","uncertaintyAmp",
+                                        "[3","priorMu","priorSigma","priorAmp","EQW","uncertaintyEQW",
+                                        "chiSqr","flags","blendGroup","line_name"])
             ##names=["#x0","mean","sigma","flux","7","10","11","EQW","14","chi","flags","line_name"]
-            ## old command here 
+            ## old command here
+            #import ipdb; ipdb.set_trace()
+            ## ## TEST IF STATEMENT
+            #import ipdb; ipdb.set_trace()
+            #import ipdb; ipdb.set_trace()
+            #if self.file_list[t] == "600020p02.smo_000.robolines":
+            #    import ipdb; ipdb.set_trace()
             '''
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
                              header=16,
@@ -97,7 +114,7 @@ class Scraper():
             '''
             #print(df['#x0'])
             #print(self.file_list[t])
-
+            #import ipdb; ipdb.set_trace()
             # check lines are in the right order
             line_order_check(df['#x0'])
 
@@ -162,7 +179,7 @@ class Scraper():
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
         df_master_reset_drop_bad_spectra.to_csv(self.write_out_filename)
-
+        #import ipdb; ipdb.set_trace()
         print("--------------------------")
         print('Scraped Robospect output written to')
         print(self.write_out_filename)
@@ -486,7 +503,7 @@ class findHK():
                         fmt=markers[y],
                         markerfacecolor='white',
                         color=colors[y])
-        
+
             # add star nam
             ax.annotate(unique_star_names[y],
                         xy=(np.array(x_data.dropna())[0],
@@ -505,7 +522,7 @@ class findHK():
                                 np.array(y_data.dropna())[spec_annotate_num]),
                         fontsize=6)
         '''
-
+        #import ipdb; ipdb.set_trace()
         # connect lines between each 'star'; that is, with the same gravity and metallicity
         df_20m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m10')].sort_values(by=["empir_spec_name"]).reset_index()
         df_20m15 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m15')].sort_values(by=["empir_spec_name"]).reset_index()
@@ -535,7 +552,7 @@ class findHK():
         # establish color map
         n = 16
         colors = pl.cm.jet(np.linspace(0,1,n))
-
+        #import ipdb; ipdb.set_trace()
         # definition for making the annotation a bit simpler
         def annotate_fcn(ax_pass, stuff_2_plot):
             for spec_annotate_num in range(0,len(stuff_2_plot)):
@@ -554,67 +571,67 @@ class findHK():
 
         dashed_line_plot(ax,df_20m10)
         annotate_fcn(ax,df_20m10)
-        
+
         dashed_line_plot(ax,df_20m15)
         annotate_fcn(ax,df_20m15)
-        
+
         dashed_line_plot(ax,df_20m20)
         annotate_fcn(ax,df_20m20)
-        
+
         dashed_line_plot(ax,df_20m25)
         annotate_fcn(ax,df_20m25)
-        
+
         dashed_line_plot(ax,df_20m30)
         annotate_fcn(ax,df_20m30)
-        
+
         dashed_line_plot(ax,df_20p02)
         annotate_fcn(ax,df_20p02)
-        
+
         dashed_line_plot(ax,df_25m30)
         annotate_fcn(ax,df_25m30)
-        
+
         dashed_line_plot(ax,df_25m25)
         annotate_fcn(ax,df_25m25)
-        
+
         dashed_line_plot(ax,df_25m20)
         annotate_fcn(ax,df_25m20)
-        
+
         dashed_line_plot(ax,df_25m15)
         annotate_fcn(ax,df_25m15)
-        
+
         dashed_line_plot(ax,df_25m10)
         annotate_fcn(ax,df_25m10)
-        
+
         dashed_line_plot(ax,df_25m05)
         annotate_fcn(ax,df_25m05)
-        
+
         dashed_line_plot(ax,df_25p00)
         annotate_fcn(ax,df_25p00)
-        
+
         dashed_line_plot(ax,df_25p02)
         annotate_fcn(ax,df_25p02)
-        
+
         dashed_line_plot(ax,df_30m30)
         annotate_fcn(ax,df_30m30)
-        
+
         dashed_line_plot(ax,df_30m25)
         annotate_fcn(ax,df_30m25)
-        
+
         dashed_line_plot(ax,df_30m20)
         annotate_fcn(ax,df_30m20)
-        
+
         dashed_line_plot(ax,df_30m15)
         annotate_fcn(ax,df_30m15)
-        
+
         dashed_line_plot(ax,df_30m10)
         annotate_fcn(ax,df_30m10)
-        
+
         dashed_line_plot(ax,df_30m05)
         annotate_fcn(ax,df_30m05)
-        
+
         dashed_line_plot(ax,df_30p00)
         annotate_fcn(ax,df_30p00)
-        
+
         dashed_line_plot(ax,df_30p02)
         annotate_fcn(ax,df_30p02)
 
@@ -658,7 +675,7 @@ class findHK():
         annotate_fcn(ax,df_25m30)
         ax.errorbar(df_25m25["balmer"], df_25m25["K"], yerr=df_25m25["err_K"], xerr=df_25m25["err_balmer"], linestyle="-", color=colors[1],
                      fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
-        annotate_fcn(ax,df_25m25)        
+        annotate_fcn(ax,df_25m25)
         ax.errorbar(df_25m20["balmer"], df_25m20["K"], yerr=df_25m20["err_K"], xerr=df_25m20["err_balmer"], linestyle="-", color=colors[2],
                      fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
         annotate_fcn(ax,df_25m20)
@@ -701,22 +718,22 @@ class findHK():
         ax.errorbar(df_30p02["balmer"], df_30p02["K"], yerr=df_30p02["err_K"], xerr=df_30p02["err_balmer"], linestyle="-", color=colors[15],
                      fmt='o', elinewidth=0.5, ecolor='k', capsize=5, capthick=0.5)
         annotate_fcn(ax,df_30p02)
-        
-        import ipdb; ipdb.set_trace()
+
+        #import ipdb; ipdb.set_trace()
 
 
 
 
-        
+
         plt.title('KH plot\n(unfilled markers = bad phase region)')
-        plt.ylabel('CaIIK EW ($\AA$)')
-        plt.xlabel('Balmer EW ($\AA$)')
+        plt.ylabel('CaIIK EW ($m\AA$?)')
+        plt.xlabel('Balmer EW ($m\AA$?)')
         plt.tight_layout()
         plt.savefig(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
 
-        plt.ylim([0,10])
+        plt.ylim([0,20])
         plt.savefig(self.plot_write_subdir + "stretched_" + config["file_names"]["KH_PLOT_NAME"])
-        
+
         plt.close()
 
         print("HK plots saved as ")

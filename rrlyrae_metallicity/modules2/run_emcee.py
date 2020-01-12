@@ -181,17 +181,23 @@ class RunEmcee():
         df_choice = pd.read_csv(self.scraped_ew_filename,
                                delim_whitespace=False)
 
+        #THIS IS THE ORIGINAL, SINCE EWS WERE IN MILLIANG
+        # EWs in table are in angstroms and are mislabeled as mA (2020 Jan 12)
         name = df_choice['empir_spec_name']
-        caii = np.divide(df_choice['K'], 1000.) # EWs in table are in milliangstroms
-        ecaii = np.divide(df_choice['err_K'], 1000.)
-        ave = np.divide(df_choice['balmer'], 1000.)
-        eave = np.divide(df_choice['err_balmer'], 1000.)
-        import ipdb; ipdb.set_trace()
-
+        #caii = np.divide(df_choice['K'], 1000.)
+        caii = df_choice['K']
+        #ecaii = np.divide(df_choice['err_K'], 1000.)
+        ecaii = df_choice['err_K']
+        #ave = np.divide(df_choice['balmer'], 1000.)
+        ave = df_choice['balmer']
+        eave = df_choice['err_balmer']
+        #eave = np.divide(df_choice['err_balmer'], 1000.)
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
         feh = df_choice['final_feh_center']
         efeh = np.subtract(df_choice['final_feh_center'],
                            df_choice['final_feh_lower'])
+        import ipdb; ipdb.set_trace()
+
 
         phase = df_choice['phase']
         #period = df_choice.type

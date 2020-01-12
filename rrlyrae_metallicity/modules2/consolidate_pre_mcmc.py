@@ -103,7 +103,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
 
             # loop over each of our program stars; i.e., empirical spectra
             for em_spec_num in range(0, len(hk_ews["empir_spec_name"])):
-                
+
                 # if the star assigned to an FeH value appears in the empirical spectrum name
                 if (this_star in hk_ews["empir_spec_name"][em_spec_num]):
                     print("this_star is in hk_ews")
@@ -117,22 +117,27 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
     # if these are just synthetic spectra
     elif synthetic:
         print("SYNTHETIC")
+
+        # read in FeH values
+        feh_info = pd.read_csv(hk_source_dir + config["file_names"]["LIST_SPEC_PHASE"],
+                    delim_whitespace=True)
+        #print(feh_info)
+
         for synth_spec_num in range(0, len(hk_ews["empir_spec_name"])):
             print("Num " + str(synth_spec_num) + " out of " + str(len(hk_ews["empir_spec_name"])))
             this_synth_spectrum_name = hk_ews["empir_spec_name"][synth_spec_num]
 
-            # Fe/H is negative (given RW's naming convention)
-            if ("m" in this_synth_spectrum_name):
-                feh_center_this_star = -0.1*np.float(this_synth_spectrum_name.split("m")[1])
-                feh_lower_this_star = np.float(feh_center_this_star)
-                feh_upper_this_star = np.float(feh_center_this_star)
-            # Fe/H is positive
-            elif ("p" in this_synth_spectrum_name):
-                feh_center_this_star = 0.1*np.float(this_synth_spectrum_name.split("p")[1])
-                feh_lower_this_star = np.float(feh_center_this_star)
-                feh_upper_this_star = np.float(feh_center_this_star)
-            Teff_this_star = int(this_synth_spectrum_name.split("m")[0][0:4])
-            logg_this_star = np.divide(int(this_synth_spectrum_name.split("m")[0][4:6]),10)
+            # find where spectrum name in feh_info matches, and grab the FeH from there
+            row_of_interest = feh_info.where(feh_info["Spectrum"] == this_synth_spectrum_name).dropna()
+            # take FeH of zeroth location (there could be repeats)
+            feh_center_this_star = row_of_interest["final_FeH"].values[0]
+            err_feh_center_this_star = row_of_interest["final_err_FeH"].values[0]
+            feh_lower_this_star = np.subtract(feh_center_this_star,err_feh_center_this_star)
+            feh_upper_this_star = np.add(feh_center_this_star,err_feh_center_this_star)
+
+            # also obtain logg and Teff
+            Teff_this_star = row_of_interest["Teff"].values[0]
+            logg_this_star = row_of_interest["logg"].values[0]
 
             hk_ews["final_feh_center"].iloc[synth_spec_num] = feh_center_this_star
             hk_ews["final_feh_lower"].iloc[synth_spec_num] = feh_lower_this_star
@@ -149,14 +154,14 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
         hk_ews = hk_ews.reset_index()
         #import ipdb; ipdb.set_trace()
         # ... then find Fe/H abcd; this is 'infinte S/N'
-        # ... then check the spectra with xmgrace to see why there are some error large KH bars 
+        # ... then check the spectra with xmgrace to see why there are some error large KH bars
         # ... then put in more realistic noise and repeat
 
     # fyi
     hk_ews.to_csv('junk.csv')
 
-    print("HK_EWS")
-    print(hk_ews)
+    #print("HK_EWS")
+    #print(hk_ews)
 
     # pickle the table of H,K,phases,Fe/H
     ## ## NEED TO ADD STAR TYPE, TOO
@@ -187,10 +192,10 @@ def winnow_by_phase_and_type(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"]
     hk_data = pickle.load( open( pickle_source_dir +
                                  config["file_names"]["KH_FINAL_PKL"], "rb" ) )
     #hk_data_df = pd.DataFrame(hk_data)
-    print(hk_data)
-    print("hk_data keys:")
-    print(hk_data.keys())
-    print(hk_data["phase"])
+    #print(hk_data)
+    #print("hk_data keys:")
+    #print(hk_data.keys())
+    #print(hk_data["phase"])
 
     # drop bad phases
     ## ## NOTE THAT THE DROPNA HERE SEEMS TO BE DROPPING ALL ROWS WITH ANY NANS IN IT (SOME OF THE RRC FEHS ARE NANS)
