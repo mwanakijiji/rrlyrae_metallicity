@@ -80,7 +80,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
 
     # read in the EW and phase info
     hk_ews = pd.read_csv(hk_source_dir + config["file_names"]["MORE_REALISTIC"])
-
+    import ipdb; ipdb.set_trace()
     # paste the feh values onto the HK table
     # loop over each row of the HK table and assign an FeH based
     # on string in empirical spectrum name
@@ -122,7 +122,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
         feh_info = pd.read_csv(hk_source_dir + config["file_names"]["LIST_SPEC_PHASE"],
                     delim_whitespace=True)
         #print(feh_info)
-
+        #import ipdb; ipdb.set_trace()
         for synth_spec_num in range(0, len(hk_ews["empir_spec_name"])):
             print("Num " + str(synth_spec_num) + " out of " + str(len(hk_ews["empir_spec_name"])))
             this_synth_spectrum_name = hk_ews["empir_spec_name"][synth_spec_num]
@@ -130,6 +130,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
             # find where spectrum name in feh_info matches, and grab the FeH from there
             row_of_interest = feh_info.where(feh_info["Spectrum"] == this_synth_spectrum_name).dropna()
             # take FeH of zeroth location (there could be repeats)
+            import ipdb; ipdb.set_trace()
             feh_center_this_star = row_of_interest["final_FeH"].values[0]
             err_feh_center_this_star = row_of_interest["final_err_FeH"].values[0]
             feh_lower_this_star = np.subtract(feh_center_this_star,err_feh_center_this_star)

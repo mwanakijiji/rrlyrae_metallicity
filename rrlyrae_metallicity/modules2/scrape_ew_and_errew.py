@@ -132,12 +132,13 @@ class Scraper():
 
             # names of empirical spectra realizations (multiple ones
             # correspond to one empirical spectrum)
-            df['synth_spec_name'] = pd.Series(self.file_list[t].split(".")[0],
+            df['synth_spec_name'] = pd.Series(self.file_list[t],
                                               index=df.index)
 
             # names of empirical spectra
             ## ## the below is the command for RW's synthetic spectra
-            df['empir_spec_name'] = pd.Series(self.file_list[t].split(".")[0],
+            ## ## need to generalize this
+            df['empir_spec_name'] = pd.Series(self.file_list[t].split("_")[0],
                                               index=df.index)
             ## ## the below is the old command, for the McD spectra
             '''
@@ -418,7 +419,7 @@ class findHK():
         df_collation["phase"] = np.nan
 
         # get the spectrum names from phase_info without the '.dat'
-        phase_info_basename = phase_info['Spectrum'].str.split(".",n=1,expand=True)[:][0]
+        phase_info_basename = phase_info['Spectrum'].values#.str.split(".",n=1,expand=True)[:][0]
 
         # loop over each empirical spectrum name and paste the phase into the array
         for q in range(0, len(df_collation['empir_spec_name'].values)):
@@ -429,6 +430,7 @@ class findHK():
                 phase_info_basename == df_collation['empir_spec_name'][q]
                 ).dropna()
             #df_collation.iloc[q, "phase"] = phase_this_one.values[0]
+            import ipdb; ipdb.set_trace()
             df_collation.at[q, "phase"] = phase_this_one.values[0]
             # check the name-phase combination is right
             if (df_collation.at[q, "empir_spec_name"] == empir_spec_this_one.any().split(".")[0]):
