@@ -127,24 +127,18 @@ class Scraper():
             #s_length = len(df['mean']) # number of lines (should be 5)
 
             # file names
-            df['file_name'] = pd.Series(self.file_list[t],
+            df['robolines_file_name'] = pd.Series(self.file_list[t],
                                         index=df.index)
 
             # names of empirical spectra realizations (multiple ones
             # correspond to one empirical spectrum)
-            df['synth_spec_name'] = pd.Series(self.file_list[t],
+            # remove .robolines extension
+            df['realization_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0],
                                               index=df.index)
 
-            # names of empirical spectra
-            ## ## the below is the command for RW's synthetic spectra
-            ## ## need to generalize this
-            df['empir_spec_name'] = pd.Series(self.file_list[t].split("_")[0],
+            # names of original spectra
+            df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[-2],
                                               index=df.index)
-            ## ## the below is the old command, for the McD spectra
-            '''
-            df['empir_spec_name'] = pd.Series(self.file_list[t].split(".")[0][0:-4],
-                                              index=df.index)
-            '''
 
             #df['star_name'] = pd.Series(self.file_list[t].split("__")[0], index=df.index)
 
@@ -175,12 +169,12 @@ class Scraper():
         where_red_flag = np.where(np.array(red_flag_array) != '0')
 
         # identify the synthetic spectrum names which have at least one line with a bad fit
-        bad_synth_spectra = df_master_reset['synth_spec_name'][np.squeeze(where_red_flag)]
+        bad_synth_spectra = df_master_reset['realization_spec_file_name'][np.squeeze(where_red_flag)]
         # remove duplicate names
         bad_synth_spectra_uniq = bad_synth_spectra.drop_duplicates()
         # keep only the spectra that have all lines well-fit
         df_master_reset_drop_bad_spectra = df_master_reset.where(
-            ~df_master_reset['synth_spec_name'].isin(bad_synth_spectra_uniq))
+            ~df_master_reset['realization_spec_file_name'].isin(bad_synth_spectra_uniq))
 
         # write to csv
         # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
@@ -218,7 +212,7 @@ class findHK():
                                      delim_whitespace=False)
 
         # initialize arrays: essential info
-        self.empir_spec_name_array = []
+        self.original_spec_file_name_array = []
         self.star_name_array = []
         self.H_data_array = []
         self.K_data_array = []
@@ -249,7 +243,7 @@ class findHK():
 
         # make a list of all UNIQUE, EMPIRICAL spectrum names
         unique_spec_names_pre_index_reset = self.line_data.drop_duplicates(
-            subset='empir_spec_name')['empir_spec_name']
+            subset='original_spec_file_name')['original_spec_file_name']
 
         # drop row of NaNs and smooth the indexing
         unique_spec_names = unique_spec_names_pre_index_reset.dropna(
@@ -278,7 +272,7 @@ class findHK():
                   np.array(unique_spec_names)[p])
             # extract all synthetic data corresponding to this empirical spectrum
             data_for_this_empir_spectrum = self.line_data.where(
-                self.line_data['empir_spec_name'][0:-4] == np.array(unique_spec_names)[p]
+                self.line_data['original_spec_file_name'][0:-4] == np.array(unique_spec_names)[p]
                 )
 
             # scrape data
@@ -344,10 +338,10 @@ class findHK():
             #plt.errorbar(balmer_data_pt, K_data_pt, yerr=err_K_data, xerr=err_balmer_data)
 
             # append data to arrays: essential info
-            self.empir_spec_name_array = np.append(self.empir_spec_name_array,
+            self.original_spec_file_name_array = np.append(self.original_spec_file_name_array,
                                                    np.array(unique_spec_names)[p])
             self.star_name_array = np.append(self.star_name_array,
-                                             str(np.array(unique_spec_names)[p])[0:-3])
+                                             str(np.array(unique_spec_names)[p]))
             self.H_data_array = np.append(self.H_data_array,
                                           balmer_data_pt)
             self.err_H_data_array = np.append(self.err_H_data_array,
@@ -386,7 +380,7 @@ class findHK():
             K_data_allsynthetic_spec = None
 
         # put everything into a dataframe
-        d = {'empir_spec_name': self.empir_spec_name_array,
+        d = {'original_spec_file_name': self.original_spec_file_name_array,
              'star_name': self.star_name_array,
              'Hbet': self.Hbet_data_array,
              'err_Hbet': self.err_Hbet_data_array,
@@ -407,7 +401,7 @@ class findHK():
         # convert to Pandas DataFrame
         df_collation = pd.DataFrame(data=d)
 
-        # read in phase information
+        # read in phase and star name information
         phase_info = pd.read_csv(self.phase_subdir + \
                                  config["file_names"]["LIST_SPEC_PHASE"], sep=" ")
 
@@ -421,19 +415,23 @@ class findHK():
         # get the spectrum names from phase_info without the '.dat'
         phase_info_basename = phase_info['Original_spectrum_file_name'].values#.str.split(".",n=1,expand=True)[:][0]
 
-        # loop over each empirical spectrum name and paste the phase into the array
-        for q in range(0, len(df_collation['empir_spec_name'].values)):
+        # loop over each empirical spectrum name and paste the phase and star name into the array
+        for q in range(0, len(df_collation['original_spec_file_name'].values)):
             empir_spec_this_one = phase_info['Original_spectrum_file_name'].where(
-                phase_info_basename == df_collation['empir_spec_name'][q]
+                phase_info_basename == df_collation['original_spec_file_name'][q]
                 ).dropna()
             phase_this_one = phase_info['Phase'].where(
-                phase_info_basename == df_collation['empir_spec_name'][q]
+                phase_info_basename == df_collation['original_spec_file_name'][q]
+                ).dropna()
+            star_name_this_one = phase_info['Star'].where(
+                phase_info_basename == df_collation['original_spec_file_name'][q]
                 ).dropna()
             #df_collation.iloc[q, "phase"] = phase_this_one.values[0]
-            import ipdb; ipdb.set_trace()
+            #import ipdb; ipdb.set_trace()
             df_collation.at[q, "phase"] = phase_this_one.values[0]
+            df_collation.at[q, "star_name"] = star_name_this_one.values[0]
             # check the name-phase combination is right
-            if (df_collation.at[q, "empir_spec_name"] == empir_spec_this_one.any().split(".")[0]):
+            if (df_collation.at[q, "original_spec_file_name"] == empir_spec_this_one.any()):
                 continue
             else:
                 print("Phases and spectrum names out of order!")
@@ -452,8 +450,7 @@ class findHK():
         data_to_plot = pd.read_csv(self.hk_file_name) # read data back in
 
         # make list of unique star names
-        unique_star_names = data_to_plot.drop_duplicates(
-            subset=['star_name'])['star_name'].values
+        unique_star_names = df_collation['star_name'].values
 
         print('unique_star_names')
         print(unique_star_names)
@@ -481,7 +478,7 @@ class findHK():
             err_y_data = data_to_plot['err_K'].where(
                 data_to_plot['star_name'] == unique_star_names[y])
 
-            empirical_spectrum_names = data_to_plot['empir_spec_name'].where(
+            empirical_spectrum_names = data_to_plot['original_spec_file_name'].where(
                 data_to_plot['star_name'] == unique_star_names[y])
 
             #import ipdb; ipdb.set_trace()
@@ -531,30 +528,30 @@ class findHK():
         '''
         #import ipdb; ipdb.set_trace()
         # connect lines between each 'star'; that is, with the same gravity and metallicity
-        df_20m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m10')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20m15 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m15')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20m20 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m20')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20m25 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m25')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20m30 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m30')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20p02 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p02')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m05')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m10')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m15 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m15')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m20 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m20')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m25 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m25')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25m30 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25m30')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m05')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m10 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m10')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m15 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m15')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m20 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m20')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m25 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m25')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30m30 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30m30')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30p00')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25p00')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_30p02 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('30p02')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_25p02 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('25p02')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20m05 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20m05')].sort_values(by=["empir_spec_name"]).reset_index()
-        df_20p00 = data_to_plot[data_to_plot['empir_spec_name'].str.contains('20p00')].sort_values(by=["empir_spec_name"]).reset_index()
+        df_20m10 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m10')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20m15 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m15')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20m20 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m20')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20m25 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m25')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20m30 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m30')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20p02 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20p02')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m05 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m05')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m10 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m10')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m15 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m15')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m20 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m20')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m25 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m25')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25m30 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25m30')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m05 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m05')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m10 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m10')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m15 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m15')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m20 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m20')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m25 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m25')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30m30 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30m30')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30p00 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30p00')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25p00 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25p00')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_30p02 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('30p02')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_25p02 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('25p02')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20m05 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20m05')].sort_values(by=["original_spec_file_name"]).reset_index()
+        df_20p00 = data_to_plot[data_to_plot['original_spec_file_name'].str.contains('20p00')].sort_values(by=["original_spec_file_name"]).reset_index()
 
         # establish color map
         n = 16
@@ -563,7 +560,7 @@ class findHK():
         # definition for making the annotation a bit simpler
         def annotate_fcn(ax_pass, stuff_2_plot):
             for spec_annotate_num in range(0,len(stuff_2_plot)):
-                ax_pass.annotate(stuff_2_plot["empir_spec_name"][spec_annotate_num],
+                ax_pass.annotate(stuff_2_plot["original_spec_file_name"][spec_annotate_num],
                         xy=(stuff_2_plot["balmer"][spec_annotate_num],stuff_2_plot["K"][spec_annotate_num]),fontsize=6)
         # definition for making the dashed-line plots a bit simpler
         def dashed_line_plot(ax_pass,df_pass):
@@ -643,38 +640,38 @@ class findHK():
         annotate_fcn(ax,df_30p02)
 
         # now remove data for Teff<6000K and Teff>7500K
-        df_25m30 = df_25m30.where(np.logical_and(df_25m30["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m30["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25m25 = df_25m25.where(np.logical_and(df_25m25["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m25["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25m20 = df_25m20.where(np.logical_and(df_25m20["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m20["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25m15 = df_25m15.where(np.logical_and(df_25m15["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m15["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25m10 = df_25m10.where(np.logical_and(df_25m10["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m10["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25m05 = df_25m05.where(np.logical_and(df_25m05["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25m05["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25p00 = df_25p00.where(np.logical_and(df_25p00["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25p00["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_25p02 = df_25p02.where(np.logical_and(df_25p02["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_25p02["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m30 = df_30m30.where(np.logical_and(df_30m30["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m30["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m25 = df_30m25.where(np.logical_and(df_30m25["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m25["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m20 = df_30m20.where(np.logical_and(df_30m20["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m20["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m15 = df_30m15.where(np.logical_and(df_30m15["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m15["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m10 = df_30m10.where(np.logical_and(df_30m10["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m10["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30m05 = df_30m05.where(np.logical_and(df_30m05["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30m05["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30p00 = df_30p00.where(np.logical_and(df_30p00["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30p00["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
-        df_30p02 = df_30p02.where(np.logical_and(df_30p02["empir_spec_name"].str[:4].astype(int) >= 6000,
-                                      df_30p02["empir_spec_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m30 = df_25m30.where(np.logical_and(df_25m30["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m30["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m25 = df_25m25.where(np.logical_and(df_25m25["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m25["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m20 = df_25m20.where(np.logical_and(df_25m20["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m20["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m15 = df_25m15.where(np.logical_and(df_25m15["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m15["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m10 = df_25m10.where(np.logical_and(df_25m10["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m10["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25m05 = df_25m05.where(np.logical_and(df_25m05["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25m05["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25p00 = df_25p00.where(np.logical_and(df_25p00["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25p00["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_25p02 = df_25p02.where(np.logical_and(df_25p02["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_25p02["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m30 = df_30m30.where(np.logical_and(df_30m30["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m30["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m25 = df_30m25.where(np.logical_and(df_30m25["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m25["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m20 = df_30m20.where(np.logical_and(df_30m20["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m20["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m15 = df_30m15.where(np.logical_and(df_30m15["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m15["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m10 = df_30m10.where(np.logical_and(df_30m10["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m10["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30m05 = df_30m05.where(np.logical_and(df_30m05["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30m05["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30p00 = df_30p00.where(np.logical_and(df_30p00["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30p00["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
+        df_30p02 = df_30p02.where(np.logical_and(df_30p02["original_spec_file_name"].str[:4].astype(int) >= 6000,
+                                      df_30p02["original_spec_file_name"].str[:4].astype(int) <= 7500)).dropna().reset_index()
 
         # solid line plots, of data which we want to use for the calibration
         ax.errorbar(df_25m30["balmer"], df_25m30["K"], yerr=df_25m30["err_K"], xerr=df_25m30["err_balmer"], linestyle="-", color=colors[0],
