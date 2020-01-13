@@ -20,7 +20,7 @@ class RunRobo:
         self.robo_dir = config_data["data_dirs"]["DIR_ROBO"]
 
     def __call__(self, file_name):
-    
+
         '''
         INPUTS:
         file_name: the absolute file name of one file to run Robospect on
@@ -82,13 +82,23 @@ def main():
     ## ## in the file name here; this might be a weakness later on
 
     pool = multiprocessing.Pool(ncpu)
-    
+
     norm_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"]
 
     file_name_list = glob.glob(norm_spec_source_dir+"*.smo*")
-    print('norm_spec_source_dir')
+    print('Reading in spectra from directory')
     print(norm_spec_source_dir)
-    
+
+    # Check to see if it is empty (if not, there is data from a previous
+    # run that will inadvertently be used later)
+    write_dir = config["data_dirs"]["DIR_ROBO_OUTPUT"]
+    preexisting_file_list = glob.glob(write_dir)
+    print("------------------------------")
+    print("Directory to receive Robospect output not empty!!")
+    print(write_dir)
+    print("------------------------------")
+    input("Do what you want with those files, then hit [Enter]")
+
     # make cookie cutouts of the PSFs
     ## ## might add functionality to override the found 'center' of the PSF
     run_robospect_instance = RunRobo()

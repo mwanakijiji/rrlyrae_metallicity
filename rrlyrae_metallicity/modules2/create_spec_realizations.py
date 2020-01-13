@@ -235,12 +235,27 @@ def create_spec_realizations_main(num = 100,
     else:
         # Check to see if it is empty (if not, there is data from a previous
         # run that will inadvertently be used later)
-        preexisting_file_list = glob.glob(outdir)
-        print("------------------------------")
-        print("Directory to receive realizations not empty!!")
-        print(outdir)
-        print("------------------------------")
-        input("Do what you want with those files, then hit [Enter]")
+        preexisting_file_list_1 = glob.glob(outdir)
+        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir)
+        preexisting_file_list_3 = glob.glob(final_dir)
+        if (len(preexisting_file_list_1) != 0):
+            print("------------------------------")
+            print("Directory to write realizations not empty!!")
+            print(outdir)
+            print("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
+        if (len(preexisting_file_list_2) != 0):
+            print("------------------------------")
+            print("Directory to write raw normalization output not empty!!")
+            print(bkgrnd_output_dir)
+            print("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
+        if (len(preexisting_file_list_3) != 0):
+            print("------------------------------")
+            print("Directory to write final normalization output not empty!!")
+            print(final_dir)
+            print("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
 
     # Create realizations for each spectrum
     name_list = list() # initialize
