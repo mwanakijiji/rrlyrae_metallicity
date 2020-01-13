@@ -128,7 +128,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
             this_synth_spectrum_name = hk_ews["empir_spec_name"][synth_spec_num]
 
             # find where spectrum name in feh_info matches, and grab the FeH from there
-            row_of_interest = feh_info.where(feh_info["Spectrum"] == this_synth_spectrum_name).dropna()
+            row_of_interest = feh_info.where(feh_info["Original_spectrum_file_name"] == this_synth_spectrum_name).dropna()
             # take FeH of zeroth location (there could be repeats)
             import ipdb; ipdb.set_trace()
             feh_center_this_star = row_of_interest["final_FeH"].values[0]

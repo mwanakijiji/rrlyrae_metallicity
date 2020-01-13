@@ -18,6 +18,7 @@ Usage: create_spec_realizations.py
 # -----------------------------
 import argparse
 import os
+import glob
 from subprocess import Popen, PIPE
 ## ## import test.so # experimenting with C extensions
 # -------------------
@@ -231,6 +232,15 @@ def create_spec_realizations_main(num = 100,
     outdir = unnorm_noise_churned_spectra_dir
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
+    else:
+        # Check to see if it is empty (if not, there is data from a previous
+        # run that will inadvertently be used later)
+        preexisting_file_list = glob.glob(outdir)
+        print("------------------------------")
+        print("Directory to receive realizations not empty!!")
+        print(outdir)
+        print("------------------------------")
+        input("Do what you want with those files, then hit [Enter]")
 
     # Create realizations for each spectrum
     name_list = list() # initialize
@@ -238,12 +248,13 @@ def create_spec_realizations_main(num = 100,
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+list_arr[i],
                                                outdir=outdir,
                                                num=num))
-    print('name_list')
-    print(name_list)
+    #print('name_list')
+    #print(name_list)
 
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list, outdir, bkgrnd_output_dir)
-    print('bkg_input_file')
+    print("-------------------------------------------")
+    print('Using bkg_input_file')
     print(bkg_input_file)
 
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
@@ -262,6 +273,16 @@ def create_spec_realizations_main(num = 100,
 
     # write files of normalized fluxes, and return list of those filenames
     final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
+
+    print("-------------------------------------------")
+    print("Wrote realizations of original spectra to directory")
+    print(outdir)
+    print("-------------------------------------------")
+    print("Wrote raw normalization output to directory")
+    print(bkgrnd_output_dir)
+    print("-------------------------------------------")
+    print("Wrote final normalized spectra to directory")
+    print(final_dir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')

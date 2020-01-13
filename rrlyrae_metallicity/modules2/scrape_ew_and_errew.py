@@ -29,7 +29,7 @@ class Scraper():
 
         # get list of filenames without the path
         ## ## note the string being sought here is specific to RW's synthetic spectra; this is a weakness here and needs to be fixed later!
-        file_list_long = glob.glob(self.subdir+'/'+'[012345679]*robolines')
+        file_list_long = glob.glob(self.subdir+'/'+'*robolines')
         file_list_unsorted = [os.path.basename(x) for x in file_list_long]
         self.file_list = sorted(file_list_unsorted)
 
@@ -419,11 +419,11 @@ class findHK():
         df_collation["phase"] = np.nan
 
         # get the spectrum names from phase_info without the '.dat'
-        phase_info_basename = phase_info['Spectrum'].values#.str.split(".",n=1,expand=True)[:][0]
+        phase_info_basename = phase_info['Original_spectrum_file_name'].values#.str.split(".",n=1,expand=True)[:][0]
 
         # loop over each empirical spectrum name and paste the phase into the array
         for q in range(0, len(df_collation['empir_spec_name'].values)):
-            empir_spec_this_one = phase_info['Spectrum'].where(
+            empir_spec_this_one = phase_info['Original_spectrum_file_name'].where(
                 phase_info_basename == df_collation['empir_spec_name'][q]
                 ).dropna()
             phase_this_one = phase_info['Phase'].where(
