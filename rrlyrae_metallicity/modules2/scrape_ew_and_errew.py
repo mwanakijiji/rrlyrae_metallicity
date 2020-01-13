@@ -47,6 +47,7 @@ class Scraper():
             N.b. This checks the wavelengths using the given line list
             values (and not the fitted centers)
             '''
+            #import ipdb; ipdb.set_trace()
             print(line_centers[0])
             if ((line_centers[0] < 3933.660-10) or
                 (line_centers[0] > 3933.660+10)): # CaIIK
@@ -77,6 +78,7 @@ class Scraper():
         #print(self.file_list[116])
 
         # loop over all filenames of realizations of empirical spectra, extract line data
+        #import ipdb; ipdb.set_trace()
         for t in range(0, len(self.file_list)):
 
             # read in Robospect output
@@ -88,6 +90,9 @@ class Scraper():
                              usecols=[    0,     2,   3,     6,  7,   11,  13,  14,   15,     16,         18],
                              names=  ["#x0","mean","3","flux","7","EQW","13","14","15","flags","line_name"])
             '''
+            print("Reading in Robospect output from directory")
+            print(self.subdir+'/')
+            print("--------------------")
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
                              skiprows=19,
                              delim_whitespace=True,
