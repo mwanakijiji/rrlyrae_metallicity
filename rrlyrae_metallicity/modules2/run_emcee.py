@@ -156,10 +156,8 @@ class RunEmcee():
                  corner_plot_putput_dir=config["data_dirs"]["DIR_BIN"]):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
-        ## ## at development stage, just winnow by phase; worry about also winnowing here by subtype later
-        #self.scraped_ew_filename = scraped_ew_source_dir + config["file_names"]["KH_WINNOWED_PHASE_SUBTYPE_FILE_NAME"]
         self.scraped_ew_filename = (scraped_ew_source_dir +
-                                    config["file_names"]["KH_WINNOWED_PHASE_ONLY_FILE_NAME"])
+                                    config["file_names"]["KH_WINNOWED"])
 
         # name of file of the MCMC output
         self.mcmc_text_output = mcmc_text_output_dir + config["file_names"]["MCMC_OUTPUT"]
@@ -183,7 +181,7 @@ class RunEmcee():
 
         #THIS IS THE ORIGINAL, SINCE EWS WERE IN MILLIANG
         # EWs in table are in angstroms and are mislabeled as mA (2020 Jan 12)
-        name = df_choice['empir_spec_name']
+        name = df_choice['original_spec_file_name']
         #caii = np.divide(df_choice['K'], 1000.)
         caii = df_choice['K']
         #ecaii = np.divide(df_choice['err_K'], 1000.)
@@ -196,7 +194,7 @@ class RunEmcee():
         feh = df_choice['final_feh_center']
         efeh = np.subtract(df_choice['final_feh_center'],
                            df_choice['final_feh_lower'])
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
 
 
         phase = df_choice['phase']
