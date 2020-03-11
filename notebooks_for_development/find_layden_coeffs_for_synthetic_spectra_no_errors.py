@@ -260,8 +260,8 @@ def find_bic_of_1_subarray(new_coeffs_array):
         retrieved_K_isometal_neg1pt5 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -1.5)
         retrieved_K_isometal_neg1pt0 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -1.)
         retrieved_K_isometal_neg0pt5 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.5)
-        retrieved_K_isometal_pos0pt0 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.0)
-        retrieved_K_isometal_pos0pt2 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.2)
+        retrieved_K_isometal_pos0pt0 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, 0.0)
+        retrieved_K_isometal_pos0pt2 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, 0.2)
 
         # plot it
         plt.clf()
