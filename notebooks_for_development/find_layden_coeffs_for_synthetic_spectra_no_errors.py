@@ -10,18 +10,18 @@
 # Created 2020 Jan. 25 by E.S.
 
 
-# #### In the following, we plot fits in KH space and write out data including the BIC to select 
-# #### the best model among variations that consider up to third-degree terms involving H (Balmer 
+# #### In the following, we plot fits in KH space and write out data including the BIC to select
+# #### the best model among variations that consider up to third-degree terms involving H (Balmer
 # #### EW) and F (Fe/H), viz.
-# 
+#
 # #### $K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + h(H^{2})F + kH(F^{2}) $
 # #### $+ m(H^{3}) + n(F^{3}) $
-# 
+#
 # #### N.b. The BIC is
-# 
+#
 # #### $BIC = kln(n) -2ln(L)$
-# 
-# #### where 
+#
+# #### where
 # #### $k$: number of free parameters
 # #### $n$: number of data points
 # #### $L$: maximized likelihood function of model
@@ -39,7 +39,7 @@ import string
 from astropy import stats
 from scipy import optimize
 import matplotlib.pyplot as plt
-
+matplotlib.use('Agg') # necessary in the cloud
 
 
 # In[3]:
@@ -91,10 +91,10 @@ new_coeffs_mother_array = [baseline,new_coeffs_1,new_coeffs_2,new_coeffs_3,new_c
 
 
 def expanded_layden_all_coeffs(coeff_array,H,F):
-    
+
     # definition of coefficients as of 2020 Mar 9:
-    # K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + hF(H^{2}) + kH(F^{2}) + m(H^{3}) + n(F^{3}) 
-    
+    # K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + hF(H^{2}) + kH(F^{2}) + m(H^{3}) + n(F^{3})
+
     a_coeff = coeff_array[0]
     b_coeff = coeff_array[1]
     c_coeff = coeff_array[2]
@@ -105,9 +105,9 @@ def expanded_layden_all_coeffs(coeff_array,H,F):
     k_coeff = coeff_array[7]
     m_coeff = coeff_array[8]
     n_coeff = coeff_array[9]
-    
+
     K_calc = a_coeff + b_coeff*H + c_coeff*F + d_coeff*H*F +         f_coeff*np.power(H,2.) + g_coeff*np.power(F,2.) +         h_coeff*F*np.power(H,2.) + k_coeff*H*np.power(F,2.) +         m_coeff*np.power(H,3.) + n_coeff*np.power(F,3.)
-    
+
     return K_calc
 
 
@@ -115,17 +115,17 @@ def expanded_layden_all_coeffs(coeff_array,H,F):
 
 
 def original_layden_abcd(coeff_array,H,F):
-    
+
     # definition of coefficients as of 2020 Mar 9:
-    # K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + hF(H^{2}) + kH(F^{2}) + m(H^{3}) + n(F^{3}) 
-    
+    # K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + hF(H^{2}) + kH(F^{2}) + m(H^{3}) + n(F^{3})
+
     a_coeff = coeff_array[0]
     b_coeff = coeff_array[1]
     c_coeff = coeff_array[2]
     d_coeff = coeff_array[3]
-    
+
     K_calc = a_coeff + b_coeff*H + c_coeff*F + d_coeff*H*F
-    
+
     return K_calc
 
 
@@ -135,11 +135,11 @@ def original_layden_abcd(coeff_array,H,F):
 def find_bic_of_1_subarray(new_coeffs_array):
 
     for t in range(0,len(new_coeffs_array)):
-    
+
         print("----------")
         print("coefficients being tested:")
         print(new_coeffs_array[t])
-    
+
         # initialize initial values to 1
         pinit = np.ones(10, dtype=np.float)
 
@@ -177,12 +177,12 @@ def find_bic_of_1_subarray(new_coeffs_array):
             pinit[9] = 0
             bounds_upper_array_list[9] = 1e-40
             bounds_lower_array_list[9] = 0
-    
+
         # convert back to tuple
         bounds_upper_array = tuple(bounds_upper_array_list)
         bounds_lower_array = tuple(bounds_lower_array_list)
         bounds_array = [bounds_lower_array,bounds_upper_array]
-    
+
         print("----------")
         print("bounds array:")
         print(bounds_array)
@@ -192,7 +192,7 @@ def find_bic_of_1_subarray(new_coeffs_array):
 
         # the least-squares fit
         out = optimize.least_squares(errfunc_coeffs, pinit, bounds=bounds_array,
-                       args=(df_choice["balmer"], df_choice["final_feh_center"], 
+                       args=(df_choice["balmer"], df_choice["final_feh_center"],
                              df_choice["K"], df_choice["err_K"]))
 
         pfinal = out.x
@@ -224,17 +224,17 @@ def find_bic_of_1_subarray(new_coeffs_array):
         print(pfinal[1])
         print(pfinal[-1])
         #####################
-        
+
         # generate random string to tag the plot
         N_string = 7
         res = ''.join(random.choices(string.ascii_uppercase +string.digits, k = N_string))
-    
+
         # record in csv
         file_object = open(csv_file_name, 'a')
         file_object.write(str(new_coeffs_array[t])+";"+                          str(bic)+";"+                          str(n_params)+";"+                          str(ssr)+";"+                          str(n_samples)+";"+                          str(pfinal[0])+";"+                          str(pfinal[1])+";"+                          str(pfinal[2])+";"+                          str(pfinal[3])+";"+                          str(pfinal[4])+";"+                          str(pfinal[5])+";"+                          str(pfinal[6])+";"+                          str(pfinal[7])+";"+                          str(pfinal[8])+";"+                          str(pfinal[9])+                          "\n")
         # Close the file
         file_object.close()
-    
+
         # make some isometallicity lines for the plot
         isometal_balmer_abcissa = np.arange(2,12,0.2)
         retrieved_K_isometal_neg3pt0 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -3.0)
@@ -245,11 +245,11 @@ def find_bic_of_1_subarray(new_coeffs_array):
         retrieved_K_isometal_neg0pt5 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.5)
         retrieved_K_isometal_pos0pt0 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.0)
         retrieved_K_isometal_pos0pt2 = expanded_layden_all_coeffs(pfinal, isometal_balmer_abcissa, -0.2)
-    
+
         # plot it
         plt.clf()
         plt.figure(figsize=(20,10))
-    
+
         # underplot isometallicity lines
         plt.plot(isometal_balmer_abcissa, retrieved_K_isometal_neg3pt0, linestyle="--", label="Isometal, Fe/H=-3.0")
         plt.plot(isometal_balmer_abcissa, retrieved_K_isometal_neg2pt5, linestyle="--", label="Isometal, Fe/H=-2.5")
@@ -259,11 +259,11 @@ def find_bic_of_1_subarray(new_coeffs_array):
         plt.plot(isometal_balmer_abcissa, retrieved_K_isometal_neg0pt5, linestyle="--", label="Isometal, Fe/H=-0.5")
         plt.plot(isometal_balmer_abcissa, retrieved_K_isometal_pos0pt0, linestyle="--", label="Isometal, Fe/H=+0.0")
         plt.plot(isometal_balmer_abcissa, retrieved_K_isometal_pos0pt2, linestyle="--", label="Isometal, Fe/H=+0.2")
-    
+
         # data points
         #print(len(df_choice["final_feh_center"]))
         plt.scatter(df_choice["balmer"], df_choice["K"], label="Empirical")
-        plt.scatter(df_choice["balmer"], retrieved_K, 
+        plt.scatter(df_choice["balmer"], retrieved_K,
             label="Retrieved, Modified Layden eqn")
         # connect the empirical-retrieved dots, using list comprehension
         [plt.plot([df_choice["balmer"][j],df_choice["balmer"][j]],
@@ -386,8 +386,8 @@ plt.scatter(df_choice["final_feh_center"],F_original_our_fit,facecolors="none",
 plt.scatter(df_choice["final_feh_center"],F_pos,facecolors="orange",edgecolors="r",
             label="Modified abcdfgh: positive soln")
 for i in range(0,len(df)):
-    plt.annotate(df["original_spec_file_name"].iloc[i], 
-                 xy=(df["final_feh_center"].iloc[i],F_pos.iloc[i]), 
+    plt.annotate(df["original_spec_file_name"].iloc[i],
+                 xy=(df["final_feh_center"].iloc[i],F_pos.iloc[i]),
                  xytext=(df["final_feh_center"].iloc[i],F_pos.iloc[i]))
 plt.scatter(df_choice["final_feh_center"],F_neg,label="Modified abcdfgh: negative soln")
 plt.plot([-3,2],[-3,2],linestyle="--")
@@ -396,4 +396,3 @@ plt.ylabel("Retrieved Fe/H")
 plt.legend()
 plt.show()
 '''
-
