@@ -10,13 +10,12 @@
 # Created 2020 Jan. 25 by E.S.
 
 
-# #### In the following, we plot fits in KH space and use the BIC to select the best model
-# #### among variations that consider up to second-degree H (Balmer EW) and F (Fe/H). 
-# #### There are 7 possible combinations of coefficients beyond [a,b,c,d]: 
-# #### [f], [g], [h], [f,g], [f,h], [g,h], and [f,g,h] where the coefficients are defined as the best fits to
+# #### In the following, we plot fits in KH space and write out data including the BIC to select 
+# #### the best model among variations that consider up to third-degree terms involving H (Balmer 
+# #### EW) and F (Fe/H), viz.
 # 
-# #### $K = a + bH + cF + dHF + f(H^{2})F + gH(F^{2}) + h(H^{2})(F^{2}) $
-# #### $+ k(H^{3})(F^{2}) + m(H^{2})(F^{3}) + nH(F^{3}) + pF(H^{3}) + q(H^{3})(F^{3})$
+# #### $K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + h(H^{2})F + kH(F^{2}) $
+# #### $+ m(H^{3}) + n(F^{3}) $
 # 
 # #### N.b. The BIC is
 # 
@@ -41,7 +40,6 @@ from astropy import stats
 from scipy import optimize
 import matplotlib.pyplot as plt
 
-get_ipython().run_line_magic('matplotlib', 'qt')
 
 
 # In[3]:
@@ -82,7 +80,14 @@ new_coeffs_1 = list(itertools.combinations(coeffs_strings, 1))
 baseline = list(itertools.combinations(coeffs_strings_nan, 1)) # original Layden [a,b,c,d] coefficients only
 
 
-# In[5]:
+# In[7]:
+
+
+# create the array of arrays, so we can map them across cores
+new_coeffs_mother_array = [baseline,new_coeffs_1,new_coeffs_2,new_coeffs_3,new_coeffs_4,new_coeffs_5,new_coeffs_6]
+
+
+# In[8]:
 
 
 def expanded_layden_all_coeffs(coeff_array,H,F):
@@ -106,14 +111,25 @@ def expanded_layden_all_coeffs(coeff_array,H,F):
     return K_calc
 
 
-# In[6]:
-
-
-# create the array of arrays, so we can map them across cores
-new_coeffs_mother_array = [baseline,new_coeffs_1,new_coeffs_2,new_coeffs_3,new_coeffs_4,new_coeffs_5,new_coeffs_6]
-
-
 # In[9]:
+
+
+def original_layden_abcd(coeff_array,H,F):
+    
+    # definition of coefficients as of 2020 Mar 9:
+    # K = a + bH + cF + dHF + f(H^{2}) + g(F^{2}) + hF(H^{2}) + kH(F^{2}) + m(H^{3}) + n(F^{3}) 
+    
+    a_coeff = coeff_array[0]
+    b_coeff = coeff_array[1]
+    c_coeff = coeff_array[2]
+    d_coeff = coeff_array[3]
+    
+    K_calc = a_coeff + b_coeff*H + c_coeff*F + d_coeff*H*F
+    
+    return K_calc
+
+
+# In[10]:
 
 
 def find_bic_of_1_subarray(new_coeffs_array):
@@ -139,27 +155,27 @@ def find_bic_of_1_subarray(new_coeffs_array):
         # if certain coefficients don't appear, set them to effectively zero
         if (new_coeffs_array[t].count("f") == 0):
             pinit[4] = 0
-            bounds_upper_array_list[4] = 1e-20
+            bounds_upper_array_list[4] = 1e-40
             bounds_lower_array_list[4] = 0
         if (new_coeffs_array[t].count("g") == 0):
             pinit[5] = 0
-            bounds_upper_array_list[5] = 1e-20
+            bounds_upper_array_list[5] = 1e-40
             bounds_lower_array_list[5] = 0
         if (new_coeffs_array[t].count("k") == 0):
             pinit[6] = 0
-            bounds_upper_array_list[6] = 1e-20
+            bounds_upper_array_list[6] = 1e-40
             bounds_lower_array_list[6] = 0
         if (new_coeffs_array[t].count("h") == 0):
             pinit[7] = 0
-            bounds_upper_array_list[7] = 1e-20
+            bounds_upper_array_list[7] = 1e-40
             bounds_lower_array_list[7] = 0
         if (new_coeffs_array[t].count("m") == 0):
             pinit[8] = 0
-            bounds_upper_array_list[8] = 1e-20
+            bounds_upper_array_list[8] = 1e-40
             bounds_lower_array_list[8] = 0
         if (new_coeffs_array[t].count("n") == 0):
             pinit[9] = 0
-            bounds_upper_array_list[9] = 1e-20
+            bounds_upper_array_list[9] = 1e-40
             bounds_lower_array_list[9] = 0
     
         # convert back to tuple
@@ -204,6 +220,9 @@ def find_bic_of_1_subarray(new_coeffs_array):
         print("----------")
         print("BIC:")
         print(bic)
+        print(pfinal[0])
+        print(pfinal[1])
+        print(pfinal[-1])
         #####################
         
         # generate random string to tag the plot
@@ -212,8 +231,7 @@ def find_bic_of_1_subarray(new_coeffs_array):
     
         # record in csv
         file_object = open(csv_file_name, 'a')
-        # Append 'hello' at the end of file
-        file_object.write(str(new_coeffs_array[t])+";"+                          str(bic)+";"+                          str(n_params)+";"+                          str(n_samples)+";"+                          str(ssr)+";"+                          str(n_samples)+";"+                          str(pfinal)+";"+                          str(res)+";"+                          "\n")
+        file_object.write(str(new_coeffs_array[t])+";"+                          str(bic)+";"+                          str(n_params)+";"+                          str(ssr)+";"+                          str(n_samples)+";"+                          str(pfinal[0])+";"+                          str(pfinal[1])+";"+                          str(pfinal[2])+";"+                          str(pfinal[3])+";"+                          str(pfinal[4])+";"+                          str(pfinal[5])+";"+                          str(pfinal[6])+";"+                          str(pfinal[7])+";"+                          str(pfinal[8])+";"+                          str(pfinal[9])+                          "\n")
         # Close the file
         file_object.close()
     
@@ -248,8 +266,6 @@ def find_bic_of_1_subarray(new_coeffs_array):
         plt.scatter(df_choice["balmer"], retrieved_K, 
             label="Retrieved, Modified Layden eqn")
         # connect the empirical-retrieved dots, using list comprehension
-        print(range(len(df_choice["final_feh_center"])))
-        print(retrieved_K[5:7])
         [plt.plot([df_choice["balmer"][j],df_choice["balmer"][j]],
                   [df_choice["K"][j],retrieved_K[j]], color="k") for j in range(len(df_choice["final_feh_center"]))]
         plt.ylabel("K EW ($\AA$)")
@@ -263,13 +279,31 @@ def find_bic_of_1_subarray(new_coeffs_array):
         print("----------")
 
 
-# In[10]:
+# In[13]:
 
 
 # map the function across all available cores
 ncpu = multiprocessing.cpu_count()
 pool = multiprocessing.Pool(ncpu)
 pool.map(find_bic_of_1_subarray, new_coeffs_mother_array)
+
+
+# In[9]:
+
+
+# baseline check
+
+'''
+abcd_older = [12.513685,-0.78716521,3.8778512,-0.24297523]
+abcd_now = [1.21768692e+01,-7.52340434e-01,3.76117382e+00,-2.30912220e-01]
+K_baseline = original_layden_abcd(coeff_array=abcd_older,H=df_choice["balmer"],F=df_choice["final_feh_center"])
+
+ssr = np.sum(np.power(np.subtract(df_choice["K"],K_baseline),2.))
+n_params = 4
+n_samples = len(df_choice["balmer"])
+bic = astropy.stats.bayesian_info_criterion_lsq(ssr, n_params, n_samples)
+print(bic)
+'''
 
 
 # ### Compare BICs
