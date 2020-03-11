@@ -233,7 +233,22 @@ def find_bic_of_1_subarray(new_coeffs_array):
 
         # record in csv
         file_object = open(csv_file_name, 'a')
-        file_object.write(str(new_coeffs_array[t])+";"+                          str(bic)+";"+                          str(n_params)+";"+                          str(ssr)+";"+                          str(n_samples)+";"+                          str(pfinal[0])+";"+                          str(pfinal[1])+";"+                          str(pfinal[2])+";"+                          str(pfinal[3])+";"+                          str(pfinal[4])+";"+                          str(pfinal[5])+";"+                          str(pfinal[6])+";"+                          str(pfinal[7])+";"+                          str(pfinal[8])+";"+                          str(pfinal[9])+                          "\n")
+        file_object.write(str(new_coeffs_array[t])+";"+
+                        str(bic)+";"+
+                        str(n_params)+";"+
+                        str(ssr)+";"+
+                        str(n_samples)+";"+
+                        str(pfinal[0])+";"+
+                        str(pfinal[1])+";"+
+                        str(pfinal[2])+";"+
+                        str(pfinal[3])+";"+
+                        str(pfinal[4])+";"+
+                        str(pfinal[5])+";"+
+                        str(pfinal[6])+";"+
+                        str(pfinal[7])+";"+
+                        str(pfinal[8])+";"+
+                        str(pfinal[9])+";"+
+                        str(res)+"\n")
         # Close the file
         file_object.close()
 
