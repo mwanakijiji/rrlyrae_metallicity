@@ -38,8 +38,10 @@ import random
 import string
 from astropy import stats
 from scipy import optimize
-import matplotlib.pyplot as plt
+import matplotlib
 matplotlib.use('Agg') # necessary in the cloud
+import matplotlib.pyplot as plt
+
 
 
 # In[3]:
