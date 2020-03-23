@@ -58,7 +58,7 @@ index_names2 = df[ df["original_spec_file_name"]=="625025p02.smo" ].index
 df.drop(index_names2 , inplace=True)
 index_names3 = df[ df["original_spec_file_name"]=="600030p02.smo" ].index
 df.drop(index_names3 , inplace=True)
-index_names4 = df[ df["logg"]=="2.5" ].index # test of individual values of logg
+index_names4 = df[ df["logg"]==2.5 ].index # test of individual values of logg
 df.drop(index_names4 , inplace=True)
 df = df.reset_index(drop = True)
 
