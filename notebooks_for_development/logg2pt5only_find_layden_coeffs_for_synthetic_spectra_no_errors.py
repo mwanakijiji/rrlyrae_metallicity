@@ -281,7 +281,7 @@ def find_bic_of_1_subarray(new_coeffs_array):
 
         # data points
         #print(len(df_choice["final_feh_center"]))
-        plt.errorbar(df_choice["balmer"], df_choice["K"], yerr=df_choice["err_K"], markersize = 20, markerfacecolor="orange", ecolor="k", ls="none", label="Empirical")
+        plt.errorbar(df_choice["balmer"], df_choice["K"], yerr=df_choice["err_K"], marker="o", markersize = 20, markerfacecolor="orange", ecolor="k", ls="none", label="Empirical")
         plt.scatter(df_choice["balmer"], retrieved_K,
             label="Retrieved, Modified Layden eqn")
         # connect the empirical-retrieved dots, using list comprehension
