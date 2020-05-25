@@ -322,9 +322,9 @@ class findHK():
             # rescale Hgam EWs
             rHgam_data_wnans = np.array(np.divide(
                 np.subtract(raw_Hgam_data, b), m))
-            import ipdb; ipdb.set_trace()
+
             # rescale EW errors
-            Hbet_err_EW_wnans = np.array(np.copy(raw_Hbet_err_EW))
+            c = np.array(np.copy(raw_Hbet_err_EW))
             Hgam_err_EW_wnans = np.array(np.copy(raw_Hgam_err_EW))
             Hdel_err_EW_wnans = np.array(np.copy(raw_Hdel_err_EW))
             Heps_err_EW_wnans = np.array(np.copy(raw_Heps_err_EW))
@@ -335,7 +335,7 @@ class findHK():
             # err_rHgam = rHgam*[ ( (err_Hgam+err_b) / (Hgam - b) ) + (err_m/m) ]
             err_piece1 = np.divide(Hgam_err_EW_wnans+err_b,Hgam_data_wnans-b) + \
                         np.divide(err_m,m)
-            rHgam_err_EW_wnans = np.multiply(rHgam,err_piece1)
+            rHgam_err_EW_wnans = np.multiply(rHgam_data_wnans,err_piece1)
 
             # remove nans
             Hbet_data = Hbet_data_wnans[np.isfinite(Hbet_data_wnans)]
@@ -344,10 +344,10 @@ class findHK():
             Heps_data = Heps_data_wnans[np.isfinite(Heps_data_wnans)]
             rHgam_data = rHgam_data_wnans[np.isfinite(rHgam_data_wnans)]
             K_data = K_data_wnans[np.isfinite(K_data_wnans)]
-            import ipdb; ipdb.set_trace()
+
             # get the H-K synthetic data together to form individual
             # points in H,K space
-            # (note balmer EW = 0.5*(Hdel + rHgam) )
+            # ( note balmer EW = 0.5*(Hdel + rHgam) )
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
             K_data_allsynthetic_spec = np.copy(K_data)
 
@@ -359,8 +359,9 @@ class findHK():
             Heps_data_pt = np.nanmedian(Heps_data)
             balmer_data_pt = np.nanmedian(balmer_data_allsynthetic_spec)
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
+            import ipdb; ipdb.set_trace()
 
-            # the error bars
+            # the error bars as found by Robospect
             print("Hbet std being calculated from " + str(len(Hbet_data)) + " noise-churned spectra.")
             err_Hbet_data = np.nanstd(Hbet_data)
             err_Hgam_data = np.nanstd(Hgam_data)
@@ -369,6 +370,20 @@ class findHK():
             err_Heps_data = np.nanstd(Heps_data)
             err_balmer_data = np.nanstd(balmer_data_allsynthetic_spec)
             err_K_data = np.nanstd(K_data_allsynthetic_spec)
+
+            # the error bars
+            '''
+            THE BELOW IS FOR FINDING THE ERRORS BY USING NOISE-CHURNED SPECTRA,
+            AND NOT THE ROBOSPECT ERRORS (WE FOUND THIS GIVES ERRORS TOO SMALL)
+            print("Hbet std being calculated from " + str(len(Hbet_data)) + " noise-churned spectra.")
+            err_Hbet_data = np.nanstd(Hbet_data)
+            err_Hgam_data = np.nanstd(Hgam_data)
+            err_rHgam_data = np.nanstd(rHgam_data)
+            err_Hdel_data = np.nanstd(Hdel_data)
+            err_Heps_data = np.nanstd(Heps_data)
+            err_balmer_data = np.nanstd(balmer_data_allsynthetic_spec)
+            err_K_data = np.nanstd(K_data_allsynthetic_spec)
+            '''
 
             #plt.plot(balmer_data_pt, K_data_pt)
             #plt.errorbar(balmer_data_pt, K_data_pt, yerr=err_K_data, xerr=err_balmer_data)
