@@ -257,7 +257,11 @@ class findHK():
             self.line_data['line_name'] == 'Hgam'
             ).dropna() # Hgam
         Hgam = np.copy(y_data)
-        m, b = np.polyfit(x_data, y_data, 1) # might want errors later, too
+        coeff, cov = np.polyfit(x_data, y_data, 1, full=False, cov=True)
+        m = coeff[0]
+        b = coeff[1]
+        err_m = np.sqrt(np.diag(cov))[0]
+        err_b = np.sqrt(np.diag(cov))[1]
 
         # generate a rescaled Hgam, call it rHgam
         rHgam_all = np.divide(np.subtract(Hgam, b), m)
@@ -275,7 +279,7 @@ class findHK():
                 self.line_data['original_spec_file_name'][0:-4] == np.array(unique_spec_names)[p]
                 )
 
-            # scrape data
+            # scrape EWs
             raw_Hbet_data = data_for_this_empir_spectrum['EQW'].where(
                 self.line_data['line_name'] == 'Hbet'
                 )
@@ -292,7 +296,24 @@ class findHK():
                 self.line_data['line_name'] == 'CaIIK'
                 )
 
-            # rescale
+            # scrape Robospect EW errors
+            raw_Hbet_err_EW = data_for_this_empir_spectrum['uncertaintyEQW'].where(
+                self.line_data['line_name'] == 'Hbet'
+                )
+            raw_Hgam_err_EW = data_for_this_empir_spectrum['uncertaintyEQW'].where(
+                self.line_data['line_name'] == 'Hgam'
+                )
+            raw_Hdel_err_EW = data_for_this_empir_spectrum['uncertaintyEQW'].where(
+                self.line_data['line_name'] == 'Hdel'
+                )
+            raw_Heps_err_EW = data_for_this_empir_spectrum['uncertaintyEQW'].where(
+                self.line_data['line_name'] == 'Heps'
+                )
+            raw_K_err_EW = data_for_this_empir_spectrum['uncertaintyEQW'].where(
+                self.line_data['line_name'] == 'CaIIK'
+                )
+
+            # rescale EWs
             Hbet_data_wnans = np.array(np.copy(raw_Hbet_data))
             Hgam_data_wnans = np.array(np.copy(raw_Hgam_data))
             Hdel_data_wnans = np.array(np.copy(raw_Hdel_data))
@@ -301,6 +322,20 @@ class findHK():
             # rescale Hgam EWs
             rHgam_data_wnans = np.array(np.divide(
                 np.subtract(raw_Hgam_data, b), m))
+            import ipdb; ipdb.set_trace()
+            # rescale EW errors
+            Hbet_err_EW_wnans = np.array(np.copy(raw_Hbet_err_EW))
+            Hgam_err_EW_wnans = np.array(np.copy(raw_Hgam_err_EW))
+            Hdel_err_EW_wnans = np.array(np.copy(raw_Hdel_err_EW))
+            Heps_err_EW_wnans = np.array(np.copy(raw_Heps_err_EW))
+            K_err_EW_wnans = np.array(np.copy(raw_K_err_EW))
+            # rescale Hgam EW errors
+            # (this is only approximate, as it assumes zero correlation between m, b)
+            # rHgam = (Hgam-b)/m
+            # err_rHgam = rHgam*[ ( (err_Hgam+err_b) / (Hgam - b) ) + (err_m/m) ]
+            err_piece1 = np.divide(Hgam_err_EW_wnans+err_b,Hgam_data_wnans-b) + \
+                        np.divide(err_m,m)
+            rHgam_err_EW_wnans = np.multiply(rHgam,err_piece1)
 
             # remove nans
             Hbet_data = Hbet_data_wnans[np.isfinite(Hbet_data_wnans)]
