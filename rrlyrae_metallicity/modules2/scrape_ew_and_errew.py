@@ -359,7 +359,7 @@ class findHK():
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
             Hdel_err_sqrd = np.power(Hdel_err_EW,2)
             rHgam_err_sqrd = np.power(rHgam_err_EW,2)
-            if np.logical_or(len(np.ravel(Hdel_err_sqrd)) > 1,len(np.ravel(rHgam_err_sqrd)) > 1):
+            if np.logical_or(len(np.ravel(Hdel_err_sqrd)) != 1,len(np.ravel(rHgam_err_sqrd)) != 1):
                 # if these are not single numbers (that is, they are arrays of more than one member)
                 import ipdb; ipdb.set_trace()
                 stopgap = input("Something is wrong-- The arrays Hdel_err_sqrd" + \
