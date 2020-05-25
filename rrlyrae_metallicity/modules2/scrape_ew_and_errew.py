@@ -315,17 +315,25 @@ class findHK():
 
             # if any of these are blank
             if (len(raw_Hbet_err_EW.dropna()) == 0):
+                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                    "; skipping...")
                 continue
             if (len(raw_Hgam_err_EW.dropna()) == 0):
+                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                    "; skipping...")
                 continue
             if (len(raw_Hdel_err_EW.dropna()) == 0):
+                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                    "; skipping...")
                 continue
             if (len(raw_Heps_err_EW.dropna()) == 0):
+                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                    "; skipping...")
                 continue
             if (len(raw_K_err_EW.dropna()) == 0):
+                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                    "; skipping...")
                 continue
-            print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
-                "; skipping...")
 
             # rescale EWs
             Hbet_data_wnans = np.array(np.copy(raw_Hbet_data))
