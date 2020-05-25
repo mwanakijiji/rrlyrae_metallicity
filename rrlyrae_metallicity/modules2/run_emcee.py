@@ -176,8 +176,7 @@ class RunEmcee():
         print(self.scraped_ew_filename)
 
         ## ## make df_choice.Spectrum -> df_choice["Spectrum etc.
-        df_choice = pd.read_csv(self.scraped_ew_filename,
-                               delim_whitespace=False)
+        df_choice = pd.read_csv(self.scraped_ew_filename,delim_whitespace=False)
 
         #THIS IS THE ORIGINAL, SINCE EWS WERE IN MILLIANG
         # EWs in table are in angstroms and are mislabeled as mA (2020 Jan 12)

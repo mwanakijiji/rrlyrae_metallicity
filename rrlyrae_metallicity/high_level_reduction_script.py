@@ -26,8 +26,8 @@ def main():
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
-    create_spec_realizations.create_spec_realizations_main(num = 100)
-
+    create_spec_realizations.create_spec_realizations_main(num = 1, noise_level=0)
+    '''
     # run_robospect on normalized synthetic spectra
     run_robo.main()
 
@@ -38,6 +38,7 @@ def main():
     # find net K, H equivalent widths and make K-H plot
     find_HK_instance = scrape_ew_and_errew.findHK()
     find_HK_instance() # call instance
+    '''
 
     '''
     IF FEH IN LIST_SPEC_PHASE ARE -999:
@@ -47,7 +48,7 @@ def main():
 
     # bootstrap to obtain mapped Fe/H values with errors
     error_propagation_and_mapping.feh_mapper().do()
-    '''
+
     # graft mapped FeH values onto table of EWs
     #consolidate_pre_mcmc.graft_feh() # this is for empirical spectra, which have a Fe/H basis
     consolidate_pre_mcmc.graft_feh(synthetic=True) # this is for synthetic spectra, which have Fe/H in the file name
@@ -58,7 +59,7 @@ def main():
     # run_emcee with input data_table_winnowed
     emcee_instance = run_emcee.RunEmcee()
     emcee_instance() # call instance
-
+    '''
 
 # entry point
 if __name__ == '__main__':

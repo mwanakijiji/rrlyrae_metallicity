@@ -74,7 +74,7 @@ def create_norm_spec(name_list,
 
     return(new_name_list)
 
-def generate_realizations(spec_name, outdir, num):
+def generate_realizations(spec_name, outdir, num, noise_level):
     '''
     Calculates a Number of Realizations of a given spectrum using Gaussian Errorbars
 
@@ -99,9 +99,18 @@ def generate_realizations(spec_name, outdir, num):
         new_name_list.append(new_name)
         # name of spectrum realization, with path
         new_name = os.path.join(outdir, new_name)
-        # add Gaussian error to the empirical flux
-        #import ipdb; ipdb.set_trace()
-        new_flux = np.random.standard_normal(len(spec_tab))*spec_tab['error'] + spec_tab['flux']
+
+        if (noise_level != 0):
+            # add Gaussian error to the empirical flux
+            noise_to_add = np.random.standard_normal(len(spec_tab))*spec_tab['error']
+            print("Injecting Gaussian noise")
+        else:
+            # don't inject noise at all
+            noise_to_add = 0
+            print("Injecting no noise at all")
+
+        # add the noise
+        new_flux = noise_to_add + spec_tab['flux']
 
         try:
             outfile = open(new_name, 'w')
@@ -198,6 +207,7 @@ def write_bckgrnd_input(name_list, indir, normdir):
 # Main Function
 # -------------
 def create_spec_realizations_main(num = 100,
+                                noise_level,
                                   input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
                                   unnorm_empirical_spectra_dir = config["data_dirs"]["DIR_RAW_SPEC_DATA"],
                                   unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
@@ -262,7 +272,8 @@ def create_spec_realizations_main(num = 100,
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+list_arr[i],
                                                outdir=outdir,
-                                               num=num))
+                                               num=num,
+                                               noise_level=noise_level))
     #print('name_list')
     #print(name_list)
 
