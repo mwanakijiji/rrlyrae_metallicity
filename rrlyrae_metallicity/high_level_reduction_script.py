@@ -19,7 +19,7 @@ def main():
 
     # make all the directories
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
-
+    '''
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
@@ -30,7 +30,7 @@ def main():
     '''
     # run_robospect on normalized synthetic spectra
     run_robo.main()
-
+    '''
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
@@ -38,9 +38,7 @@ def main():
     # find net K, H equivalent widths and make K-H plot
     find_HK_instance = scrape_ew_and_errew.findHK()
     find_HK_instance() # call instance
-    '''
 
-    '''
     IF FEH IN LIST_SPEC_PHASE ARE -999:
     # apply offsets to Fe/H values, etc., to map Fe/H values based
     # on a basis set, and pickle results (IF FeH is being calculated for empirical spectra)
