@@ -207,13 +207,13 @@ def write_bckgrnd_input(name_list, indir, normdir):
 # Main Function
 # -------------
 def create_spec_realizations_main(num = 100,
-                                noise_level,
                                   input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
                                   unnorm_empirical_spectra_dir = config["data_dirs"]["DIR_RAW_SPEC_DATA"],
                                   unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
                                   bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
                                   final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
-                                  verb=False):
+                                  verb=False,
+                                  noise_level):
     '''
     INPUTS:
     num: number of spectrum realizations to make, per empirical spectrum
