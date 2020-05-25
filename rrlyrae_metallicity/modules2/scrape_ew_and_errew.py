@@ -324,7 +324,7 @@ class findHK():
                 np.subtract(raw_Hgam_data, b), m))
 
             # rescale EW errors
-            c = np.array(np.copy(raw_Hbet_err_EW))
+            Hbet_err_EW_wnans = np.array(np.copy(raw_Hbet_err_EW))
             Hgam_err_EW_wnans = np.array(np.copy(raw_Hgam_err_EW))
             Hdel_err_EW_wnans = np.array(np.copy(raw_Hdel_err_EW))
             Heps_err_EW_wnans = np.array(np.copy(raw_Heps_err_EW))
@@ -349,6 +349,17 @@ class findHK():
             # points in H,K space
             # ( note balmer EW = 0.5*(Hdel + rHgam) )
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
+            Hdel_err_sqrd = np.power(Hdel_err_EW_wnans,2)
+            rHgam_err_sqrd = np.power(rHgam_err_EW_wnans,2)
+            import ipdb; ipdb.set_trace()
+            balmer_err_EW_allsynthetic_spec = np.sqrt(
+                                                    np.nansum(
+                                                        np.dstack(
+                                                            (Hdel_err_sqrd,rHgam_err_sqrd)
+                                                            ),
+                                                        axis=1)
+                                                    )
+            import ipdb; ipdb.set_trace()
             K_data_allsynthetic_spec = np.copy(K_data)
 
             # the actual points to plot (or record in a table)
@@ -362,14 +373,13 @@ class findHK():
             import ipdb; ipdb.set_trace()
 
             # the error bars as found by Robospect
-            print("Hbet std being calculated from " + str(len(Hbet_data)) + " noise-churned spectra.")
-            err_Hbet_data = np.nanstd(Hbet_data)
-            err_Hgam_data = np.nanstd(Hgam_data)
-            err_rHgam_data = np.nanstd(rHgam_data)
-            err_Hdel_data = np.nanstd(Hdel_data)
-            err_Heps_data = np.nanstd(Heps_data)
-            err_balmer_data = np.nanstd(balmer_data_allsynthetic_spec)
-            err_K_data = np.nanstd(K_data_allsynthetic_spec)
+            err_Hbet_data = np.nanmedian(Hbet_err_EW_wnans)
+            err_Hgam_data = np.nanmedian(Hgam_err_EW_wnans)
+            err_Hdel_data = np.nanmedian(Hdel_err_EW_wnans)
+            err_Heps_data = np.nanmedian(Heps_err_EW_wnans)
+            err_rHgam_data = np.nanmedian(rHgam_err_EW_wnans)
+            err_balmer_data = np.nanmedian(balmer_err_EW_allsynthetic_spec)
+            err_K_data = np.nanmedian(K_err_EW_wnans)
 
             # the error bars
             '''
