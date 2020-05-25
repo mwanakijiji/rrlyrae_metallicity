@@ -14,7 +14,8 @@ config = configparser.ConfigParser() # for parsing values in .init file
 config.read("rrlyrae_metallicity/modules2/config.ini")
 # config for applying a, b, c, d
 config_apply = configparser.ConfigParser()
-config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
+#config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
+config_apply.read("rrlyrae_metallicity/modules2/config.ini")
 
 ncpu = multiprocessing.cpu_count()
 
