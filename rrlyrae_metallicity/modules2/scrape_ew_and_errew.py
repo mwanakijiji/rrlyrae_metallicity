@@ -361,6 +361,7 @@ class findHK():
             rHgam_err_sqrd = np.power(rHgam_err_EW,2)
             if np.logical_or(len(np.ravel(Hdel_err_sqrd)) != 1,len(np.ravel(rHgam_err_sqrd)) != 1):
                 # if these are not single numbers (that is, they are arrays of more than one member)
+                import ipdb; ipdb.set_trace()
                 stopgap = input("Something is wrong-- The arrays Hdel_err_sqrd" + \
                                 " or rHgam_err_sqrd have length > 1; error bars will not be" + \
                                 " calculated correctly. Or else redesign this part of the code.")
