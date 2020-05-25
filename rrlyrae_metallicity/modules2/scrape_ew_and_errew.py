@@ -337,7 +337,7 @@ class findHK():
                         np.divide(err_m,m)
             rHgam_err_EW_wnans = np.multiply(rHgam_data_wnans,err_piece1)
 
-            # remove nans
+            # remove nans from EWs
             Hbet_data = Hbet_data_wnans[np.isfinite(Hbet_data_wnans)]
             Hgam_data = Hgam_data_wnans[np.isfinite(Hgam_data_wnans)]
             Hdel_data = Hdel_data_wnans[np.isfinite(Hdel_data_wnans)]
@@ -345,12 +345,20 @@ class findHK():
             rHgam_data = rHgam_data_wnans[np.isfinite(rHgam_data_wnans)]
             K_data = K_data_wnans[np.isfinite(K_data_wnans)]
 
+            # remove nans from err EWs
+            Hbet_err_EW = Hbet_err_EW_wnans[np.isfinite(Hbet_err_EW_wnans)]
+            Hgam_err_EW = Hgam_err_EW_wnans[np.isfinite(Hgam_err_EW_wnans)]
+            Hdel_err_EW = Hdel_err_EW_wnans[np.isfinite(Hdel_err_EW_wnans)]
+            Heps_err_EW = Heps_err_EW_wnans[np.isfinite(Heps_err_EW_wnans)]
+            rHgam_err_EW = rHgam_err_EW_wnans[np.isfinite(rHgam_err_EW_wnans)]
+            K_err_EW = K_err_EW_wnans[np.isfinite(K_err_EW_wnans)]
+
             # get the H-K synthetic data together to form individual
             # points in H,K space
             # ( note balmer EW = 0.5*(Hdel + rHgam) )
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
-            Hdel_err_sqrd = np.power(Hdel_err_EW_wnans,2)
-            rHgam_err_sqrd = np.power(rHgam_err_EW_wnans,2)
+            Hdel_err_sqrd = np.power(Hdel_err_EW,2)
+            rHgam_err_sqrd = np.power(rHgam_err_EW,2)
             import ipdb; ipdb.set_trace()
             balmer_err_EW_allsynthetic_spec = np.sqrt(
                                                     np.nansum(
