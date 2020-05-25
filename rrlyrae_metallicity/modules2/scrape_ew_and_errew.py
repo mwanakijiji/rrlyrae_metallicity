@@ -366,7 +366,7 @@ class findHK():
                                 " calculated correctly. Or else redesign this part of the code.")
             balmer_err_EW_allsynthetic_spec = np.sqrt(Hdel_err_sqrd[0]+rHgam_err_sqrd[0])
             K_data_allsynthetic_spec = np.copy(K_data)
-            import ipdb; ipdb.set_trace()
+
             # the actual points to plot (or record in a table)
             Hbet_data_pt = np.nanmedian(Hbet_data)
             Hgam_data_pt = np.nanmedian(Hgam_data)
@@ -377,13 +377,14 @@ class findHK():
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
 
             # the error bars as found by Robospect
-            err_Hbet_data = np.nanmedian(Hbet_err_EW_wnans)
-            err_Hgam_data = np.nanmedian(Hgam_err_EW_wnans)
-            err_Hdel_data = np.nanmedian(Hdel_err_EW_wnans)
-            err_Heps_data = np.nanmedian(Heps_err_EW_wnans)
-            err_rHgam_data = np.nanmedian(rHgam_err_EW_wnans)
+            # (this step is pretty vestigial)
+            err_Hbet_data = np.nanmedian(Hbet_err_EW)
+            err_Hgam_data = np.nanmedian(Hgam_err_EW)
+            err_Hdel_data = np.nanmedian(Hdel_err_EW)
+            err_Heps_data = np.nanmedian(Heps_err_EW)
+            err_rHgam_data = np.nanmedian(rHgam_err_EW)
             err_balmer_data = np.nanmedian(balmer_err_EW_allsynthetic_spec)
-            err_K_data = np.nanmedian(K_err_EW_wnans)
+            err_K_data = np.nanmedian(K_err_EW)
 
             # the error bars
             '''
