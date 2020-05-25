@@ -359,17 +359,14 @@ class findHK():
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
             Hdel_err_sqrd = np.power(Hdel_err_EW,2)
             rHgam_err_sqrd = np.power(rHgam_err_EW,2)
-            import ipdb; ipdb.set_trace()
-            balmer_err_EW_allsynthetic_spec = np.sqrt(
-                                                    np.nansum(
-                                                        np.dstack(
-                                                            (Hdel_err_sqrd,rHgam_err_sqrd)
-                                                            ),
-                                                        axis=1)
-                                                    )
-            import ipdb; ipdb.set_trace()
+            if np.logical_or(len(np.ravel(Hdel_err_sqrd)) != 1,len(np.ravel(rHgam_err_sqrd)) != 1):
+                # if these are not single numbers (that is, they are arrays of more than one member)
+                stopgap = input("Something is wrong-- The arrays Hdel_err_sqrd" + \
+                                " or rHgam_err_sqrd have length > 1; error bars will not be" + \
+                                " calculated correctly. Or else redesign this part of the code.")
+            balmer_err_EW_allsynthetic_spec = np.sqrt(Hdel_err_sqrd[0]+rHgam_err_sqrd[0])
             K_data_allsynthetic_spec = np.copy(K_data)
-
+            import ipdb; ipdb.set_trace()
             # the actual points to plot (or record in a table)
             Hbet_data_pt = np.nanmedian(Hbet_data)
             Hgam_data_pt = np.nanmedian(Hgam_data)
@@ -378,7 +375,6 @@ class findHK():
             Heps_data_pt = np.nanmedian(Heps_data)
             balmer_data_pt = np.nanmedian(balmer_data_allsynthetic_spec)
             K_data_pt = np.nanmedian(K_data_allsynthetic_spec)
-            import ipdb; ipdb.set_trace()
 
             # the error bars as found by Robospect
             err_Hbet_data = np.nanmedian(Hbet_err_EW_wnans)
