@@ -146,7 +146,7 @@ class Scraper():
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
 
             # print progress
-            print('Out of '+str(len(self.file_list))+' files, '+str(t)+' scraped...')
+            print('Out of '+str(len(self.file_list))+' files, '+str(t+1)+' scraped...')
 
             # if this is the first list, start a master copy from it to concatenate stuff to it
             if (t == 0):
@@ -309,8 +309,9 @@ class findHK():
             Heps_data = Heps_data_wnans[np.isfinite(Heps_data_wnans)]
             rHgam_data = rHgam_data_wnans[np.isfinite(rHgam_data_wnans)]
             K_data = K_data_wnans[np.isfinite(K_data_wnans)]
-
-            # get the H-K synthetic data together
+            import ipdb; ipdb.set_trace()
+            # get the H-K synthetic data together to form individual
+            # points in H,K space
             # (note balmer EW = 0.5*(Hdel + rHgam) )
             balmer_data_allsynthetic_spec = np.nanmean([Hdel_data, rHgam_data], axis=0)
             K_data_allsynthetic_spec = np.copy(K_data)

@@ -117,7 +117,8 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         except IOError:
             print("File {} could not be opened!".format(new_name))
         for j in range(len(new_flux)):
-            print("Writing out realization file " + os.path.basename(new_name))
+            print("Writing out realization file " + os.path.basename(new_name) + \
+                " with noise level " + str(noise_to_add))
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
         outfile.close()
     return(new_name_list)
