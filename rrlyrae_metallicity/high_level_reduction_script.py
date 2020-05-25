@@ -27,14 +27,14 @@ def main():
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 1, noise_level=0)
-    '''
+
     # run_robospect on normalized synthetic spectra
     run_robo.main()
     '''
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
-
+    '''
     # find net K, H equivalent widths and make K-H plot
     find_HK_instance = scrape_ew_and_errew.findHK()
     find_HK_instance() # call instance
