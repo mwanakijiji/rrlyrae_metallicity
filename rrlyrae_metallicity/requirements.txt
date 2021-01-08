@@ -1,0 +1,10 @@
+pandas==0.23.4
+scipy==1.2.0
+setuptools==40.8.0
+emcee==2.2.1
+astropy==2.0.11
+matplotlib==2.2.3
+numpy==1.15.4
+ipdb==0.10.1
+corner==2.0.1
+ipython==7.3.0
