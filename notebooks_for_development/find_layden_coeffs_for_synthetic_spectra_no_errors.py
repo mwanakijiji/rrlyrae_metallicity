@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 # This tries a couple function-fitting routines to find the best-fit
 # Layden coefficients if the input data is synthetic data with no errors
 
@@ -43,13 +37,10 @@ matplotlib.use('Agg') # necessary in the cloud
 import matplotlib.pyplot as plt
 
 
-
-# In[3]:
-
-
 # read in data
 
-df = pd.read_csv("data/test_hk_data_winnowed_20200210_comparison.csv")
+#df = pd.read_csv("data/test_hk_data_winnowed_20200210_comparison.csv")
+df = pd.read_csv("data/test_ews_20200525.csv")
 
 # remove the three really bad datapoints
 index_names1 = df[ df["original_spec_file_name"]=="600025p00.smo" ].index

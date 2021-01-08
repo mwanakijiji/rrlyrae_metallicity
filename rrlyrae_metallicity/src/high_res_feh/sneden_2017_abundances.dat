@@ -1,18 +1,6 @@
-name,feh,epoch
-SC Sci,-2.28,1
-CS Eri,-1.88,1
-RU Sex,-2.10,1
-T Sex,-1.76,1
-T Sex,-1.73,2
-Y Crv,-1.39,1
-AU Vir,-2.04,1
-MT Tel,-2.58,1
-MT Tel,-1.17,2
-YZ Cap,-1.50,1
-V701 Pup,-2.50,1
-V701 Pup,-1.50,2
-V701 Pup,-1.98,3
-V701 Pup,-1.60,4
-V701 Pup,-1.83,5
-V701 Pup,-2.66,6
-BO Gru,-1.24,1
+name,feh,epoch,err_fehI,err_fehII
+
+## SEE RW EMAIL AUG 6 BEFORE USING THIS FILE
+
+T Sex,-1.76,1,0.14,0.15
+T Sex,-1.485,2,0.10,0.11
