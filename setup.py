@@ -12,12 +12,12 @@ from subprocess import Popen,PIPE
 
 long_description = "For determining metallicities of RR Lyraes from low-res spectroscopy see `here <https://github.com/mwanakijiji/rrlyrae_metallicity>`__ for more info"
 
-setup(name="RRab metallicity",
+setup(name="rrlyrae_metallicity",
       version="0.0.1",
       description="For finding FeH from low-res survey spectra of RRab stars",
       long_description=long_description,
       author="Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell",
-      author_email="spalding at email dot arizona dot edu",
+      author_email="espaldin at email dot nd dot edu",
       url="https://github.com/mwanakijiji/rrlyrae_metallicity",
       license="MIT",
       packages=['rrlyrae_metallicity','rrlyrae_metallicity/modules2'],
