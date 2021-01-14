@@ -7,6 +7,8 @@ import sys
 import glob
 import pandas as pd
 import numpy as np
+import matplotlib  
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 from rrlyrae_metallicity.modules2 import *
