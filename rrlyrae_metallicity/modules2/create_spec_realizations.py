@@ -28,6 +28,7 @@ from subprocess import Popen, PIPE
 from astropy.table import Table
 import numpy as np
 from rrlyrae_metallicity.modules2 import *
+from . import *
 
 # --------------------
 # Function Definitions
@@ -64,7 +65,7 @@ def create_norm_spec(name_list,
             # open file to write normalized spectrum to
             outfile = open(new_name, 'w')
         except IOError:
-            print("File {} could not be opened!".format(new_name))
+            logging.info("File {} could not be opened!".format(new_name))
         for j in range(len(spec_tab['wavelength'])):
             # do the division to normalize and write out
             outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j],
@@ -103,11 +104,11 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         if (noise_level != 0):
             # add Gaussian error to the empirical flux
             noise_to_add = np.random.standard_normal(len(spec_tab))*spec_tab['error']
-            print("Injecting Gaussian noise")
+            logging.info("Injecting Gaussian noise")
         else:
             # don't inject noise at all
             noise_to_add = 0
-            print("Injecting no noise at all")
+            logging.info("Injecting no noise at all")
 
         # add the noise
         new_flux = noise_to_add + spec_tab['flux']
@@ -115,9 +116,9 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         try:
             outfile = open(new_name, 'w')
         except IOError:
-            print("File {} could not be opened!".format(new_name))
+            logging.info("File {} could not be opened!".format(new_name))
         for j in range(len(new_flux)):
-            print("Writing out realization file " + os.path.basename(new_name) + \
+            logging.info("Writing out realization file " + os.path.basename(new_name) + \
                 " with noise level " + str(noise_to_add))
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
         outfile.close()
@@ -194,7 +195,7 @@ def write_bckgrnd_input(name_list, indir, normdir):
     try:
         outfile = open(bckgrnd_input, 'w')
     except IOError:
-            print("File {} could not be opened!".format(bckgrnd_input))
+            logging.info("File {} could not be opened!".format(bckgrnd_input))
 
 
     #Write the header (in_dir out_dir)
@@ -230,59 +231,60 @@ def create_spec_realizations_main(noise_level,
     (text files written)
     '''
 
-    print("--------------------------")
-    print("Making "+str(num)+" realizations of each empirical spectrum")
+    logging.info("--------------------------")
+    logging.info("Making "+str(num)+" realizations of each empirical spectrum")
 
     # Read list of empirical spectra
     input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
-    print('list_arr')
-    print(list_arr)
+    logging.info('list_arr')
+    logging.info(list_arr)
 
     # Check to make sure outdir (to receive realizations of spectra) exists
     outdir = unnorm_noise_churned_spectra_dir
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     else:
-        # Check to see if it is empty (if not, there is data from a previous
+        # Check to see if there are any files (if not, there is data from a previous
         # run that will inadvertently be used later)
-        preexisting_file_list_1 = glob.glob(outdir)
-        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir)
-        preexisting_file_list_3 = glob.glob(final_dir)
+        preexisting_file_list_1 = glob.glob(outdir + "/*.{*}")
+        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.{*}")
+        preexisting_file_list_3 = glob.glob(final_dir + "/*.{*}")
+        import ipdb; ipdb.set_trace()
         if (len(preexisting_file_list_1) != 0):
-            print("------------------------------")
-            print("Directory to write realizations not empty!!")
-            print(outdir)
-            print("------------------------------")
+            logging.info("------------------------------")
+            logging.info("Directory to write realizations not empty!!")
+            logging.info(outdir)
+            logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
         if (len(preexisting_file_list_2) != 0):
-            print("------------------------------")
-            print("Directory to write raw normalization output not empty!!")
-            print(bkgrnd_output_dir)
-            print("------------------------------")
+            logging.info("------------------------------")
+            logging.info("Directory to write raw normalization output not empty!!")
+            logging.info(bkgrnd_output_dir)
+            logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
         if (len(preexisting_file_list_3) != 0):
-            print("------------------------------")
-            print("Directory to write final normalization output not empty!!")
-            print(final_dir)
-            print("------------------------------")
+            logging.info("------------------------------")
+            logging.info("Directory to write final normalization output not empty!!")
+            logging.info(final_dir)
+            logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
-
+    import ipdb; ipdb.set_trace()
     # Create realizations for each spectrum
     name_list = list() # initialize
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
-        name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+list_arr[i],
+        name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+"/"+list_arr[i],
                                                outdir=outdir,
                                                num=num,
                                                noise_level=noise_level))
-    #print('name_list')
-    #print(name_list)
+    #logging.info('name_list')
+    #logging.info(name_list)
 
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list, outdir, bkgrnd_output_dir)
-    print("-------------------------------------------")
-    print('Using bkg_input_file')
-    print(bkg_input_file)
+    logging.info("-------------------------------------------")
+    logging.info('Using bkg_input_file')
+    logging.info(bkg_input_file)
 
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
     '''
@@ -295,23 +297,24 @@ def create_spec_realizations_main(noise_level,
     (out, err) = bkgrnd.communicate() # returns tuple (stdout, stderr)
 
     if verb == True: ## ## decode messages (are they used later? why take this step?)
-        print(out.decode("utf-8"))
-        print(err.decode("utf-8"))
+        logging.info(out.decode("utf-8"))
+        logging.info(err.decode("utf-8"))
 
     # write files of normalized fluxes, and return list of those filenames
     final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
 
-    print("-------------------------------------------")
-    print("Wrote realizations of original spectra to directory")
-    print(outdir)
-    print("-------------------------------------------")
-    print("Wrote raw normalization output to directory")
-    print(bkgrnd_output_dir)
-    print("-------------------------------------------")
-    print("Wrote final normalized spectra to directory")
-    print(final_dir)
+    logging.info("-------------------------------------------")
+    logging.info("Wrote realizations of original spectra to directory")
+    logging.info(outdir)
+    logging.info("-------------------------------------------")
+    logging.info("Wrote raw normalization output to directory")
+    logging.info(bkgrnd_output_dir)
+    logging.info("-------------------------------------------")
+    logging.info("Wrote final normalized spectra to directory")
+    logging.info(final_dir)
 
 if __name__ == '__main__':
+    import ipdb; ipdb.set_trace()
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
     parser.add_argument('input_list', help='List of spectra to process.')
     parser.add_argument('-o', default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')

@@ -33,6 +33,10 @@ config_apply = configparser.ConfigParser()
 #config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
 config_apply.read("rrlyrae_metallicity/modules2/config.ini")
 
+# set pathnames for important files that are used by different modules
+cc_bkgrnd_file_path_abs = config["data_dirs"]["DIR_SRC"] + "/bkgrnd.cc"
+compiled_bkgrnd_file_path_abs = config["data_dirs"]["DIR_BIN"] + "/bkgrnd"
+
 ncpu = multiprocessing.cpu_count()
 
 # The class OnlyGetScriptPath() and function get_setuptools_script_dir()
