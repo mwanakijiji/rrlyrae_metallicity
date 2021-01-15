@@ -19,10 +19,10 @@ def main():
 
     # make all the directories
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
-    '''
+
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
-
+    '''
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
