@@ -4,9 +4,25 @@ Initialization
 
 import configparser
 import os
+import sys
 import multiprocessing
+import logging
 from setuptools import Distribution
 from setuptools.command.install import install
+from datetime import datetime
+
+# set up logging, to print to screen and save to file simultaneously
+timestring_start = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_filename = timestring_start + ".log"
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s.%(msecs)03d [%(levelname)s] %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler(log_filename),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 # configuration data
 config = configparser.ConfigParser() # for parsing values in .init file
@@ -43,6 +59,7 @@ def make_dirs(objective="apply_abcd"):
     '''
     Make directories for housing files/info if they don't already exist
     '''
+    logging.info("## Making directories ##")
 
     # make directories for
     # 1. reduction of spectra to find a, b, c, d (objective = "find_abcd"), or
@@ -55,12 +72,12 @@ def make_dirs(objective="apply_abcd"):
     # loop over all directory paths we will need
     for vals in config_choice["data_dirs"]:
         abs_path_name = str(config_choice["data_dirs"][vals])
-        print("Directory exists: " + abs_path_name)
+        logging.info("Directory exists: " + abs_path_name)
 
         # if directory does not exist, create it
         if not os.path.exists(abs_path_name):
             os.makedirs(abs_path_name)
-            print("Made directory " + abs_path_name)
+            logging.info("Made directory " + abs_path_name)
 
 def phase_regions():
     '''
