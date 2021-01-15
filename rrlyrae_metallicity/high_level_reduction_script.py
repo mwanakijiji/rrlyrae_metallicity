@@ -22,12 +22,12 @@ def main():
 
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
-    '''
+
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write them out
     ## ## just 2 realizations for testing (otherwise, 100)
     create_spec_realizations.create_spec_realizations_main(num = 1, noise_level=0)
-
+    '''
     # run_robospect on normalized synthetic spectra
     run_robo.main()
 
