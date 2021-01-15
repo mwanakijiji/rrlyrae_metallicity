@@ -48,6 +48,8 @@ def create_norm_spec(name_list,
        A list of final file names
     '''
 
+    logging.info("Creating normalized spectra")
+
     new_name_list = list()
 
     for spec in name_list: # loop through spectrum realizations
@@ -86,6 +88,9 @@ def generate_realizations(spec_name, outdir, num, noise_level):
     Returns:
        A list of filenames for the realization spectra.
     '''
+
+    logging.info("Generating spectrum realizations of " + spec_name)
+
     # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
     spec_tab = read_spec(spec_name)
 
@@ -93,6 +98,7 @@ def generate_realizations(spec_name, outdir, num, noise_level):
 
     # generate realizations
     new_name_list = list()
+
     for i in range(num):
         # basename of spectrum realization
         new_name = "{}_{:03d}".format(basename, i)
@@ -117,9 +123,11 @@ def generate_realizations(spec_name, outdir, num, noise_level):
             outfile = open(new_name, 'w')
         except IOError:
             logging.info("File {} could not be opened!".format(new_name))
+        logging.info("Writing out realization file " + new_name)
+        logging.info("with noise level " + str(noise_to_add))
+        logging.info("-------------------------------")
+
         for j in range(len(new_flux)):
-            logging.info("Writing out realization file " + os.path.basename(new_name) + \
-                " with noise level " + str(noise_to_add))
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
         outfile.close()
     return(new_name_list)
@@ -137,6 +145,8 @@ def read_bkgrnd_spec(spec_name):
        bckgrnd_flux: Numpy array of flux error
     '''
 
+    logging.info("Reading spectrum realization and background in " + spec_name)
+
     spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'bckgrnd_flux'])
 
@@ -151,6 +161,8 @@ def read_list(input_list):
     Returns:
        Numpy array of filenames
     '''
+
+    logging.info("Reading in list of spectrum names to return table of filenames")
 
     # col 0 contains the file names
     filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols=(0))
@@ -171,6 +183,8 @@ def read_spec(spec_name):
        error: Numpy array of flux error
     '''
 
+    logging.info("Reading spectrum " + spec_name)
+
     spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'error'])
 
@@ -187,6 +201,8 @@ def write_bckgrnd_input(name_list, indir, normdir):
     Returns:
        A string with the background input filename
     '''
+
+    logging.info("Creating input file list of spectrum realization filenames")
 
     #Check to see if inputfile is already there
     bckgrnd_input = os.path.join(indir, "bckgrnd_input.txt")
@@ -237,8 +253,8 @@ def create_spec_realizations_main(noise_level,
     # Read list of empirical spectra
     input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
-    logging.info('list_arr')
-    logging.info(list_arr)
+    #logging.info('list_arr')
+    #logging.info(list_arr)
 
     # Check to make sure outdir (to receive realizations of spectra) exists
     outdir = unnorm_noise_churned_spectra_dir
@@ -250,7 +266,7 @@ def create_spec_realizations_main(noise_level,
         preexisting_file_list_1 = glob.glob(outdir + "/*.{*}")
         preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.{*}")
         preexisting_file_list_3 = glob.glob(final_dir + "/*.{*}")
-        import ipdb; ipdb.set_trace()
+
         if (len(preexisting_file_list_1) != 0):
             logging.info("------------------------------")
             logging.info("Directory to write realizations not empty!!")
@@ -269,7 +285,7 @@ def create_spec_realizations_main(noise_level,
             logging.info(final_dir)
             logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
-    import ipdb; ipdb.set_trace()
+
     # Create realizations for each spectrum
     name_list = list() # initialize
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
@@ -283,8 +299,7 @@ def create_spec_realizations_main(noise_level,
     # Create input list of spectrum realization filenames
     bkg_input_file = write_bckgrnd_input(name_list, outdir, bkgrnd_output_dir)
     logging.info("-------------------------------------------")
-    logging.info('Using bkg_input_file')
-    logging.info(bkg_input_file)
+    logging.info('Using bkg_input_file' + bkg_input_file)
 
     # Normalize each spectrum realization (smoothing parameter is set in __init__)
     '''
