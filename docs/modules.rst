@@ -10,72 +10,22 @@ Subpackages
 
 .. toctree::
 
-    pyklip.instruments.P1640_support
-    pyklip.instruments.utils
+    rrlyrae_metallicity.compile_normalization
+    rrlyrae_metallicity.create_spec_realizations
+    rrlyrae_metallicity.run_robo
+    rrlyrae_metallicity.scrape_ew_and_errew
+    rrlyrae_metallicity.make_high_res_feh_basis
+    rrlyrae_metallicity.error_propagation_and_mapping
+    rrlyrae_metallicity.consolidate_pre_mcmc
+    rrlyrae_metallicity.run_emcee
 
 Submodules
 ----------
 
-pyklip.instruments.CHARIS module
+compile_normalization.compile_bkgrnd module
 --------------------------------
 
-.. automodule:: pyklip.instruments.CHARIS
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.GPI module
------------------------------
-
-.. automodule:: pyklip.instruments.GPI
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.Instrument module
-------------------------------------
-
-.. automodule:: pyklip.instruments.Instrument
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.MagAO module
--------------------------------
-
-.. automodule:: pyklip.instruments.MagAO
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.NIRC2 module
--------------------------------
-
-.. automodule:: pyklip.instruments.NIRC2
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.P1640 module
--------------------------------
-
-.. automodule:: pyklip.instruments.P1640
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.SPHERE module
---------------------------------
-
-.. automodule:: pyklip.instruments.SPHERE
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pyklip.instruments.osiris module
---------------------------------
-
-.. automodule:: pyklip.instruments.osiris
+.. automodule:: compile_normalization.compile_bkgrnd
     :members:
     :undoc-members:
     :show-inheritance:
@@ -84,7 +34,7 @@ pyklip.instruments.osiris module
 Module contents
 ---------------
 
-.. automodule:: pyklip.instruments
+.. automodule:: rrlyrae_metallicity.compile_normalization
     :members:
     :undoc-members:
     :show-inheritance:
