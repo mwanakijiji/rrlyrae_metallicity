@@ -2,7 +2,7 @@ Modules
 =================
 Documentation of the code itself...
 
-pyklip.instruments package
+rrlyrae_metallicity.compile_normalization package
 ==========================
 
 Subpackages
