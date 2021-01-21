@@ -3,6 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: rrl_placeholder.jpg
+    :align: center
+    :alt: RR Lyrae metallicity
+    :height: 200px
+    :width: 365px
+
 Documentation for RR Lyrae metallicity calibration
 ===============================================
 
