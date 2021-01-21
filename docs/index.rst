@@ -14,22 +14,24 @@ Documentation for RR Lyrae metallicity calibration
 
 .. toctree::
    :maxdepth: 2
-
    :caption: Get started
+
    introduction
    installation
 
+.. toctree::
+   :maxdepth: 2
    :caption: Modules
+
    modules
 
-   :caption: Tutorials
-   tutorial 1
-   tutorial 2
-   acknowledgements
-
 .. toctree::
-  :maxdepth: 2
-  :caption: Tutorials
+   :maxdepth: 2
+   :caption: Tutorials
+
+   tutorial1
+   tutorial2
+   acknowledgements
 
 
 
