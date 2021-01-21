@@ -6,7 +6,7 @@ Documentation of the code itself...
 Submodules
 ----------
 
-compile_normalization.compile_bkgrnd module
+compile\_normalization.compile\_bkgrnd module
 --------------------
 
 .. automodule:: compile_normalization.compile_bkgrnd
@@ -14,7 +14,7 @@ compile_normalization.compile_bkgrnd module
     :undoc-members:
     :show-inheritance:
 
-create_spec_realizations.create_spec_realizations_main module
+create\_spec\_realizations.create\_spec\_realizations\_main module
 --------------------
 
 .. automodule:: create_spec_realizations.create_spec_realizations_main
