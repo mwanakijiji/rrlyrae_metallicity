@@ -39,6 +39,7 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -97,6 +98,7 @@ html_static_path = ['_static']
 #
 html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'], }
 
+html_logo = 'imgs/rrl_placeholder.jpg'
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
