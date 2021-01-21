@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: rrl_placeholder.jpg
+.. image:: imgs/rrl_placeholder.jpg
     :align: center
     :alt: RR Lyrae metallicity
     :height: 200px
@@ -14,11 +14,15 @@ Documentation for RR Lyrae metallicity calibration
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Get started
 
    introduction
    installation
+
+   :caption: Modules
    modules
+
+   :caption: Tutorials
    acknowledgements
 
 .. toctree::
