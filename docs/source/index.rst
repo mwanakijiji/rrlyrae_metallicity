@@ -9,8 +9,6 @@
     :height: 200px
     :width: 365px
 
-.. include:: modules.rst
-
 Documentation for RR Lyrae metallicity calibration
 ===============================================
 
