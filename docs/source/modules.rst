@@ -1,7 +1,7 @@
-modules2
-========
+rrlyrae_metallicity
+===================
 
 .. toctree::
    :maxdepth: 4
 
-   modules2
+   rrlyrae_metallicity
