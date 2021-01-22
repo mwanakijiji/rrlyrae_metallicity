@@ -28,7 +28,7 @@ Documentation for RR Lyrae metallicity calibration
    acknowledgements
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Modules
 
    rrlyrae_metallicity
