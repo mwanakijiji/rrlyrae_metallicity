@@ -9,6 +9,8 @@
     :height: 200px
     :width: 365px
 
+.. include:: modules.rst
+
 Documentation for RR Lyrae metallicity calibration
 ===============================================
 
@@ -31,7 +33,7 @@ Documentation for RR Lyrae metallicity calibration
    :maxdepth: 8
    :caption: Modules
 
-   rrlyrae_metallicity/modules2
+   rrlyrae_metallicity
 
 
 
