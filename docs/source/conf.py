@@ -14,6 +14,9 @@
 #
 import os
 import sys
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity/'))
+sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity/modules2/'))
 sys.path.insert(0, os.path.abspath('../../'))
 sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/'))
 sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/modules2/'))
@@ -42,6 +45,7 @@ release = ''
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
