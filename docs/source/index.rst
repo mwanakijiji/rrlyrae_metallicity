@@ -31,7 +31,7 @@ Documentation for RR Lyrae metallicity calibration
    :maxdepth: 2
    :caption: Modules
 
-   modules
+   rrlyrae_metallicity
 
 
 
