@@ -14,10 +14,8 @@
 #
 import os
 import sys
-#sys.path.insert(0, os.path.abspath(__file__) + "../../rrlyrae_metallicity/modules2/")
+sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity'))
 sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/modules2/'))
-sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/'))
-sys.path.insert(0, os.path.abspath('../../'))
 
 
 # -- Project information -----------------------------------------------------
