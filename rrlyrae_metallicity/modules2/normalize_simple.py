@@ -25,16 +25,36 @@ from astropy.table import Table
 import numpy as np
 from rrlyrae_metallicity.modules2 import *
 
+"""
+FYI text
+"""
+
 # --------------------
 # Function Definitions
 # --------------------
+def junk_np_calc_chisq(data, b, w, coef):
+    """
+    Calculate chi squared
+
+    Args:
+        im: nim x npix, single-precision numpy.ndarray. Data to be fit by the basis images
+        b: nvec x npts, double precision numpy.ndarray. The nvec basis images.
+        w: nim x npts, single-precision numpy.ndarray. Weights (inverse variances) of the data.
+        coef: nvec x npts, double precision numpy.ndarray. The coefficients of the basis image fits.
+
+    Returns:
+        chisq, the total chi squared summed over all points and all images
+    """
+
+    return("1")
+
 def create_norm_spec(name_list,
                      normdir,
                      finaldir):
     '''
     Create final normalized spectra, using the output from the bkgrnd routine (which puts out wavelength, flux, and continuum flux, but
     not the actual normalized flux)
-    
+
     Arguments:
         name_list: List of Realization file names (no path info)
         normdir: bkgrnd ascii files
@@ -42,11 +62,11 @@ def create_norm_spec(name_list,
     Returns:
        A list of final file names
     '''
-    
+
     new_name_list = list()
-    
+
     for spec in name_list: # loop through spectrum realizations
-        
+
         spec_name = os.path.join(normdir,spec) # spectrum realization file name (as output by bkgrnd), with relative path info
         spec_tab = read_bkgrnd_spec(spec_name) # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
         new_name = os.path.join(finaldir,spec) # output file name of final, normalized spectrum, with relative path info
@@ -58,15 +78,15 @@ def create_norm_spec(name_list,
             print("File {} could not be opened!".format(new_name))
         for j in range(len(spec_tab['wavelength'])):
             outfile.write("{} {:.4f}\n".format(spec_tab['wavelength'][j],spec_tab['flux'][j]/spec_tab['bckgrnd_flux'][j])) # do the division to normalize and write out
-        
+
         outfile.close()
-    
-    return(new_name_list)  
+
+    return(new_name_list)
 
 def read_bkgrnd_spec(spec_name):
     '''
     Reads in ascii spectra created by bckgrnd and returns numpy arrays of wavelength, flux, bckgrnd_flux
-    
+
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, bckgrnd_flux
     Returns:
@@ -75,28 +95,28 @@ def read_bkgrnd_spec(spec_name):
        flux: Numpy array of fluxes
        bckgrnd_flux: Numpy array of flux error
     '''
-    
+
     spec_tab = Table.read(spec_name,format='ascii.no_header',names=['wavelength','flux','bckgrnd_flux'])
-        
+
     return(spec_tab)
 
 def read_list(input_list):
     '''
     Reads in list of spectrum names and returns a table of filenamse
-    
+
     Arguments:
         input_list: The spectrum filename
     Returns:
        Numpy array of filenames
-    '''   
-       
+    '''
+
     filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols = (0)) # col 0 contains the file names
     return(filenames_arr)
 
 def read_spec(spec_name):
     '''
     Reads in ascii empirical spectra and returns numpy arrays of wavelength, flux, and error.
-    
+
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, error no headers
     Returns:
@@ -107,7 +127,7 @@ def read_spec(spec_name):
     '''
 
     spec_tab = Table.read(spec_name,format='ascii.no_header',names=['wavelength','flux','error'])
-        
+
     return(spec_tab)
 
 def write_bckgrnd_input(name_list,indir,normdir):
@@ -115,7 +135,7 @@ def write_bckgrnd_input(name_list,indir,normdir):
     Create input file for the bckgrnd program. This consists of a file
     with a header containing the input and output directories, followed
     by a list of stemless filenames of the spectra.
-    
+
     Arguments:
         name_list: List of Realization file names (no path info)
         indir: The working directory with files
@@ -123,7 +143,7 @@ def write_bckgrnd_input(name_list,indir,normdir):
     Returns:
        A string with the background input filename
     '''
-    
+
     #Check to see if inputfile is already there
     bckgrnd_input = os.path.join(indir,"bckgrnd_input.txt")
     if os.path.isfile(bckgrnd_input) is True:
@@ -132,8 +152,8 @@ def write_bckgrnd_input(name_list,indir,normdir):
         outfile = open(bckgrnd_input,'w')
     except IOError:
             print("File {} could not be opened!".format(bckgrnd_input))
-    
-    
+
+
     #Write the header (in_dir out_dir)
     outfile.write("{} {}\n".format(indir,normdir))
     for j in range(len(name_list)):
@@ -164,7 +184,7 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
 
     print("--------------------------")
     print("Normalizing spectra")
-    
+
     # read file containing list of stemless filenames of science spectra to normalize and
     # apply calibration to. Note the input science spectra need to have two columns:
     # [0]: wavelength (angstroms); [1]: unnormalized flux
@@ -185,25 +205,25 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
                                          normdir = bkgrnd_output_dir)
 
     import ipdb; ipdb.set_trace()
-    
+
     # Normalize each spectrum (smoothing parameter is set in __init__)
     bkgrnd = Popen([str(config_apply["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config_apply["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out,err) = bkgrnd.communicate() # returns tuple (stdout,stderr)
-    
+
     if verb == True:
         print(out.decode("utf-8"))
         print(err.decode("utf-8"))
-        
+
     # write files of normalized fluxes, and return list of those filenames
     final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
-    
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
     parser.add_argument('input_list', help='List of spectra to process.')
     parser.add_argument('-o', default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')
     parser.add_argument('-n', type=int, default=100, metavar='Num', help='Number of Realizations (Default 100).')
-    parser.add_argument('-v', action='store_true', help='Turn on verbosity')   
-    #Put this in a dictionary    
+    parser.add_argument('-v', action='store_true', help='Turn on verbosity')
+    #Put this in a dictionary
     args = vars(parser.parse_args())
     ret = normalize_simple(args['input_list'],args['o'],args['n'],args['v'])
