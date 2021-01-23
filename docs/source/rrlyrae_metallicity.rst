@@ -7,39 +7,31 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   rrlyrae_metallicity.modules2
+   rrlyrae_metallicity.rrlyrae_metallicity
 
 Submodules
 ----------
 
-rrlyrae\_metallicity.conftest module
-------------------------------------
+rrlyrae\_metallicity.app module
+-------------------------------
 
-.. automodule:: rrlyrae_metallicity.conftest
+.. automodule:: rrlyrae_metallicity.app
    :members:
    :undoc-members:
    :show-inheritance:
 
-rrlyrae\_metallicity.high\_level\_application module
-----------------------------------------------------
+rrlyrae\_metallicity.setup module
+---------------------------------
 
-.. automodule:: rrlyrae_metallicity.high_level_application
+.. automodule:: rrlyrae_metallicity.setup
    :members:
    :undoc-members:
    :show-inheritance:
 
-rrlyrae\_metallicity.high\_level\_application\_script module
-------------------------------------------------------------
+rrlyrae\_metallicity.test\_setup module
+---------------------------------------
 
-.. automodule:: rrlyrae_metallicity.high_level_application_script
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-rrlyrae\_metallicity.high\_level\_reduction\_script module
-----------------------------------------------------------
-
-.. automodule:: rrlyrae_metallicity.high_level_reduction_script
+.. automodule:: rrlyrae_metallicity.test_setup
    :members:
    :undoc-members:
    :show-inheritance:
