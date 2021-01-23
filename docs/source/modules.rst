@@ -1,5 +1,5 @@
-rrlyrae_metallicity
-===================
+git.repos
+=========
 
 .. toctree::
    :maxdepth: 4
