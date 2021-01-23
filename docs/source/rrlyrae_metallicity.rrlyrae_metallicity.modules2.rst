@@ -1,6 +1,14 @@
 rrlyrae\_metallicity.rrlyrae\_metallicity.modules2 package
 ==========================================================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   rrlyrae_metallicity.rrlyrae_metallicity.modules2.modules3
+
 Submodules
 ----------
 
