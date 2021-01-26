@@ -5,6 +5,7 @@ Calls Robospect to find EWs of the normalized, noise-churned spectra
 import os
 import glob
 import multiprocessing
+import logging
 from rrlyrae_metallicity.modules2 import *
 
 
@@ -33,7 +34,7 @@ class RunRobo:
 
         # for applying to synthetic spectra
 
-        print("Running Robospect on "+ file_name + " \n")
+        logging.info("Running Robospect on "+ file_name + " \n")
 
         # define string for output base names
         #file_specific_string = p.split(".")[-2].split("/")[-1]
@@ -60,8 +61,8 @@ class RunRobo:
         ## -vvvv                       ['Enable all debug messages for all components.'
         ##                               --C. Waters]
 
-        print("robo cmd")
-        print("python "+self.robo_dir + "bin/rSpect.py -i 4 " +str(file_name) +" -P " + self.norm_spec_deposit_dir + file_specific_string +" --line_list " + self.robo_dir + "tmp/ll" +" -C name null" +" -D name null" +" -N name boxcar" + " -I range 10.0" + " -F chi_window 20.0 " + "-vvvv")
+        logging.info("Robospect cmd:")
+        logging.info("python "+self.robo_dir + "bin/rSpect.py -i 4 " +str(file_name) +" -P " + self.norm_spec_deposit_dir + file_specific_string +" --line_list " + self.robo_dir + "tmp/ll" +" -C name null" +" -D name null" +" -N name boxcar" + " -I range 10.0" + " -F chi_window 20.0 " + "-vvvv")
         os.system("python " +
               self.robo_dir + "bin/rSpect.py -i 4 " +
               str(file_name) +
@@ -73,6 +74,9 @@ class RunRobo:
               " -I range 10.0" +
               " -F chi_window 20.0 " +
               "-vvvv")
+
+        logging.info("Robospect output files written to " + \
+            self.norm_spec_deposit_dir + file_specific_string + "*")
 
 
 def main():
@@ -86,23 +90,29 @@ def main():
     norm_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"]
 
     file_name_list = glob.glob(norm_spec_source_dir+"*.smo*")
-    print('Reading in spectra from directory')
-    print(norm_spec_source_dir)
+    logging.info('Reading in spectra from directory')
+    logging.info(norm_spec_source_dir)
 
     # Check to see if it is empty (if not, there is data from a previous
     # run that will inadvertently be used later)
     write_dir = config["data_dirs"]["DIR_ROBO_OUTPUT"]
-    preexisting_file_list = glob.glob(write_dir)
-    print("------------------------------")
-    print("Directory to receive Robospect output not empty!!")
-    print(write_dir)
-    print("------------------------------")
-    input("Do what you want with those files, then hit [Enter]")
+    preexisting_file_list = glob.glob(write_dir + "/*", recursive=False)
+    print(preexisting_file_list)
+    print(len(preexisting_file_list))
+    if (len(preexisting_file_list) > 0):
+        logging.info("------------------------------")
+        logging.info("Directory to receive Robospect output not empty!!")
+        logging.info(write_dir)
+        logging.info("------------------------------")
+        input("Do what you want with those files, then hit [Enter]")
 
     # make cookie cutouts of the PSFs
     ## ## might add functionality to override the found 'center' of the PSF
     run_robospect_instance = RunRobo()
-    pool.map(run_robospect_instance, file_name_list)
+    #pool.map(run_robospect_instance, file_name_list)
 
-    print("Done with Robospect")
-    print("-------------------")
+    # serial (testing only)
+    run_robospect_instance(file_name_list[0])
+
+    logging.info("Done with Robospect")
+    logging.info("-------------------")

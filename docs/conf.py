@@ -15,11 +15,27 @@
 import os
 import sys
 current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.insert(0, target_dir)
-print("Target dir")
-print(target_dir)
+
+## IMPORTS app FCN
+#target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+#sys.path.insert(0, target_dir)
+#print("Target dir")
+#print(target_dir)
+## BEGIN IMPORTS app FCN
+
+## TESTING
+#sys.path.insert(0, os.path.abspath('../../'))
+#sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity2/'))
+#from rrlyrae_metallicity import rrlyrae_metallicity
+#sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/modules2'))#rrlyrae_metallicity/modules2/modules3/'))
+#target_dir = os.path.abspath(os.path.join(current_dir, "../../rrlyrae_metallicity/"))
+## END TESTING
+
+
+
 print(sys.executable)
+
+
 #sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity/'))
 #sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity/modules2/'))
 #sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity/modules2/modules3/'))
