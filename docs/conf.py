@@ -24,8 +24,8 @@ current_dir = os.path.dirname(__file__)
 ## BEGIN IMPORTS app FCN
 
 ## TESTING
-#sys.path.insert(0, os.path.abspath('../../'))
-#sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity2/'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('../rrlyrae_metallicity2/'))
 #from rrlyrae_metallicity import rrlyrae_metallicity
 #sys.path.insert(0, os.path.abspath('../../rrlyrae_metallicity/modules2'))#rrlyrae_metallicity/modules2/modules3/'))
 #target_dir = os.path.abspath(os.path.join(current_dir, "../../rrlyrae_metallicity/"))
