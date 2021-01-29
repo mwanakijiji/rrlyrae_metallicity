@@ -18,9 +18,9 @@ from modules2 import (compile_normalization,
 def main():
 
     # make all the directories
-    '''
-    make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
 
+    make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
+    '''
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
@@ -28,13 +28,17 @@ def main():
     # spectra, normalize them, and write them out
     ## ## just 1 or 2 realizations for testing (default is 100)
     create_spec_realizations.create_spec_realizations_main(num = 1, noise_level=0)
-    '''
+
     # run_robospect on normalized synthetic spectra
     run_robo.main()
-    '''
+
     # scrape_ew_from_robo and calculate EWs + err_EW
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
+    '''
+
+    scrape_ew_and_errew.quality_check()
+    '''
 
     # find net K, H equivalent widths and make K-H plot
     find_HK_instance = scrape_ew_and_errew.findHK()

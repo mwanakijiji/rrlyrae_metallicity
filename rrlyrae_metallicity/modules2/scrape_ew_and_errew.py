@@ -5,9 +5,10 @@ Scrape Robospect output and do some processing of the results
 import os
 import sys
 import glob
+import logging
 import pandas as pd
 import numpy as np
-import matplotlib  
+import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
@@ -20,7 +21,7 @@ class Scraper():
 
     def __init__(self,
                  subdir=config["data_dirs"]["DIR_ROBO_OUTPUT"],
-                 file_scraped_info=config["file_names"]["MCD_LARGE_BAD_REMOVED"],
+                 file_scraped_info=config["file_names"]["SCRAPED_EW_ALL_DATA"],
                  verbose=False):
 
         # directory containing the *.fits.robolines
@@ -49,28 +50,32 @@ class Scraper():
             N.b. This checks the wavelengths using the given line list
             values (and not the fitted centers)
             '''
-            #import ipdb; ipdb.set_trace()
-            print(line_centers[0])
+
+            logging.info('Verifying line centers...')
+            logging.info(line_centers[0])
+            glitch_count = int(0) # boolean for bookeeping
             if ((line_centers[0] < 3933.660-10) or
                 (line_centers[0] > 3933.660+10)): # CaIIK
-                print('Lines not matching!')
-                sys.exit()  # ... and abort
-            elif ((line_centers[1] < 3970.075-10) or
+                logging.warning('CaIIK line center does not match!')
+                glitch_count = int(1) # boolean for bookeeping
+            if ((line_centers[1] < 3970.075-10) or
                   (line_centers[1] > 3970.075+10)): # H-epsilon (close to CaIIH)
-                print('Lines not matching!')
-                sys.exit()
-            elif ((line_centers[2] < 4101.7100-10) or
+                logging.warning('H-epsilon center (close to CaIIH) line does not match!')
+                glitch_count = int(1) # boolean for bookeeping
+            if ((line_centers[2] < 4101.7100-10) or
                   (line_centers[2] > 4101.7100+10)): # H-delta
-                print('Lines not matching!')
-                sys.exit()
-            elif ((line_centers[3] < 4340.472-10) or
+                logging.warning('H-delta line center does not match!')
+                glitch_count = int(1) # boolean for bookeeping
+            if ((line_centers[3] < 4340.472-10) or
                   (line_centers[3] > 4340.472+10)): # H-gamma
-                print('Lines not matching!')
-                sys.exit()
-            elif ((line_centers[4] < 4861.290-10) or
+                logging.warning('H-gamma line center does not match!')
+                glitch_count = int(1) # boolean for bookeeping
+            if ((line_centers[4] < 4861.290-10) or
                   (line_centers[4] > 4861.290+10)): # H-beta
-                print('Lines not matching!')
-                sys.exit()
+                logging.warning('H-beta line center does not match!')
+                glitch_count = 1 # boolean for bookeeping
+            if (glitch_count == int(0)):
+                logging.info('CaIIK, H-eps, H-del, H-gam, h_beta line centers are consistent')
             return
 
         df_master = pd.DataFrame() # initialize
@@ -84,46 +89,39 @@ class Scraper():
         for t in range(0, len(self.file_list)):
 
             # read in Robospect output
+            logging.info("--------------------")
+            logging.info("Reading in Robospect output from directory")
+            logging.info(self.subdir+'/')
+
             '''
-            df = pd.read_csv(self.subdir+'/'+self.file_list[t],
-                             skiprows=19,
-                             delim_whitespace=True,
-                             index_col=False,
-                             usecols=[    0,     2,   3,     6,  7,   11,  13,  14,   15,     16,         18],
-                             names=  ["#x0","mean","3","flux","7","EQW","13","14","15","flags","line_name"])
+            The following parses lines from Robospect *robolines output files,
+            which look like the following, as of the v0.76 tag of Robospect:
+
+            ## Units
+            ##AA      [ AA           AA             None]        [ AA             AA                None]             [ AA           AA          None]       mAA        mAA             None      None     None       None
+            ## Headers
+            ##wave_0  [ gaussianMu   gaussianSigma  gaussianAmp] [ uncertaintyMu  uncertaintySigma  uncertaintyAmp]   [ priorMu      priorSigma  priorAmp]   EQW        uncertaintyEQW  chiSqr    flags    blendGroup comment
+            3933.6600 [ 3933.618556  1.636451       -0.338310]   [ 0.043767       0.045441          0.008054]         [ 3934.427147  1.754001    0.384793]   1.387738   0.127230        0.004045  0x10020  0          CaII-K
+            3970.0750 [ 3969.912002  6.497202       -0.626854]   [ 0.245555       0.237816          0.023196]         [ 3971.262223  4.535872    0.781687]   10.208984  1.331932        0.117392  0x10020  0          H-eps
+            4101.7100 [ 4101.728498  6.829899       -0.596311]   [ 0.335244       0.327236          0.025288]         [ 4102.885050  4.878668    0.734648]   10.208852  1.637334        0.220112  0x10020  0          H-del
+            4340.4720 [ 4340.374387  7.365172       -0.557777]   [ 0.395447       0.378434          0.025443]         [ 4340.943149  4.961159    0.689719]   10.297539  1.773505        0.300238  0x10020  0          H-gam
+            4861.2900 [ 4861.316520  7.570797       -0.505060]   [ 0.441626       0.426212          0.025690]         [ 4861.746895  4.898021    0.635582]   9.584604   1.822847        0.377350  0x10020  0          H-beta
             '''
-            print("Reading in Robospect output from directory")
-            print(self.subdir+'/')
-            print("--------------------")
+
             df = pd.read_csv(self.subdir+'/'+self.file_list[t],
                              skiprows=19,
                              delim_whitespace=True,
                              index_col=False,
                              usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
-                             names=  ["#x0","[1","mean","gaussianSigma","gaussianAmp",
+                             names=  ["wavel_stated_center","[1","wavel_found_center","gaussianSigma","gaussianAmp",
                                         "[2","uncertaintyMu","uncertaintySigma","uncertaintyAmp",
                                         "[3","priorMu","priorSigma","priorAmp","EQW","uncertaintyEQW",
                                         "chiSqr","flags","blendGroup","line_name"])
-            ##names=["#x0","mean","sigma","flux","7","10","11","EQW","14","chi","flags","line_name"]
-            ## old command here
-            #import ipdb; ipdb.set_trace()
-            ## ## TEST IF STATEMENT
-            #import ipdb; ipdb.set_trace()
-            #import ipdb; ipdb.set_trace()
-            #if self.file_list[t] == "600020p02.smo_000.robolines":
-            #    import ipdb; ipdb.set_trace()
-            '''
-            df = pd.read_csv(self.subdir+'/'+self.file_list[t],
-                             header=16,
-                             delim_whitespace=True,
-                             index_col=False,
-                             usecols=np.arange(17))
-            '''
-            #print(df['#x0'])
-            #print(self.file_list[t])
-            #import ipdb; ipdb.set_trace()
+            logging.info("Parsing " + self.file_list[t])
+
             # check lines are in the right order
-            line_order_check(df['#x0'])
+            # if they are not, a warning is printed in the log
+            line_order_check(df['wavel_found_center'])
 
             # add two cols on the left: the filename, and the name of the line
             #s_length = len(df['mean']) # number of lines (should be 5)
@@ -148,7 +146,7 @@ class Scraper():
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
 
             # print progress
-            print('Out of '+str(len(self.file_list))+' files, '+str(t+1)+' scraped...')
+            logging.info('Out of '+str(len(self.file_list))+' files, '+str(t+1)+' scraped...')
 
             # if this is the first list, start a master copy from it to concatenate stuff to it
             if (t == 0):
@@ -159,35 +157,60 @@ class Scraper():
 
         # write to csv, while resetting the indices
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
-        df_master_reset = df_master.reset_index(drop=True).copy()
+        #df_master_reset = df_master.reset_index(drop=True).copy()
         # this is effectively the same, but gets written out
-        df_master.reset_index(drop=True).to_csv(self.subdir+config["file_names"]["MCD_ALL_DATA"])
+        df_master.reset_index(drop=True).to_csv(config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"])
 
-        ## IF WE ARE INTERESTED IN SPECTRA THAT HAVE ALL WELL-FIT LINES
-        # remove all rows with a flag ending with something other than zero (i.e., the fit is bad)
-        # make an array consisting of the last character in each spectrum's flag
-        red_flag_array = ([u[-1] for u in df_master_reset["flags"]])
-        # consider bad flags to be of any flag with a nonzero last character
-        where_red_flag = np.where(np.array(red_flag_array) != '0')
+        #if self.verbose:
+        #    return df_master_reset, df_master_reset_drop_bad_spectra
+        return
 
-        # identify the synthetic spectrum names which have at least one line with a bad fit
-        bad_synth_spectra = df_master_reset['realization_spec_file_name'][np.squeeze(where_red_flag)]
-        # remove duplicate names
-        bad_synth_spectra_uniq = bad_synth_spectra.drop_duplicates()
-        # keep only the spectra that have all lines well-fit
-        df_master_reset_drop_bad_spectra = df_master_reset.where(
-            ~df_master_reset['realization_spec_file_name'].isin(bad_synth_spectra_uniq))
+def quality_check(
+    read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"],
+    write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]):
+    '''
+    This reads in all the scraped EW data, and removes spectra that have fits
+    which are bad based on multiple criteria.
+    '''
 
-        # write to csv
-        # note THIS TABLE HAS SPECTRA WITH ANY BAD ROWS REMOVED
-        df_master_reset_drop_bad_spectra.to_csv(self.write_out_filename)
-        #import ipdb; ipdb.set_trace()
-        print("--------------------------")
-        print('Scraped Robospect output written to')
-        print(self.write_out_filename)
+    # read in data
+    all_data = pd.read_csv(read_in_filename)
 
-        if self.verbose:
-            return df_master_reset, df_master_reset_drop_bad_spectra
+    # make new column for 'good' (G) or 'bad' (B) based on the below criteria
+    # (initialize all as 'G')
+    all_data["quality"] = "G"
+
+    # impose criteria for pruning of data
+
+    # Criterion 1. Remove all rows with a Robospect flag ending with something other than zero
+    # (i.e., Robospect found the fit to be bad)
+    # make an array consisting of the last character in each spectrum's flag
+    red_flag_array = ([u[-1] for u in all_data["flags"]])
+    # consider bad flags to be of any flag with a nonzero last character
+    where_red_flag = np.where(np.array(red_flag_array) != '0')
+    # identify the synthetic spectrum names which have at least one line with a bad fit
+    bad_robo_spectra = all_data["realization_spec_file_name"][np.squeeze(where_red_flag)]
+    # remove duplicate names
+    bad_robo_spectra_uniq = bad_robo_spectra.drop_duplicates()
+    # flag as bad the spectra with those names
+    all_data["quality"][all_data["realization_spec_file_name"].isin(bad_robo_spectra_uniq)] = "B"
+
+    # Criterion 2. Remove rows where the line centers are not right, using steps similar to above
+    # (specifically, if measured line center is more than 10 A away from perfect center)
+    where_bad_line_center = np.where(np.abs(np.subtract(all_data["wavel_found_center"],all_data["wavel_stated_center"]) > 10))
+    bad_line_center_spectra = all_data["realization_spec_file_name"][np.squeeze(where_bad_line_center)]
+    bad_line_center_spectra_uniq = bad_line_center_spectra.drop_duplicates()
+    all_data["quality"][all_data["realization_spec_file_name"].isin(bad_robo_spectra_uniq)] = "B"
+
+    # Last step: Write only the rows with a good ("G") flag to file
+    # (note that if AT LEAST one absorption line was found to be bad, ALL the
+    # data corresponding to that spectrum is removed)
+    pruned_data = all_data[all_data.quality == "G"]#.reset_index()
+    pruned_data.to_csv(write_out_filename)
+
+    logging.info("--------------------------")
+    logging.info('Scraped Robospect output written to')
+    logging.info(write_out_filename)
 
 
 class findHK():
@@ -204,12 +227,12 @@ class findHK():
         self.source_subdir = source_subdir
         self.phase_subdir = phase_subdir
         self.scraped_ew_filename = self.source_subdir + \
-          config["file_names"]["MCD_LARGE_BAD_REMOVED"]
+          config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]
         self.hk_file_name = hk_write_subdir + \
           config["file_names"]["MORE_REALISTIC"]
 
         # read in line data
-        print(self.scraped_ew_filename)
+        logging.info(self.scraped_ew_filename)
         self.line_data = pd.read_csv(self.scraped_ew_filename,
                                      delim_whitespace=False)
 
@@ -272,9 +295,9 @@ class findHK():
         # loop over every EMPIRICAL spectrum and assemble SYNTHETIC data into arrays
         for p in range(0, len(np.array(unique_spec_names.values))):
 
-            print('unique')
-            print(unique_spec_names)
-            print("Synthetic data being assembled corresponding to spectrum "+\
+            logging.info('unique')
+            logging.info(unique_spec_names)
+            logging.info("Synthetic data being assembled corresponding to spectrum "+\
                   np.array(unique_spec_names)[p])
             # extract all synthetic data corresponding to this empirical spectrum
             data_for_this_empir_spectrum = self.line_data.where(
@@ -317,23 +340,23 @@ class findHK():
 
             # if any of these are blank
             if (len(raw_Hbet_err_EW.dropna()) == 0):
-                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                logging.info("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
                     "; skipping...")
                 continue
             if (len(raw_Hgam_err_EW.dropna()) == 0):
-                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                logging.info("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
                     "; skipping...")
                 continue
             if (len(raw_Hdel_err_EW.dropna()) == 0):
-                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                logging.info("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
                     "; skipping...")
                 continue
             if (len(raw_Heps_err_EW.dropna()) == 0):
-                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                logging.info("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
                     "; skipping...")
                 continue
             if (len(raw_K_err_EW.dropna()) == 0):
-                print("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
+                logging.info("Blank EWs in " + str(np.array(unique_spec_names)[p]) + \
                     "; skipping...")
                 continue
 
@@ -525,7 +548,7 @@ class findHK():
             if (df_collation.at[q, "original_spec_file_name"] == empir_spec_this_one.any()):
                 continue
             else:
-                print("Phases and spectrum names out of order!")
+                logging.info("Phases and spectrum names out of order!")
                 return
 
         # drop row of nans (probably redundant)
@@ -533,9 +556,9 @@ class findHK():
 
         # write to csv
         df_collation_real.to_csv(self.hk_file_name)
-        print('----------------------------------------')
-        print('HK data written to ')
-        print(str(self.hk_file_name))
+        logging.info('----------------------------------------')
+        logging.info('HK data written to ')
+        logging.info(str(self.hk_file_name))
 
         # make plot: each color is a different star, open circles are bad phase region
         data_to_plot = pd.read_csv(self.hk_file_name) # read data back in
@@ -543,8 +566,8 @@ class findHK():
         # make list of unique star names
         unique_star_names = df_collation['star_name'].values
 
-        print('unique_star_names')
-        print(unique_star_names)
+        logging.info('unique_star_names')
+        logging.info(unique_star_names)
 
         # plot data points
         cmap = plt.get_cmap(name='jet')
@@ -831,9 +854,9 @@ class findHK():
 
         plt.close()
 
-        print("HK plots saved as ")
-        print(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
-        print(self.plot_write_subdir + "stretched_" + config["file_names"]["KH_PLOT_NAME"])
+        logging.info("HK plots saved as ")
+        logging.info(self.plot_write_subdir + config["file_names"]["KH_PLOT_NAME"])
+        logging.info(self.plot_write_subdir + "stretched_" + config["file_names"]["KH_PLOT_NAME"])
 
         # return stuff to enable testing
         return unique_star_names, data_to_plot

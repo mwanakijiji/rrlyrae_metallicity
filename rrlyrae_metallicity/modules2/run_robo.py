@@ -106,13 +106,12 @@ def main():
         logging.info("------------------------------")
         input("Do what you want with those files, then hit [Enter]")
 
-    # make cookie cutouts of the PSFs
-    ## ## might add functionality to override the found 'center' of the PSF
+    # run Robospect on normalized spectra in parallel
     run_robospect_instance = RunRobo()
-    #pool.map(run_robospect_instance, file_name_list)
+    pool.map(run_robospect_instance, file_name_list)
 
     # serial (testing only)
-    run_robospect_instance(file_name_list[0])
+    #run_robospect_instance(file_name_list[0])
 
     logging.info("Done with Robospect")
     logging.info("-------------------")
