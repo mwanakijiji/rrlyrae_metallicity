@@ -13,7 +13,7 @@ print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
 
-from rrlyrae_metallicityrrlyrae_metallicity import modules2
+from rrlyrae_metallicity.rrlyrae_metallicity import modules2
 import compile_normalization
 
 
