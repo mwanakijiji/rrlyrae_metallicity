@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 #from ../rrlyrae_metallicity.modules2 import *
 
-#import sys, os
+import sys, os
 #myPath = os.path.dirname(os.path.abspath(__file__))
 #sys.path.insert(0, myPath)
 
