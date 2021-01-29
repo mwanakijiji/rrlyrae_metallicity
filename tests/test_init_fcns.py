@@ -12,6 +12,7 @@ print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
 
+import modules2
 from modules2 import *
 
 #from rrlyrae_metallicity.modules2 import yada_compile_normalization
