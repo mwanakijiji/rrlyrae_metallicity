@@ -14,10 +14,10 @@ print(target_dir)
 sys.path.insert(0, target_dir)
 
 from rrlyrae_metallicity.rrlyrae_metallicity import modules2
-import compile_normalization
+from modules2 import compile_normalization
 
 
-import modules2
+#import modules2
 from modules2 import *
 
 #from rrlyrae_metallicity.modules2 import yada_compile_normalization
