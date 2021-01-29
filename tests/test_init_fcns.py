@@ -2,10 +2,15 @@ import matplotlib
 matplotlib.use('Agg')
 #from ../rrlyrae_metallicity.modules2 import *
 
-import sys, os
-myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, myPath)
-from rrlyrae_metallicity.modules2 import *
+#import sys, os
+#myPath = os.path.dirname(os.path.abspath(__file__))
+#sys.path.insert(0, myPath)
+
+current_dir = os.path.dirname(__file__)
+target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+print(current_dir)
+
+from modules2 import *
 
 #from rrlyrae_metallicity.modules2 import yada_compile_normalization
 #from junktest_compile_normalizations import compile_bkgrnd
