@@ -14,7 +14,8 @@ print(target_dir)
 sys.path.insert(0, target_dir)
 
 from rrlyrae_metallicity.rrlyrae_metallicity import modules2
-from modules2 import compile_normalization
+
+import modules2.compile_normalization
 
 
 #import modules2
