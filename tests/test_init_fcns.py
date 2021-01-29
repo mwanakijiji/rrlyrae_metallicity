@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 
 import sys, os
 myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, myPath + '/../')
+sys.path.insert(0, myPath)
 from rrlyrae_metallicity.modules2 import *
 
 #from rrlyrae_metallicity.modules2 import yada_compile_normalization
