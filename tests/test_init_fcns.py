@@ -1,5 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
+
 #from ../rrlyrae_metallicity.modules2 import *
 
 import sys, os
@@ -11,6 +12,10 @@ target_dir = os.path.abspath(os.path.join(current_dir, "../"))
 print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
+
+from rrlyrae_metallicity import modules2
+import compile_normalization
+
 
 import modules2
 from modules2 import *
