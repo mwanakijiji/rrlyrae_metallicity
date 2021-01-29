@@ -7,8 +7,9 @@ import sys, os
 #sys.path.insert(0, myPath)
 
 current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+target_dir = os.path.abspath(os.path.join(current_dir, "../"))
 print(current_dir)
+print(targetdir)
 
 from modules2 import *
 
