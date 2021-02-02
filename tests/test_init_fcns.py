@@ -17,11 +17,11 @@ from rrlyrae_metallicity.rrlyrae_metallicity import modules2
 from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
+# the below 2 lines throw errors
+'''
 import modules2.compile_normalization
-
-
-#import modules2
 from modules2 import *
+'''
 
 #from rrlyrae_metallicity.modules2 import yada_compile_normalization
 #from junktest_compile_normalizations import compile_bkgrnd
