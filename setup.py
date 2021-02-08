@@ -13,7 +13,7 @@ from subprocess import Popen,PIPE
 long_description = "For determining metallicities of RR Lyraes from low-res spectroscopy see `here <https://github.com/mwanakijiji/rrlyrae_metallicity>`__ for more info"
 
 setup(name="rrlyrae_metallicity",
-      version="0.0.1",
+      version="0.0.2",
       description="For finding FeH from low-res survey spectra of RRab stars",
       long_description=long_description,
       author="Eckhart Spalding, Ron Wilhelm, Nathan De Lee, Kenneth Carrell",
