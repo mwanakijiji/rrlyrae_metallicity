@@ -45,7 +45,7 @@ def create_norm_spec(name_list,
     Arguments:
         name_list: List of Realization file names (no path info)
         normdir: bkgrnd ascii files
-        finaldir: The final directory for files.
+        finaldir: The final directory for files which have completed the full normalization process.
     Returns:
        A list of final file names
     '''
@@ -55,15 +55,18 @@ def create_norm_spec(name_list,
     new_name_list = list()
 
     for spec in name_list: # loop through spectrum realizations
+        #import ipdb; ipdb.set_trace()
 
         # spectrum realization file name (as output by bkgrnd), with relative path info
         spec_name = os.path.join(normdir, spec)
+
         # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
         spec_tab = read_bkgrnd_spec(spec_name)
         # output file name of final, normalized spectrum, with relative path info
         new_name = os.path.join(finaldir, spec)
         # add to list
         new_name_list.append(new_name)
+        #import ipdb; ipdb.set_trace()
 
         try:
             # open file to write normalized spectrum to
@@ -104,14 +107,15 @@ def generate_realizations(spec_name, outdir, num, noise_level):
     new_name_list = list()
 
     for i in range(num):
-        # basename of spectrum realization
-        #new_name = "{}_{:03d}".format(basename.split(".fits")[0], i)
+        # basename of spectrum realization, ascii
+        new_name_ascii = "{}_{:03d}".format(basename.split(".fits")[0], i)
         # if we want to change to FITS intermediary files:
-        new_name = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
-        # don't need path info in spec_name list
-        new_name_list.append(new_name)
+        new_name_fits = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
+        # don't need path info in spec_name list; add ascii name here
+        new_name_list.append(new_name_ascii)
         # name of spectrum realization, with path
-        new_name = os.path.join(outdir, new_name)
+        new_name_ascii = os.path.join(outdir, new_name_ascii)
+        new_name_fits = os.path.join(outdir, new_name_fits)
 
         if (noise_level != 0):
             # add Gaussian error to the empirical flux
@@ -126,27 +130,33 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         new_flux = noise_to_add + spec_tab['flux']
 
         try:
-            outfile = open(new_name, 'w')
+            outfile = open(new_name_ascii, 'w')
         except IOError:
-            logging.info("File {} could not be opened!".format(new_name))
-        logging.info("Writing out realization file " + new_name)
-        logging.info("with noise level " + str(noise_to_add))
-        logging.info("-------------------------------")
+            logging.info("File {} could not be opened!".format(new_name_ascii))
+
         #import ipdb; ipdb.set_trace()
 
-        # write out new realization of file in FITS format with updated
-        # history in header
+        ### write out new realization of file, in two formats:
+        ## first format: FITS format with updated history in header
         hdr["HISTORY"] = "-------------"
         hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
 
         df_realization = Table([spec_tab["wavelength"], new_flux],
                                 names=("wavelength","new_flux"))
-
-        # set column names
+        # set column names and write
         c1=fits.Column(name="wavelength", format='D', array=spec_tab["wavelength"])
         c2=fits.Column(name="new_flux", format='D', array=new_flux)
         t = fits.BinTableHDU.from_columns([c1, c2], header=hdr)
-        t.writeto(new_name, overwrite=True)
+        logging.info("Writing out FITS realization file " + new_name_fits + \
+            " with noise level " + str(noise_to_add))
+        t.writeto(new_name_fits, overwrite=True)
+
+        ## second format: ascii, so bkgrnd can read it in
+        logging.info("Writing out ascii realization file " + new_name_ascii + \
+            " with noise level " + str(noise_to_add))
+        for j in range(len(new_flux)):
+            outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
+        outfile.close()
 
     return(new_name_list)
 
@@ -157,18 +167,36 @@ def read_bkgrnd_spec(spec_name):
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, bckgrnd_flux
     Returns:
-       A numpy Table with three columns: wavelength, flux, bckgrnd_flux
-       wavelength: Numpy array of wavelengths
-       flux: Numpy array of fluxes
-       bckgrnd_flux: Numpy array of flux error
+       spec_tab: A numpy Table with three columns: wavelength, flux, background flux
     '''
 
-    logging.info("Reading spectrum realization and background in " + spec_name)
+    logging.info("Reading ascii spectrum realization and background in " + spec_name)
 
     spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'bckgrnd_flux'])
 
     return(spec_tab)
+
+
+#####
+
+'''
+    ## note Feb. 9 2021: change to read in FITS files, but output same
+    if (format == "fits"):
+        # read in table info
+        spec_tab = Table.read(spec_name, format='fits')
+        # read in header info
+        hdul = fits.open(spec_name)
+        hdr = hdul[0].header
+    elif (format == "ascii.no_header"):
+        # this option is antiquated; we want to preserve FITS header info
+        spec_tab = Table.read(spec_name, format='ascii.no_header',
+                          names=['wavelength', 'flux', 'error'])
+        hdr = np.nan
+
+    return(spec_tab, hdr)
+'''
+#####
 
 def read_list(input_list):
     '''
@@ -224,10 +252,13 @@ def write_bckgrnd_input(name_list, indir, normdir):
 
     Arguments:
         name_list: List of Realization file names (no path info)
-        indir: The working directory with files
+        indir: The working directory with files to be fed into bkgrnd routine
         normdir: The output directory for normalized files
     Returns:
-       A string with the background input filename
+       A string with the background input filename; the filename itself which
+       has been written out lists the input and output directories, and a
+       list of the FITS files which are the spectrum realizations in the input
+       directory
     '''
 
     logging.info("Creating input file list of spectrum realization filenames")
@@ -242,7 +273,7 @@ def write_bckgrnd_input(name_list, indir, normdir):
             logging.info("File {} could not be opened!".format(bckgrnd_input))
 
 
-    #Write the header (in_dir out_dir)
+    #Write the text file header (in_dir out_dir)
     outfile.write("{} {}\n".format(indir, normdir))
     for j in range(len(name_list)):
         outfile.write("{}\n".format(name_list[j]))
@@ -323,10 +354,12 @@ def create_spec_realizations_main(noise_level,
                                                num=num,
                                                noise_level=noise_level))
 
-    # create input list of spectrum realizations which had been written out
+    # next we need to normalize the spectra; begin by creating input list of
+    # spectrum realizations written in the previous step
     bkg_input_file = write_bckgrnd_input(name_list, outdir, bkgrnd_output_dir)
     logging.info("-------------------------------------------")
-    logging.info('Using bkg_input_file' + bkg_input_file)
+    logging.info('The file containing the list of spectra which will be fed ' + \
+                'into the normalization routine is ' + bkg_input_file)
 
     # normalize each spectrum realization (smoothing parameter is set in __init__)
     '''
