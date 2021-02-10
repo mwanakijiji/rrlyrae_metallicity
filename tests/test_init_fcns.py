@@ -17,21 +17,6 @@ from rrlyrae_metallicity.rrlyrae_metallicity import modules2
 from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
-# the below 2 lines throw errors
-'''
-import modules2.compile_normalization
-from modules2 import *
-'''
-
-#from rrlyrae_metallicity.modules2 import yada_compile_normalization
-#from junktest_compile_normalizations import compile_bkgrnd
-
-def test_test():
-    assert True
-
-def test_test_2():
-    assert (3<5)
-
 '''
 # check if the directory-making function works
 def test_make_dirs():

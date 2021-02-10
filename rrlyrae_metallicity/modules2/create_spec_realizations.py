@@ -92,8 +92,8 @@ def generate_realizations(spec_name, outdir, num, noise_level):
     logging.info("Generating spectrum realizations of " + spec_name)
 
     # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
-    spec_tab = read_spec(spec_name)
-
+    spec_tab = read_spec(spec_name, format="fits")
+    #import ipdb; ipdb.set_trace()
     basename = os.path.basename(spec_name) # shave off path stem
 
     # generate realizations
@@ -101,7 +101,9 @@ def generate_realizations(spec_name, outdir, num, noise_level):
 
     for i in range(num):
         # basename of spectrum realization
-        new_name = "{}_{:03d}".format(basename, i)
+        new_name = "{}_{:03d}".format(basename.split(".fits")[0], i)
+        # if we want to change to FITS intermediary files in the future:
+        # new_name = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
         # don't need path info in spec_name list
         new_name_list.append(new_name)
         # name of spectrum realization, with path
@@ -139,7 +141,7 @@ def read_bkgrnd_spec(spec_name):
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have 3 columns: wavelength, flux, bckgrnd_flux
     Returns:
-       A numpy Table with three columns: waveleread_bknght, flus, bckgrnd_flux
+       A numpy Table with three columns: wavelength, flux, bckgrnd_flux
        wavelength: Numpy array of wavelengths
        flux: Numpy array of fluxes
        bckgrnd_flux: Numpy array of flux error
@@ -168,7 +170,7 @@ def read_list(input_list):
     filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols=(0))
     return(filenames_arr)
 
-def read_spec(spec_name):
+def read_spec(spec_name, format):
     '''
     Reads in ascii empirical spectra and returns numpy arrays of
     wavelength, flux, and error.
@@ -176,6 +178,7 @@ def read_spec(spec_name):
     Arguments:
         spec_name: The spectrum filename. If Ascii file should have
            3 columns (wavelength, flux, error no headers)
+        format: "fits" or "ascii.no_header"
     Returns:
        A numpy Table with three columns: wavelength, flux, error
        wavelength: Numpy array of wavelengths
@@ -185,10 +188,15 @@ def read_spec(spec_name):
 
     logging.info("Reading spectrum " + spec_name)
 
-    spec_tab = Table.read(spec_name, format='ascii.no_header',
+    ## note Feb. 9 2021: change to read in FITS files, but output same
+    if (format == "fits"):
+        spec_tab = Table.read(spec_name, format='fits')
+    elif (format == "ascii.no_header"):
+        spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'error'])
 
     return(spec_tab)
+
 
 def write_bckgrnd_input(name_list, indir, normdir):
     '''
@@ -248,9 +256,9 @@ def create_spec_realizations_main(noise_level,
     '''
 
     logging.info("--------------------------")
-    logging.info("Making "+str(num)+" realizations of each empirical spectrum")
+    logging.info("Making "+str(num)+" realizations of each input spectrum")
 
-    # Read list of empirical spectra
+    # Read list of input spectra
     input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     #logging.info('list_arr')
@@ -261,8 +269,8 @@ def create_spec_realizations_main(noise_level,
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     else:
-        # Check to see if there are any files (if not, there is data from a previous
-        # run that will inadvertently be used later)
+        # Check to see if there are any files in the output directories (if not,
+        # there is data from a previous run that will inadvertently be used later)
         preexisting_file_list_1 = glob.glob(outdir + "/*.{*}")
         preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.{*}")
         preexisting_file_list_3 = glob.glob(final_dir + "/*.{*}")
@@ -286,22 +294,21 @@ def create_spec_realizations_main(noise_level,
             logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
 
-    # Create realizations for each spectrum
+    # create noise-churned realizations for each spectrum
     name_list = list() # initialize
+    #import ipdb; ipdb.set_trace()
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+"/"+list_arr[i],
                                                outdir=outdir,
                                                num=num,
                                                noise_level=noise_level))
-    #logging.info('name_list')
-    #logging.info(name_list)
 
-    # Create input list of spectrum realization filenames
+    # create input list of spectrum realizations which had been written out
     bkg_input_file = write_bckgrnd_input(name_list, outdir, bkgrnd_output_dir)
     logging.info("-------------------------------------------")
     logging.info('Using bkg_input_file' + bkg_input_file)
 
-    # Normalize each spectrum realization (smoothing parameter is set in __init__)
+    # normalize each spectrum realization (smoothing parameter is set in __init__)
     '''
     # I used this snippet before re-installing Anaconda
     bkgrnd = Popen([get_setuptools_script_dir() + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
@@ -315,7 +322,7 @@ def create_spec_realizations_main(noise_level,
         logging.info(out.decode("utf-8"))
         logging.info(err.decode("utf-8"))
 
-    # write files of normalized fluxes, and return list of those filenames
+    # read in input files, normalize them, write out, and return list of those filenames
     final_list = create_norm_spec(name_list, bkgrnd_output_dir, final_dir)
 
     logging.info("-------------------------------------------")
