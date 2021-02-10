@@ -25,7 +25,9 @@ from subprocess import Popen, PIPE
 # Third-party imports
 # -------------------
 #from astropy.io import fits ## Pylint says this is not used
+from astropy.io import fits
 from astropy.table import Table
+import pyfits
 import numpy as np
 from rrlyrae_metallicity.modules2 import *
 from . import *
@@ -92,7 +94,9 @@ def generate_realizations(spec_name, outdir, num, noise_level):
     logging.info("Generating spectrum realizations of " + spec_name)
 
     # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
-    spec_tab = read_spec(spec_name, format="fits")
+    # and the header of the source FITS file
+    spec_tab, hdr = read_spec(spec_name, format="fits")
+
     #import ipdb; ipdb.set_trace()
     basename = os.path.basename(spec_name) # shave off path stem
 
@@ -101,9 +105,9 @@ def generate_realizations(spec_name, outdir, num, noise_level):
 
     for i in range(num):
         # basename of spectrum realization
-        new_name = "{}_{:03d}".format(basename.split(".fits")[0], i)
-        # if we want to change to FITS intermediary files in the future:
-        # new_name = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
+        #new_name = "{}_{:03d}".format(basename.split(".fits")[0], i)
+        # if we want to change to FITS intermediary files:
+        new_name = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
         # don't need path info in spec_name list
         new_name_list.append(new_name)
         # name of spectrum realization, with path
@@ -128,10 +132,22 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         logging.info("Writing out realization file " + new_name)
         logging.info("with noise level " + str(noise_to_add))
         logging.info("-------------------------------")
+        #import ipdb; ipdb.set_trace()
 
-        for j in range(len(new_flux)):
-            outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
-        outfile.close()
+        # write out new realization of file in FITS format with updated
+        # history in header
+        hdr["HISTORY"] = "-------------"
+        hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
+
+        df_realization = Table([spec_tab["wavelength"], new_flux],
+                                names=("wavelength","new_flux"))
+
+        # set column names
+        c1=fits.Column(name="wavelength", format='D', array=spec_tab["wavelength"])
+        c2=fits.Column(name="new_flux", format='D', array=new_flux)
+        t = fits.BinTableHDU.from_columns([c1, c2], header=hdr)
+        t.writeto(new_name, overwrite=True)
+
     return(new_name_list)
 
 def read_bkgrnd_spec(spec_name):
@@ -180,22 +196,26 @@ def read_spec(spec_name, format):
            3 columns (wavelength, flux, error no headers)
         format: "fits" or "ascii.no_header"
     Returns:
-       A numpy Table with three columns: wavelength, flux, error
-       wavelength: Numpy array of wavelengths
-       flux: Numpy array of fluxes
-       error: Numpy array of flux error
+       spec_tab: A numpy Table with three columns: wavelength, flux, error
+       hdr: FITS header of the input spectrum
     '''
 
     logging.info("Reading spectrum " + spec_name)
 
     ## note Feb. 9 2021: change to read in FITS files, but output same
     if (format == "fits"):
+        # read in table info
         spec_tab = Table.read(spec_name, format='fits')
+        # read in header info
+        hdul = fits.open(spec_name)
+        hdr = hdul[0].header
     elif (format == "ascii.no_header"):
+        # this option is antiquated; we want to preserve FITS header info
         spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'error'])
+        hdr = np.nan
 
-    return(spec_tab)
+    return(spec_tab, hdr)
 
 
 def write_bckgrnd_input(name_list, indir, normdir):
