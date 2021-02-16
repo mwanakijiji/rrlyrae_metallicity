@@ -63,7 +63,7 @@ def create_norm_spec(name_list,
         # astropy table containing a spectrum's 1.) wavelength, 2.) flux, 3.) background flux
         spec_tab = read_bkgrnd_spec(spec_name)
         # output file name of final, normalized spectrum, with relative path info
-        new_name = os.path.join(finaldir, spec)
+        new_name = os.path.join(finaldir, spec + ".smo") # .smo helps Robospect pick it out
         # add to list
         new_name_list.append(new_name)
         #import ipdb; ipdb.set_trace()
