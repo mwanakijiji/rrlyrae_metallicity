@@ -9,6 +9,7 @@ import logging
 import pandas as pd
 import numpy as np
 import matplotlib
+from astropy.io.fits import getdata
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
@@ -220,7 +221,7 @@ def quality_check(
 def stack_spectra(
     read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
     write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-    fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"])
+    fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"]
     ):
     '''
     Takes output of quality_check() and transposes and stacks data so that the
@@ -314,10 +315,12 @@ def stack_spectra(
     # based on Hdelta
     logging.info("Making a net Balmer line")
 
-    # fit a straight line to Hgam vs Hdel
+    # fit a straight line to all the Hgam vs Hdel
     x_data = df_poststack["EW_Hdelta"].values.astype(float) # Hdel
     y_data = df_poststack["EW_Hgamma"].values.astype(float) # Hgam
-    Hgam = np.copy(y_data)
+    # better names for clarity below
+    Hgamma_all = np.copy(y_data)
+    err_Hgamma_all = df_poststack["err_EW_Hgamma"].values
 
     coeff, cov = np.polyfit(x_data, y_data, 1, full=False, cov=True)
     m = coeff[0]
@@ -330,11 +333,17 @@ def stack_spectra(
     print("b:")
     print(b)
 
-    # generate a rescaled Hgam, call it rHgam
-    rHgam = np.divide(np.subtract(Hgam, b), m)
+    # generate a rescaled Hgamma, call it rHgam
+    rHgam_all = np.divide(np.subtract(Hgamma_all, b), m)
+    # find corresponding error`
+    piece1 = np.add(np.power(err_Hgamma_all,2),np.power(err_b,2)).astype(float)
+    piece2 = np.power(np.subtract(Hgamma_all,b),2)
+    piece3 = np.divide(np.power(err_m,2),np.power(m,2))
+    err_rHgam_all = np.multiply(rHgam_all,np.sqrt(np.subtract(np.divide(piece1,piece2),piece3)))
 
     # add column of rescaled Hgamma to DataFrame
-    df_poststack["EW_resc_Hgamma"] = rHgam
+    df_poststack["EW_Balmer"] = rHgam_all
+    df_poststack["err_EW_Balmer"] = err_rHgam_all
 
     # FYI plot: how do Balmer lines scale with each other?
     '''
