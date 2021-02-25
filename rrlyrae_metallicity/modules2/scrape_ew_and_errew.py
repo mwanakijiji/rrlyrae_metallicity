@@ -207,6 +207,12 @@ def quality_check(
     bad_line_center_spectra_uniq = bad_line_center_spectra.drop_duplicates()
     all_data["quality"][all_data["realization_spec_file_name"].isin(bad_robo_spectra_uniq)] = "B"
 
+    # Criterion 3. Remove bad phases
+    min_good, max_good = phase_regions()
+    #[...]
+    #good_indices = np.intersect1d(good_phase, good_metal)
+    #[...]
+
     # Last step: Write only the rows with a good ("G") flag to file
     # (note that if AT LEAST one absorption line was found to be bad, ALL the
     # data corresponding to that spectrum is removed)
@@ -224,8 +230,10 @@ def stack_spectra(
     fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"]
     ):
     '''
-    Takes output of quality_check() and transposes and stacks data so that the
-    data has *rows* of spectra and *cols* of absorption lines
+    Takes output of quality_check() and
+    1.  calculates errors in EW
+    2.  generates a scaled, net Balmer line EW
+    3.  transposes and stacks data so that the data has *rows* of spectra and *cols* of absorption lines
 
     INPUTS:
     read_in_filename: file name of scraped Robospect data, after removing bad spectra

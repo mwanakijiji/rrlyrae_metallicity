@@ -46,10 +46,9 @@ def main():
     # run_emcee with input data_table_winnowed
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]
-    emcee_instance = run_emcee.RunEmcee(coeffs=['a','b','c','d','f','g','h','k'])
-    '''
-    emcee_instance() # call instance
-    '''
+    emcee_instance = run_emcee.RunEmcee()
+    emcee_instance(coeffs = 'abcd') # call instance
+
 
 # entry point
 if __name__ == '__main__':
