@@ -170,7 +170,7 @@ def quality_check(
     read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"],
     write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]):
     '''
-    This reads in all the scraped EW data, removes spectra that have fits
+    This reads in all the scraped EW data in raw form, removes spectra that have fits
     which are bad based on multiple criteria, and writes out another data_table
 
     INPUTS:
@@ -205,13 +205,25 @@ def quality_check(
     where_bad_line_center = np.where(np.abs(np.subtract(all_data["wavel_found_center"],all_data["wavel_stated_center"]) > 10))
     bad_line_center_spectra = all_data["realization_spec_file_name"][np.squeeze(where_bad_line_center)]
     bad_line_center_spectra_uniq = bad_line_center_spectra.drop_duplicates()
-    all_data["quality"][all_data["realization_spec_file_name"].isin(bad_robo_spectra_uniq)] = "B"
+    all_data["quality"][all_data["realization_spec_file_name"].isin(bad_line_center_spectra_uniq)] = "B"
 
-    # Criterion 3. Remove bad phases
+    # Criterion 3. Remove rows with EWs which are clearly unrealistically large which slipped through other checks
+    # (this is particularly an issue with the CaIIK line, which is close to CaIIH)
+    # set cutoff at 18 A, based on inspection of >200 Robospect plots of fits to
+    # synthetic spectra; all those with CaIIK EW > 18 are clearly not fit right,
+    # and all those with EW < 18 look acceptable -E.S.
+    where_bad_CaIIK = np.where(np.logical_and(all_data["line_name"] == "CaIIK", all_data["EQW"] > 18))
+    bad_CaIIK_spectra = all_data["realization_spec_file_name"][np.squeeze(where_bad_CaIIK)]
+    bad_CaIIK_spectra_uniq = bad_CaIIK_spectra.drop_duplicates()
+    all_data["quality"][all_data["realization_spec_file_name"].isin(bad_CaIIK_spectra_uniq)] = "B"
+
+    # Criterion 4. Remove bad phases (for empirical data)
+    '''
     min_good, max_good = phase_regions()
     #[...]
     #good_indices = np.intersect1d(good_phase, good_metal)
     #[...]
+    '''
 
     # Last step: Write only the rows with a good ("G") flag to file
     # (note that if AT LEAST one absorption line was found to be bad, ALL the

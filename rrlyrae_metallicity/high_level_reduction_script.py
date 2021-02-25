@@ -33,7 +33,7 @@ def main():
     run_robo.main()
 
     # scrape_ew_from_robo and calculate EWs + err_EW
-
+    '''
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
     scrape_ew_and_errew.quality_check()
@@ -41,14 +41,14 @@ def main():
     # put the good EW data into a table with
     # rows corresponding to files and cols for the lines
     scrape_ew_and_errew.stack_spectra()
-    '''
 
+    '''
     # run_emcee with input data_table_winnowed
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]
     emcee_instance = run_emcee.RunEmcee()
     emcee_instance(coeffs = 'abcd') # call instance
-
+    '''
 
 # entry point
 if __name__ == '__main__':
