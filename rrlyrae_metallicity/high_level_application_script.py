@@ -5,8 +5,9 @@ This is the reduction pipeline for applying the updated Layden coefficients
 
 import sys
 from modules2 import *
+import ipdb; ipdb.set_trace()
 from modules2 import (compile_normalization,
-                      normalize_simple,
+                      create_spec_realizations,
                       scrape_ew_and_errew,
                       error_propagation_and_mapping,
                       find_feh)
@@ -17,7 +18,7 @@ def main():
     # "apply_abcd": apply pre-determined coefficients to spectra to find Fe/H
     # "find_abcd": determine coefficients [a,b,c,d] in the first place
     objective_choice = "apply_abcd"
-    
+
     # Make all the directories
     make_dirs(objective = objective_choice)
 
@@ -25,7 +26,15 @@ def main():
     compile_normalization.compile_bkgrnd(objective = objective_choice)
 
     # Take list of unnormalized empirical science spectra and normalize them
-    normalize_simple.normalize_simple() ## will have to debug this once compile_bkgrnd() stuff fixed
+    # (N.b. only make 1 realization, with 0 noise; note also that application of
+    # the calibration uses non-default directories)
+    create_spec_realizations.create_spec_realizations_main(num = 1,
+                                                            noise_level=0,
+                                                            input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
+                                                            unnorm_empirical_spectra_dir = config_apply["data_dirs"]["DIR_RAW_SPEC_DATA"],
+                                                            unnorm_noise_churned_spectra_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
+                                                            bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
+                                                            final_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"])
 
     '''
     # run_robospect on normalized spectra
