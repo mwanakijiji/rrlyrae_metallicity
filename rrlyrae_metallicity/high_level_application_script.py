@@ -5,7 +5,6 @@ This is the reduction pipeline for applying the updated Layden coefficients
 
 import sys
 from modules2 import *
-import ipdb; ipdb.set_trace()
 from modules2 import (compile_normalization,
                       create_spec_realizations,
                       scrape_ew_and_errew,
@@ -23,7 +22,7 @@ def main():
     make_dirs(objective = objective_choice)
 
     # Compile the C spectral normalization script
-    compile_normalization.compile_bkgrnd(objective = objective_choice)
+    compile_normalization.compile_bkgrnd()
 
     # Take list of unnormalized empirical science spectra and normalize them
     # (N.b. only make 1 realization, with 0 noise; note also that application of
@@ -31,6 +30,7 @@ def main():
     create_spec_realizations.create_spec_realizations_main(num = 1,
                                                             noise_level=0,
                                                             input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
+                                                            input_list = config_apply["data_dirs"]["DIR_SRC"] + config_apply["file_names"]["LIST_SPEC_APPLY"],
                                                             unnorm_empirical_spectra_dir = config_apply["data_dirs"]["DIR_RAW_SPEC_DATA"],
                                                             unnorm_noise_churned_spectra_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
                                                             bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
