@@ -5,13 +5,14 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 from rrlyrae_metallicity.modules2 import *
+from . import *
 
 class find_feh():
     '''
     Sample the a, b, c, d posteriors as found via the MCMC, to find Fe/H given the equivalent widths
     of the science spectra
     '''
-        
+
     def __init__(self,
                  posteriors_subdir = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"],
                  posteriors_filename = config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"],
@@ -19,7 +20,7 @@ class find_feh():
 
         self.posteriors_subdir = posteriors_subdir
         self.posteriors_filename = posteriors_filename
-        
+
         # the file containing the MCMC posterior chains of a,b,c,d
         #self.mcmc_chain_file = self.posteriors_subdir + self.posteriors_filename
 
@@ -30,12 +31,12 @@ class find_feh():
                                       delim_whitespace = True)
         #self.test = "test"
 
-        
+
     def __call__(self):
 
         pass
 
-    
+
     def feh_layden(self,a,b,c,d,H,K):
         '''
         Finds Fe/H given equivalent widths (in angstroms), from
@@ -45,7 +46,7 @@ class find_feh():
         feh = np.divide(K-a-b*H,c+d*H)
 
         return feh
-        
+
 
     def sample_feh(self):
         '''
@@ -71,10 +72,10 @@ class find_feh():
         # initialize array
         feh_sample_array = np.nan*np.ones((N_MCMC_samples, N_EW_samples))
         for t in range(0,N_MCMC_samples):
-            
+
             # loop over each sample within the Gaussian around the EW errors
             for integral_piece in range(0,N_EW_samples):
-    
+
                 # set the offset (note mu=0; this is a relative offset)
                 offset_H = np.random.normal(loc = 0.0, scale = gaussian_spread_errH)
                 offset_K = np.random.normal(loc = 0.0, scale = gaussian_spread_errK)

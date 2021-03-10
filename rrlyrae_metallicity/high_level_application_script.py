@@ -28,10 +28,11 @@ def main():
     # (N.b. only make 1 realization, with 0 noise; note also that application of
     # the calibration uses non-default directories)
     create_spec_realizations.create_spec_realizations_main(num = 1,
+                                                            spec_file_type="ascii.no_header",
                                                             noise_level=0,
                                                             input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
                                                             input_list = config_apply["data_dirs"]["DIR_SRC"] + config_apply["file_names"]["LIST_SPEC_APPLY"],
-                                                            unnorm_empirical_spectra_dir = config_apply["data_dirs"]["DIR_RAW_SPEC_DATA"],
+                                                            unnorm_empirical_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
                                                             unnorm_noise_churned_spectra_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
                                                             bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
                                                             final_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"])

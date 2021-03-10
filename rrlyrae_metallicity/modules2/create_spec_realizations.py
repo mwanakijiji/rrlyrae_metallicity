@@ -82,13 +82,14 @@ def create_norm_spec(name_list,
 
     return(new_name_list)
 
-def generate_realizations(spec_name, outdir, num, noise_level):
+def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level):
     '''
     Calculates a Number of Realizations of a given spectrum using Gaussian Errorbars
 
     Arguments:
         spec_name: The spectrum filename
         outdir: The working directory
+        spec_file_format: The format of the input spectra ["fits", "ascii.no_header"]
         num: Number of realizations to generate
     Returns:
        A list of filenames for the realization spectra.
@@ -98,7 +99,7 @@ def generate_realizations(spec_name, outdir, num, noise_level):
 
     # astropy table containing an empirical spectrum's 1.) wavelength, 2.) flux, 3.) error
     # and the header of the source FITS file
-    spec_tab, hdr = read_spec(spec_name, format="fits")
+    spec_tab, hdr = read_spec(spec_name, format=spec_file_format)
 
     #import ipdb; ipdb.set_trace()
     basename = os.path.basename(spec_name) # shave off path stem
@@ -137,9 +138,6 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         #import ipdb; ipdb.set_trace()
 
         ### write out new realization of file, in two formats:
-        ## first format: FITS format with updated history in header
-        hdr["HISTORY"] = "-------------"
-        hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
 
         df_realization = Table([spec_tab["wavelength"], new_flux],
                                 names=("wavelength","new_flux"))
@@ -147,9 +145,14 @@ def generate_realizations(spec_name, outdir, num, noise_level):
         c1=fits.Column(name="wavelength", format='D', array=spec_tab["wavelength"])
         c2=fits.Column(name="new_flux", format='D', array=new_flux)
         t = fits.BinTableHDU.from_columns([c1, c2], header=hdr)
-        logging.info("Writing out FITS realization file " + new_name_fits + \
-            " with noise level " + str(noise_to_add))
-        t.writeto(new_name_fits, overwrite=True)
+
+        ## first format: FITS format with updated history in header (if the original file was FITS too)
+        if (spec_file_format == "fits"):
+            hdr["HISTORY"] = "-------------"
+            hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
+            logging.info("Writing out FITS realization file " + new_name_fits + \
+                " with noise level " + str(noise_to_add))
+            t.writeto(new_name_fits, overwrite=True)
 
         ## second format: ascii, so bkgrnd can read it in
         logging.info("Writing out ascii realization file " + new_name_ascii + \
@@ -284,8 +287,10 @@ def write_bckgrnd_input(name_list, indir, normdir):
 # Main Function
 # -------------
 def create_spec_realizations_main(noise_level,
+                                spec_file_type,
                                 num = 100,
                                   input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
+                                  input_list = config["data_dirs"]["DIR_SRC"] + config["file_names"]["LIST_SPEC_PHASE"],
                                   unnorm_empirical_spectra_dir = config["data_dirs"]["DIR_RAW_SPEC_DATA"],
                                   unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
                                   bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
@@ -294,7 +299,9 @@ def create_spec_realizations_main(noise_level,
     '''
     INPUTS:
     num: number of spectrum realizations to make, per empirical spectrum
-    input_spec_list_dir: directory containing list of empirical spectra
+    spec_file_type: file format of input spectra ["fits"/"ascii.no_header"]
+    input_spec_list_dir: directory containing list of empirical spectra (## OBSOLETE? ##)
+    input_list: file listing spectra we want to normalize
     unnorm_empirical_spectra_dir: directory of empirical spectra (or, if they are actually
         synthetic spectra, these are the original synthetic spectra which we will generate
         multiple realizations of)
@@ -310,7 +317,7 @@ def create_spec_realizations_main(noise_level,
     logging.info("Making "+str(num)+" realizations of each input spectrum")
 
     # Read list of input spectra
-    input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
+    # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     #logging.info('list_arr')
     #logging.info(list_arr)
@@ -351,6 +358,7 @@ def create_spec_realizations_main(noise_level,
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+"/"+list_arr[i],
                                                outdir=outdir,
+                                               spec_file_format=spec_file_type,
                                                num=num,
                                                noise_level=noise_level))
 

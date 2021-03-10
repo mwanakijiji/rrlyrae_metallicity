@@ -16,6 +16,7 @@ import argparse
 import os
 from subprocess import Popen,PIPE
 import sys
+import glob
 ## ## import test.so # experimenting with C extensions
 # -------------------
 # Third-party imports
@@ -165,18 +166,17 @@ def write_bckgrnd_input(name_list,indir,normdir):
 # -------------
 # Main Function
 # -------------
-def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
-                     unnorm_science_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
+def normalize_simple(unnorm_science_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
                      bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SCI_SPEC_NORM"],
                      final_dir = config_apply["data_dirs"]["DIR_SCI_SPEC_NORM_FINAL"],
                      verb = False):
     '''
+    Normalizes spectra as-is, without making extra realizations
+
     INPUTS:
-    input_spec_list_dir: directory containing a file containing a list of names of science
-        spectra which we want to normalize and find the Fe/H from
     unnorm_science_spectra_dir: directory which actually contains the science spectra
     bkgrnd_output_dir: directory to contain output of bkgrnd (spectra and fit continuua)
-    final_dir: directory to contain normalized spectrum realizations
+    final_dir: directory to contain normalized science spectra
 
     OUTPUTS:
     (text files written)
@@ -188,8 +188,8 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
     # read file containing list of stemless filenames of science spectra to normalize and
     # apply calibration to. Note the input science spectra need to have two columns:
     # [0]: wavelength (angstroms); [1]: unnormalized flux
-    input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
-    list_arr = read_list(input_list)
+    #input_list = input_spec_list_dir + config_apply["file_names"]["LIST_SPEC_APPLY"]
+    #list_arr = read_list(input_list)
 
     #print(list_arr)
 
@@ -197,14 +197,17 @@ def normalize_simple(input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
     #name_list = list_arr
     ##name_list = [s + "_norm" for s in list_arr]
     ## ## ersatz
-    name_list = ['spec-2609-54476-0201g001.dat', 'spec-2609-54476-0201g002.dat']
+    #name_list = ['spec-2609-54476-0201g001.dat', 'spec-2609-54476-0201g002.dat']
 
     # create file with list of bkgrnd output filenames
-    bkg_input_file = write_bckgrnd_input(name_list = name_list,
-                                         indir = unnorm_science_spectra_dir,
-                                         normdir = bkgrnd_output_dir)
+    #bkg_input_file = write_bckgrnd_input(name_list = name_list,
+    #                                     indir = unnorm_science_spectra_dir,
+    #                                     normdir = bkgrnd_output_dir)
 
     import ipdb; ipdb.set_trace()
+
+    # make list of spectra files in the directory
+    unnorm_sci_spectra_list = glob.glob(unnorm_science_spectra_dir + "/*.{*}")
 
     # Normalize each spectrum (smoothing parameter is set in __init__)
     bkgrnd = Popen([str(config_apply["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config_apply["reduc_params"]["SMOOTH"]),

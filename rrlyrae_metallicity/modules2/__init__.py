@@ -31,7 +31,7 @@ config.read("rrlyrae_metallicity/modules2/config.ini")
 # config for applying a, b, c, d
 config_apply = configparser.ConfigParser()
 #config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
-config_apply.read("rrlyrae_metallicity/modules2/config.ini")
+config_apply.read("rrlyrae_metallicity/modules2/config_apply.ini")
 
 # set pathnames for important files that are used by different modules
 cc_bkgrnd_file_path_abs = config["data_dirs"]["DIR_SRC"] + "/bkgrnd.cc"
@@ -80,8 +80,11 @@ def make_dirs(objective="apply_abcd"):
 
         # if directory does not exist, create it
         if not os.path.exists(abs_path_name):
-            os.makedirs(abs_path_name)
+            original_umask = os.umask(0) # original system permission
+            os.makedirs(abs_path_name, 0o777)
+            #os.mkdir(abs_path_name)
             logging.info("Made directory " + abs_path_name)
+            os.umask(original_umask) # revert to previous permission status
 
 def phase_regions():
     '''
