@@ -161,7 +161,7 @@ class Scraper():
         #df_master_reset = df_master.reset_index(drop=True).copy()
         # this is effectively the same, but gets written out
         df_master.reset_index(drop=True).to_csv(config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"])
-
+        logging.info("Table of ALL EW info written to " + config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"])
         #if self.verbose:
         #    return df_master_reset, df_master_reset_drop_bad_spectra
         return

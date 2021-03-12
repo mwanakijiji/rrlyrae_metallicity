@@ -11,29 +11,30 @@ from rrlyrae_metallicity.modules2 import *
 
 class RunRobo:
 
-    def __init__(self, config_data = config):
+    def __init__(self, write_dir, robo_dir):
 
         '''
         This just configures IO
         '''
 
-        self.norm_spec_deposit_dir = config_data["data_dirs"]["DIR_ROBO_OUTPUT"]
-        self.robo_dir = config_data["data_dirs"]["DIR_ROBO"]
+        self.norm_spec_deposit_dir = write_dir
+        self.robo_dir = robo_dir
 
     def __call__(self, file_name):
 
         '''
         INPUTS:
         file_name: the absolute file name of one file to run Robospect on
-        norm_spec_source_dir: directory containing the normalized spectra
+        normzed_spec_source_dir: directory containing the normalized spectra
         robo_dir: directory of the robospect.py repo
 
         OUTPUTS:
         (writes files to disk)
         '''
+        print("deposit: " + self.norm_spec_deposit_dir)
+        print("robo_dir: " + self.norm_spec_deposit_dir)
 
         # for applying to synthetic spectra
-
         logging.info("Running Robospect on "+ file_name + " \n")
 
         # define string for output base names
@@ -62,7 +63,11 @@ class RunRobo:
         ##                               --C. Waters]
 
         logging.info("Robospect cmd:")
-        logging.info("python "+self.robo_dir + "bin/rSpect.py -i 4 " +str(file_name) +" -P " + self.norm_spec_deposit_dir + file_specific_string +" --line_list " + self.robo_dir + "tmp/ll" +" -C name null" +" -D name null" +" -N name boxcar" + " -I range 10.0" + " -F chi_window 20.0 " + "-vvvv")
+        logging.info("python "+self.robo_dir + "bin/rSpect.py -i 4 " +str(file_name) + \
+                    " -P " + self.norm_spec_deposit_dir + file_specific_string + \
+                    " --line_list " + self.robo_dir + "tmp/ll" +" -C name null" + \
+                    " -D name null" +" -N name boxcar" + " -I range 10.0" + \
+                    " -F chi_window 20.0 " + "-vvvv")
         os.system("python " +
               self.robo_dir + "bin/rSpect.py -i 4 " +
               str(file_name) +
@@ -79,25 +84,37 @@ class RunRobo:
             self.norm_spec_deposit_dir + file_specific_string + "*")
 
 
-def main():
+def main(
+        normzed_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+        write_dir=config["data_dirs"]["DIR_ROBO_OUTPUT"],
+        robo_dir=config["data_dirs"]["DIR_ROBO"]
+        ):
+    '''
+    Accumulate list of filenames of normalized synthetic spectra, then
+    measure EWs
 
-    # accumulate list of filenames of normalized synthetic spectra
+    INPUTS:
+    normzed_spec_source_dir: source directory of normalized spectra which
+        Robospect will be run on
+    write_dir: directory to which Robospect output will be written to
+
+    OUTPUTS:
+    (EW data written to file)
+    '''
+
     ## ## note that I have put in a specific string to look for
     ## ## in the file name here; this might be a weakness later on
 
     pool = multiprocessing.Pool(ncpu)
-
-    norm_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"]
-
-    file_name_list = glob.glob(norm_spec_source_dir+"*.smo*")
+    file_name_list = glob.glob(normzed_spec_source_dir+"*")
     logging.info('Reading in spectra from directory')
-    logging.info(norm_spec_source_dir)
+    logging.info(normzed_spec_source_dir)
 
     # Check to see if it is empty (if not, there is data from a previous
     # run that will inadvertently be used later)
-    write_dir = config["data_dirs"]["DIR_ROBO_OUTPUT"]
     preexisting_file_list = glob.glob(write_dir + "/*", recursive=False)
     print(preexisting_file_list)
+    import ipdb; ipdb.set_trace()
     print(len(preexisting_file_list))
     if (len(preexisting_file_list) > 0):
         logging.info("------------------------------")
@@ -107,7 +124,14 @@ def main():
         input("Do what you want with those files, then hit [Enter]")
 
     # run Robospect on normalized spectra in parallel
-    run_robospect_instance = RunRobo()
+    # (N.b. Setting the config files allows Robospect to dump files in the right places)
+    run_robospect_instance = RunRobo(write_dir = write_dir, robo_dir = robo_dir)
+    #if (configuration == "config"):
+    #    run_robospect_instance = RunRobo(config_data=configuration)
+    #elif (configuration == "config_apply"):
+    #    run_robospect_instance = RunRobo(config_data=config_apply)
+
+    # in parallel
     pool.map(run_robospect_instance, file_name_list)
 
     # serial (testing only)
