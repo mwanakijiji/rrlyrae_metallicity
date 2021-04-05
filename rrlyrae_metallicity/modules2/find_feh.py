@@ -14,15 +14,17 @@ class find_feh():
     '''
 
     def __init__(self,
+                good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
                  posteriors_subdir = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"],
                  posteriors_filename = config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"],
                  verbose = False):
 
+        self.good_ew_info_file = good_ew_info_file
         self.posteriors_subdir = posteriors_subdir
         self.posteriors_filename = posteriors_filename
 
         # the file containing the MCMC posterior chains of a,b,c,d
-        #self.mcmc_chain_file = self.posteriors_subdir + self.posteriors_filename
+        self.ew_data = pd.read_csv(self.good_ew_info_file)
 
         # read in the chain data
         self.mcmc_chain = pd.read_csv(self.posteriors_subdir + self.posteriors_filename,
@@ -56,44 +58,58 @@ class find_feh():
         '''
 
         ## find/input EWs for a single spectrum here; use stand-in EWs for the moment
-        ersatz_H = 3. # angstroms
-        ersatz_errH = 0.2
-        ersatz_K = 7.5
-        ersatz_errK = 0.3
-
-        gaussian_spread_errH = ersatz_errH ## ## change this in future
-        gaussian_spread_errK = ersatz_errK ## ## change this in future
-
         # number of samples to take within the Gaussian errors around Balmer, CaIIK EWs
-        N_EW_samples = 100
+        N_EW_samples = 1
 
         # loop over samples in the MCMC chain
-        N_MCMC_samples = 10 ## change this later
-        # initialize array
-        feh_sample_array = np.nan*np.ones((N_MCMC_samples, N_EW_samples))
-        for t in range(0,N_MCMC_samples):
+        N_MCMC_samples = len(self.mcmc_chain)
 
-            # loop over each sample within the Gaussian around the EW errors
-            for integral_piece in range(0,N_EW_samples):
+        # loop over the rows of the table of good EW data, with each row
+        # corresponding to a spectrum
+        for row_num in range(0,len(self.ew_data)):
 
-                # set the offset (note mu=0; this is a relative offset)
-                offset_H = np.random.normal(loc = 0.0, scale = gaussian_spread_errH)
-                offset_K = np.random.normal(loc = 0.0, scale = gaussian_spread_errK)
+            logging.info("Finding Fe/H for spectrum " + self.ew_data.iloc[row_num]["realization_spec_file_name"])
 
-                # find one value of Fe/H given those samples in Balmer and CaIIK EWs
-                feh_1sample = self.feh_layden(a = self.mcmc_chain["a"][t],
-                                  b = self.mcmc_chain["b"][t],
-                                  c = self.mcmc_chain["c"][t],
-                                  d = self.mcmc_chain["d"][t],
-                                  H = ersatz_H + offset_H,
-                                  K = ersatz_K + offset_K)
+            Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
+            CaIIK_EW = self.ew_data.iloc[row_num]["EW_CaIIK"]
+            err_Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
+            err_CaIIK_EW = self.ew_data.iloc[row_num]["EW_CaIIK"]
 
-                feh_sample_array[t][integral_piece] = feh_1sample
+            # initialize array
+            feh_sample_array = np.nan*np.ones((N_MCMC_samples, N_EW_samples))
+            for t in range(0,N_MCMC_samples):
 
-            print("MCMC sample")
-            print(t)
+                # loop over each sample within the Gaussian around the EW errors
+                for integral_piece in range(0,N_EW_samples):
 
-        print("median fe/h")
-        print(np.median(feh_sample_array))
-        print("std fe/h")
-        print(np.std(feh_sample_array))
+                    ## ## NOTE USE OF ROBO ERROR AS GAUSSIAN WIDTH LEADS TO RIDICULOUSLY WIDE DISTRIBUTIONS
+                    # set the offset (note mu=0; this is a relative offset)
+                    offset_H = 0 # np.random.normal(loc = 0.0, scale = err_Balmer_EW)
+                    offset_K = 0 # np.random.normal(loc = 0.0, scale = err_CaIIK_EW)
+
+                    # find one value of Fe/H given those samples in Balmer and CaIIK EWs
+                    feh_1sample = self.feh_layden(a = self.mcmc_chain["a"][t],
+                                      b = self.mcmc_chain["b"][t],
+                                      c = self.mcmc_chain["c"][t],
+                                      d = self.mcmc_chain["d"][t],
+                                      H = Balmer_EW + offset_H,
+                                      K = CaIIK_EW + offset_K)
+
+                    feh_sample_array[t][integral_piece] = feh_1sample
+
+                print("MCMC sample")
+                print(t)
+
+
+            import matplotlib.pyplot as plt
+            plt.hist(np.ravel(feh_sample_array), bins=100)
+            plt.title(self.ew_data.iloc[row_num]["realization_spec_file_name"] + \
+                    "\nmedian [Fe/H]=" +str(np.median(feh_sample_array)) + \
+                    "\n+-" + str(np.std(feh_sample_array)))
+            plt.savefig(self.ew_data.iloc[row_num]["realization_spec_file_name"] + ".pdf")
+            plt.clf()
+            print("median fe/h")
+            print(np.median(feh_sample_array))
+            print("std fe/h")
+            print(np.std(feh_sample_array))
+            #import ipdb; ipdb.set_trace()

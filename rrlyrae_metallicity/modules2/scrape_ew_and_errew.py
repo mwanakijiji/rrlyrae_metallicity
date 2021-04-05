@@ -203,7 +203,7 @@ def quality_check(
     # Criterion 2. Remove rows where the line centers are not right, using steps similar to above
     # (specifically, if measured line center is more than 10 A away from perfect center)
     where_bad_line_center = np.where(np.abs(np.subtract(all_data["wavel_found_center"],all_data["wavel_stated_center"]) > 10))
-    bad_line_center_spectra = all_data["realization_spec_file_name"][np.squeeze(where_bad_line_center)]
+    bad_line_center_spectra = all_data["realization_spec_file_name"][np.squeeze(where_bad_line_center,axis=0)] # squeeze necessary to preserve finite size
     bad_line_center_spectra_uniq = bad_line_center_spectra.drop_duplicates()
     all_data["quality"][all_data["realization_spec_file_name"].isin(bad_line_center_spectra_uniq)] = "B"
 
@@ -239,8 +239,8 @@ def quality_check(
 def stack_spectra(
     read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
     write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-    fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"]
-    ):
+    fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
+    objective = "find_abcd"):
     '''
     Takes output of quality_check() and
     1.  calculates errors in EW
@@ -252,6 +252,10 @@ def stack_spectra(
     write_out_filename: name of file to contain re-stacked data
     fits_dir: directory of FITS files which we will use for obtaining info
         from the header (Fe/H, etc.)
+    objective: if it is to find the calibration, dig up intermediary FITS files
+        to get supplementary information on Fe/H etc. from the headers; if it is
+        to apply the calibration, just stack the scraped EW information
+        ["find_abcd"/"apply_abcd"]
     '''
 
     # read in data
@@ -280,15 +284,16 @@ def stack_spectra(
         this_spectrum = list_indiv_spectra[t]
         logging.info("Extracting EW data corresponding to " + this_spectrum)
 
-        # read in intermediary FITS file to extract values from header
-        logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
-        image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
+        if (objective == "find_abcd"):
+            # read in intermediary FITS file to extract values from header
+            logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
+            image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
 
-        logg = hdr["LOGG"]
-        teff = hdr["TEFF"]
-        alpha = hdr["ALPHA"]
-        feh = hdr["FEH"]
-        err_feh = 0.15 # erstaz for now
+            logg = hdr["LOGG"]
+            teff = hdr["TEFF"]
+            alpha = hdr["ALPHA"]
+            feh = hdr["FEH"]
+            err_feh = 0.15 # ersatz for now
 
         # select data from table relevant to this spectrum
         data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
@@ -315,11 +320,6 @@ def stack_spectra(
         # fill in that row in the dataframe
         df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
         df_poststack.iloc[t]["original_spec_file_name"] = orig_name
-        df_poststack.iloc[t]["logg"] = logg
-        df_poststack.iloc[t]["Teff"] = teff
-        df_poststack.iloc[t]["alpha"] = alpha
-        df_poststack.iloc[t]["FeH"] = feh
-        df_poststack.iloc[t]["err_FeH"] = err_feh
         df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
         df_poststack.iloc[t]["err_EW_Hbeta"] = err_Hbeta
         df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
@@ -330,6 +330,13 @@ def stack_spectra(
         df_poststack.iloc[t]["err_EW_Heps"] = err_Heps
         df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
         df_poststack.iloc[t]["err_EW_CaIIK"] = err_CaIIK
+        if (objective == "find_abcd"):
+            # if the stellar spectra are synthetic, add in that info
+            df_poststack.iloc[t]["logg"] = logg
+            df_poststack.iloc[t]["Teff"] = teff
+            df_poststack.iloc[t]["alpha"] = alpha
+            df_poststack.iloc[t]["FeH"] = feh
+            df_poststack.iloc[t]["err_FeH"] = err_feh
 
     # to generate a net Balmer line, make a rescaling of Hgamma
     # based on Hdelta

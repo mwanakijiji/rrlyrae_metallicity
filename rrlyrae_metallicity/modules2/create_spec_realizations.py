@@ -315,7 +315,7 @@ def create_spec_realizations_main(noise_level,
 
     logging.info("--------------------------")
     logging.info("Making "+str(num)+" realizations of each input spectrum")
-    import ipdb; ipdb.set_trace()
+
     # Read list of input spectra
     # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
@@ -397,7 +397,7 @@ def create_spec_realizations_main(noise_level,
     logging.info(final_dir)
 
 if __name__ == '__main__':
-    import ipdb; ipdb.set_trace()
+    # below is obsolete --E.S.
     parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
     parser.add_argument('input_list', help='List of spectra to process.')
     parser.add_argument('-o', default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')

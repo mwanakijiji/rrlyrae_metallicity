@@ -114,7 +114,7 @@ def main(
     # run that will inadvertently be used later)
     preexisting_file_list = glob.glob(write_dir + "/*", recursive=False)
     print(preexisting_file_list)
-    import ipdb; ipdb.set_trace()
+
     print(len(preexisting_file_list))
     if (len(preexisting_file_list) > 0):
         logging.info("------------------------------")
