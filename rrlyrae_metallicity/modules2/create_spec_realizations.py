@@ -214,7 +214,7 @@ def read_list(input_list):
     logging.info("Reading in list of spectrum names to return table of filenames")
 
     # col 0 contains the file names
-    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=1, usecols=(0))
+    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=0, usecols=(0))
     return(filenames_arr)
 
 def read_spec(spec_name, format):
@@ -315,7 +315,7 @@ def create_spec_realizations_main(noise_level,
 
     logging.info("--------------------------")
     logging.info("Making "+str(num)+" realizations of each input spectrum")
-
+    import ipdb; ipdb.set_trace()
     # Read list of input spectra
     # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
@@ -405,4 +405,6 @@ if __name__ == '__main__':
     parser.add_argument('-v', action='store_true', help='Turn on verbosity')
     #Put this in a dictionary
     args = vars(parser.parse_args())
+    print("afds")
+    print(args['input_list'])
     ret = create_spec_realizations_main(args['input_list'], args['o'], args['n'], args['v'])
