@@ -18,10 +18,10 @@ def main():
     # "apply_abcd": apply pre-determined coefficients to spectra to find Fe/H
     # "find_abcd": determine coefficients [a,b,c,d] in the first place
     objective_choice = "apply_abcd"
-    '''
+
     # Make all the directories
     make_dirs(objective = objective_choice)
-
+    '''
     # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
 
@@ -50,17 +50,33 @@ def main():
     scraper_instance = scrape_ew_and_errew.Scraper(subdir = config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
                                                    file_scraped_info = config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"])
     scraper_instance() # call instance
-    '''
-    scrape_ew_and_errew.quality_check() ## ## GET THIS PART TO WORK
+
+    scrape_ew_and_errew.quality_check(
+        write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]
+        )
+
 
     # put the good EW data into a table with
     # rows corresponding to files and cols for the lines
-    scrape_ew_and_errew.stack_spectra()
+    scrape_ew_and_errew.stack_spectra(
+        read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
+        write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+        objective = objective_choice)
     '''
     # find Fe/H values, sampling from the a, b, c, d posteriors and while
     # incorporating equivalent width errors
-    find_feh.find_feh().sample_feh()
+    find_feh_instance = find_feh.find_feh(
+                                        model = 'abcdfghk',
+                                        good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"]
+                                        )
+
     '''
+    # find Fe/H and pickle
+    find_feh_instance.pickle_feh_retrieval()
+    '''
+    # retrieve pickle files and compare values
+    find_feh_instance.compare_feh()
+
 
 # entry point
 if __name__ == '__main__':

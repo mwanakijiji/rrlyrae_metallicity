@@ -13,6 +13,65 @@ import logging
 from rrlyrae_metallicity.modules2 import *
 
 
+def corner_plot(model,
+                mcmc_text_output_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"],
+                corner_plot_putput_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]):
+    '''
+    Reads in MCMC output and writes out a corner plot
+    '''
+
+    if (model == "abcd"):
+
+        # corner plot (requires 'storechain=True' in enumerate above)
+        samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4), names=["a", "b", "c", "d"])
+        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"],
+                            quantiles=[0.16, 0.5, 0.84],
+                            title_fmt='.2f',
+                            show_titles=True,
+                            verbose=True,
+                            title_kwargs={"fontsize": 12})
+        fig.savefig(self.corner_file_string)
+        logging.info("--------------------------")
+        logging.info("Corner plot of MCMC posteriors written out to")
+        print(str(self.corner_file_string))
+
+        # if its necessary to read in MCMC output again
+        #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
+
+        # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
+        # https://emcee.readthedocs.io/en/stable/user/line.html#results
+        a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                                             zip(*np.percentile(samples, [16, 50, 84], axis=0)))
+
+        logging.info("--------------------------")
+        logging.info("Coefficients a, b, c, d, and errors (see corner plot):")
+        logging.info(a_mcmc, '\n', b_mcmc, '\n', c_mcmc, '\n', d_mcmc)
+
+        logging.info("--------------------------")
+        logging.info("MCMC data written to ")
+        logging.info(self.mcmc_text_output)
+
+    elif (model == "abcdfghk"):
+        # corner plot (requires 'storechain=True' in enumerate above)
+        #samples = sampler.chain[:, int(1e3):, :].reshape((-1, ndim))
+        samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4,5,6,7,8), names=["a", "b", "c", "d", "f", "g", "h", "k"])
+        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$", "$f$", "$g$", "$h$", "$k$"],
+                            quantiles=[0.16, 0.5, 0.84],
+                            title_fmt='.2f',
+                            show_titles=True,
+                            verbose=True,
+                            title_kwargs={"fontsize": 12})
+        fig.savefig(corner_plot_putput_file_name)
+        logging.info("--------------------------")
+        logging.info("Corner plot of MCMC posteriors written out to")
+        print(str(corner_plot_putput_file_name))
+
+        # if its necessary to read in MCMC output again
+        #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
+
+
+
+
 def rrmetal(h_pass, f_pass, p_pass):
     '''
     Layden+ 1994 model
@@ -25,6 +84,8 @@ def rrmetal(h_pass, f_pass, p_pass):
     OUTPUTS:
     k_pass: CaIIK EW (angstroms)
     '''
+    import ipdb; ipdb.set_trace()
+    print("This function is obsolete, right?")
     k_pass = (p_pass[0] +
               p_pass[1]*h_pass +
               p_pass[2]*f_pass +
@@ -97,8 +158,8 @@ class RunEmcee():
 
     def __init__(self,
                  scraped_ews_good_only_file_name = config["data_dirs"]["DIR_EW_PRODS"] + config["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-                 mcmc_text_output_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"],
-                 corner_plot_putput_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]):
+                 mcmc_text_output_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"]
+                 ):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)
         self.scraped_ew_filename = scraped_ews_good_only_file_name
@@ -110,12 +171,13 @@ class RunEmcee():
         self.corner_file_string = corner_plot_putput_file_name
 
 
-    def __call__(self, coeffs):
+    def __call__(self, model):
         '''
         INPUTS
 
-        coeffs: list of coefficients to use as the model
-            ('abcd' corresponds to Layden '94)
+        model: list of coefficients to use as the model
+            'abcd':     corresponds to Layden '94
+            'abcdfghk': corresponds to K = a + b*H + c*F + d*H*F + f*(H^2) + g*(F^2) + h*(H^2)*F + k*H*(F^2)
         '''
 
         # read in EWs, Fe/Hs, phases, errors, etc.
@@ -173,12 +235,13 @@ class RunEmcee():
         b_layden = -1.072
         c_layden = 3.971
         d_layden = -0.271
-        f_init = 0.
-        g_init = 0.
-        h_init = 0.
-        k_init = 0.
-        m_init = 0.
-        n_init = 0.
+        # ... with other coefficients fghk with a nonzero starting point
+        f_init = 0.1
+        g_init = 0.1
+        h_init = 0.1
+        k_init = 0.1
+        m_init = 0. # 4th-order term
+        n_init = 0. # 4th-order term
         #sigma_a_layden = 0.416
         #sigma_b_layden = 0.076
         #sigma_c_layden = 0.285
@@ -190,8 +253,51 @@ class RunEmcee():
         # define the actual functions and coefficient array to fit, based
         # on the coefficients the user provides
 
-        if coeffs == 'abcd':
+        def lnprob(walker_pos,
+                   Teff_pass,
+                   measured_H_pass,
+                   measured_F_pass,
+                   measured_K_pass,
+                   err_measured_H_pass,
+                   err_measured_F_pass,
+                   err_measured_K_pass):
+            '''
+            Nat log of probability density
+
+            INPUTS:
+            walker_pos: array of walker positions
+            Teff_pass: Teff (a vestigial MCMC constant; this is NOT astrophysical Teff)
+            measured_H_pass: Balmer EW
+            measured_F_pass: [Fe/H]
+            measured_K_pass: CaIIK EW
+            err_measured_H_pass: error in Balmer EW
+            err_measured_F_pass: error in [Fe/H]
+            err_measured_K_pass: error in CaIIK EW
+
+
+            OUTPUTS:
+            ln(prior*like)
+            '''
+
+            # walker_pos is the proposed walker position in N-D (likely 4-D) space
+            # (i.e., these are the inputs to the model)
+            lp = lnprior(walker_pos) # prior
+            if not np.isfinite(lp): # afoul of prior
+              return -np.inf
+
+            result = -np.divide(1, 2*Teff_pass)*chi_sqd_fcn(measured_H_pass,
+                                                            measured_F_pass,
+                                                            measured_K_pass,
+                                                            err_measured_H_pass,
+                                                            err_measured_F_pass,
+                                                            err_measured_K_pass,
+                                                            walker_pos)
+            return lp + result # ln(prior*like)
+
+        if model == 'abcd':
             # coeffs_pass = [a,b,c,d]
+
+            nwalkers = 8 # number of MCMC chains (at least 2x number of parameters)
 
             param_array_0 = [float(a_layden),
                             float(b_layden),
@@ -278,54 +384,12 @@ class RunEmcee():
                 term_iv = (np.add(c_pass, np.multiply(d_pass, xi_pass)))**2
                 term_v = (sig_zi_pass**2)
                 denominator_i = np.add(np.add(np.multiply(term_i, term_ii),
-                                              np.multiply(term_iii, term_iv)), term_v)
+                                              np.multiply(term_iii, term_iv)), term_v) ## ## is a squared missing? (on second glance I think not...)
 
                 i_element = np.divide(numerator_i, denominator_i)
                 val = np.sum(i_element)
 
                 return val
-
-
-            def lnprob(walker_pos,
-                       Teff_pass,
-                       measured_H_pass,
-                       measured_F_pass,
-                       measured_K_pass,
-                       err_measured_H_pass,
-                       err_measured_F_pass,
-                       err_measured_K_pass):
-                '''
-                Nat log of probability density
-
-                INPUTS:
-                walker_pos: array of walker positions
-                Teff_pass: Teff (a vestigial MCMC constant; this is NOT astrophysical Teff)
-                measured_H_pass: Balmer EW
-                measured_F_pass: [Fe/H]
-                measured_K_pass: CaIIK EW
-                err_measured_H_pass: error in Balmer EW
-                err_measured_F_pass: error in [Fe/H]
-                err_measured_K_pass: error in CaIIK EW
-
-
-                OUTPUTS:
-                ln(prior*like)
-                '''
-
-                # walker_pos is the proposed walker position in N-D (likely 4-D) space
-                # (i.e., these are the inputs to the model)
-                lp = lnprior(walker_pos) # prior
-                if not np.isfinite(lp): # afoul of prior
-                  return -np.inf
-
-                result = -np.divide(1, 2*Teff_pass)*chi_sqd_fcn(measured_H_pass,
-                                                                measured_F_pass,
-                                                                measured_K_pass,
-                                                                err_measured_H_pass,
-                                                                err_measured_F_pass,
-                                                                err_measured_K_pass,
-                                                                walker_pos)
-                return lp + result # ln(prior*like)
 
 
             def lnprior(theta):
@@ -338,10 +402,7 @@ class RunEmcee():
                 OUTPUTS: 0 or -inf (top-hat priors only)
                 '''
 
-                if coeffs == 'abcd':
-                    a_test, b_test, c_test, d_test = theta
-                elif coeffs == 'abcdfghk':
-                    a_test, b_test, c_test, d_test, f_test, g_test, h_test, k_test = theta
+                a_test, b_test, c_test, d_test = theta
 
                 # top-hat priors
                 if ((np.abs(a_test) < 40) and
@@ -352,8 +413,10 @@ class RunEmcee():
                 return -np.inf
 
 
-        elif coeffs == 'abcdfghk':
+        elif model == 'abcdfghk':
             # coeffs_pass = [a,b,c,d,f,g,h,k]
+
+            nwalkers = 16 # number of MCMC chains (at least 2x number of parameters)
 
             param_array_0 = [float(a_layden),
                             float(b_layden),
@@ -373,7 +436,7 @@ class RunEmcee():
                             + coeffs_pass[4]*np.power(H_pass,2.) \
                             + coeffs_pass[5]*np.power(F_pass,2.) \
                             + coeffs_pass[6]*np.power(H_pass,2.)*F_pass \
-                            + coeffs_pass[7]*H_pass*np.power(F_pass,2.) \
+                            + coeffs_pass[7]*H_pass*np.power(F_pass,2.)
 
                 return K_pass
 
@@ -405,6 +468,9 @@ class RunEmcee():
                 Hi_pass = xi_pass
                 Fi_pass = yi_pass
                 Ki_pass = zi_pass
+                err_Hi_pass = sig_xi_pass
+                err_Fi_pass = sig_yi_pass
+                err_Ki_pass = sig_zi_pass
 
                 a_pass = coeffs_pass[0]
                 b_pass = coeffs_pass[1]
@@ -424,20 +490,26 @@ class RunEmcee():
                 ## ## CONTINUE HERE
                 term_H_i = (np.add(b_pass,2*np.multiply(f_pass,Hi_pass)))
                 term_H_ii = np.multiply(Fi_pass,np.add(d_pass,np.multiply(np.multiply(2.,h_pass),Hi_pass)))
-                term_H_iii = 1 # PLACEHOLDER
-                term_F_i = 1 # PLACEHOLDER
-                term_F_ii = 1 # PLACEHOLDER
-                term_F_iii = 1 # PLACEHOLDER
+                term_H_iii = np.multiply(np.power(Fi_pass,2.),Ki_pass)
+                term_F_i = np.add(c_pass,np.multiply(2*g_pass,Fi_pass))
+                term_F_ii = np.multiply( Hi_pass,np.add(d_pass,np.multiply(2*k_pass,Fi_pass)) )
+                term_F_iii = np.multiply(np.power(Hi_pass,2.),h_pass)
 
-                denominator_i = 1 # PLACEHOLDER
+                part_I_i = np.power( np.add(np.add(term_H_i,term_H_ii),term_H_iii),2. )
+                part_II_i = np.power( np.add(np.add(term_F_i,term_F_ii),term_F_iii),2. )
+
+                sig_kmi_sqrd = np.add(
+                                    np.multiply( part_I_i, np.power(err_Hi_pass,2.) ),
+                                    np.multiply( part_II_i, np.power(err_Fi_pass,2.) )
+                                    )
+
+                numerator_i = np.power( np.subtract(Ki_pass,function_K(coeffs_pass,Hi_pass,Fi_pass)),2. ) # ( K_empirical - K_model )^2
+                denominator_i = np.add( np.power(err_Ki_pass,2.), sig_kmi_sqrd )
 
                 i_element = np.divide(numerator_i, denominator_i)
                 val = np.sum(i_element)
 
                 return val
-
-
-
 
 
             def lnprior(theta):
@@ -450,8 +522,7 @@ class RunEmcee():
                 OUTPUTS: 0 or -inf (top-hat priors only)
                 '''
 
-                # ___ this needs to be changed __
-                a_test, b_test, c_test, d_test = theta
+                a_test, b_test, c_test, d_test, f_test, g_test, h_test, k_test = theta
 
                 # top-hat priors
                 if ((np.abs(a_test) < 40) and
@@ -461,18 +532,6 @@ class RunEmcee():
                     return 0.0
                 return -np.inf
 
-        # vestigial
-        '''
-        g_ave = ave.copy
-        g_eave = eave.copy
-        g_feh = feh.copy
-        g_efeh = efeh.copy
-        g_caii = caii.copy
-        g_ecaii = ecaii.copy
-        '''
-        #import ipdb; ipdb.set_trace()
-
-
 
         ################# MCMC setup #################
 
@@ -480,7 +539,6 @@ class RunEmcee():
         logging.info("Setting up MCMC ...")
 
         ndim = len(param_array_0) # dimensions of space to explore
-        nwalkers = 8 # number of chains
 
         # convert the one starting point into a nwalkers*ndim array with gaussian-offset starting points
         p0 = [np.add(param_array_0,
@@ -493,12 +551,12 @@ class RunEmcee():
                                         args=[Teff, ave, feh, caii, eave, efeh, ecaii])
 
         # burn-in
-        burnIn = 1e3 # 1e5 seems to be necessary for the slow-converging parameter 'd'
-        posAfterBurn, prob, state = sampler.run_mcmc(p0, burnIn)
+        burn_in = 1e3
+        posAfterBurn, prob, state = sampler.run_mcmc(p0, burn_in)
 
         # post-burn-in
         start_time = time.time()
-        post_burn_in_links = 3e3
+        post_burn_in_links = 3e3 # MCMC links following the burn-in
 
         ################# SAVE PROGRESSIVELY TO TEXT FILE #################
         ## ## refer to these code snippets from Foreman-Mackey's website
@@ -532,24 +590,10 @@ class RunEmcee():
         sys.stdout.write("MCMC chain data written out to\n")
         sys.stdout.write(str(self.mcmc_text_output))
 
-        # corner plot (requires 'storechain=True' in enumerate above)
-        samples = sampler.chain[:, int(burnIn):, :].reshape((-1, ndim))
-        fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"],
-                            quantiles=[0.16, 0.5, 0.84],
-                            title_fmt='.2f',
-                            show_titles=True,
-                            verbose=True,
-                            title_kwargs={"fontsize": 12})
-        fig.savefig(self.corner_file_string)
-        logging.info("--------------------------")
-        logging.info("Corner plot of MCMC posteriors written out to")
-        print(str(self.corner_file_string))
-
-        # if its necessary to read in MCMC output again
-        #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
-
+        # print marginalized posteriors to screen
         # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
         # https://emcee.readthedocs.io/en/stable/user/line.html#results
+        ## ## note this is just for abcd right now; change later
         a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                                              zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 
