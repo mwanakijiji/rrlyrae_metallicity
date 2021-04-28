@@ -4,6 +4,7 @@ import os
 import numpy as np
 import sys
 import pickle
+import seaborn as sns
 import matplotlib.pyplot as plt
 from rrlyrae_metallicity.modules2 import *
 from . import *
@@ -17,15 +18,13 @@ class find_feh():
     def __init__(self,
                 model,
                 good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-                 posteriors_subdir = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"],
-                 posteriors_filename = config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"],
+                mcmc_posteriors_file = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"]+config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"],
                  write_pickle_dir = config_apply["data_dirs"]["DIR_PICKLE"],
                  verbose = False):
 
         self.model = model
         self.good_ew_info_file = good_ew_info_file
-        self.posteriors_subdir = posteriors_subdir
-        self.posteriors_filename = posteriors_filename
+        self.mcmc_posteriors_file = mcmc_posteriors_file
         self.write_pickle_dir = write_pickle_dir
 
         # the file containing the MCMC posterior chains of a,b,c,d
@@ -33,13 +32,13 @@ class find_feh():
 
         if (self.model == "abcd"):
             # read in the chain data for model {a,b,c,d}
-            self.mcmc_chain = pd.read_csv(self.posteriors_subdir + self.posteriors_filename,
+            self.mcmc_chain = pd.read_csv(self.mcmc_posteriors_file,
                                       usecols = [1, 2, 3, 4],
                                       names = ["a", "b", "c", "d"],
                                       delim_whitespace = True)
         elif (self.model == "abcdfghk"):
             # read in the chain data for model {a,b,c,d,f,g,h,k}
-            self.mcmc_chain = pd.read_csv(self.posteriors_subdir + self.posteriors_filename,
+            self.mcmc_chain = pd.read_csv(self.mcmc_posteriors_file,
                                       usecols = [1, 2, 3, 4, 5, 6, 7, 8],
                                       names = ["a", "b", "c", "d", "f", "g", "h", "k"],
                                       delim_whitespace = True)
@@ -79,7 +78,7 @@ class find_feh():
 
     def pickle_feh_retrieval(self):
         '''
-        Find a Fe/H value for a combination of (a,b,c,d)
+        Find a Fe/H value for a combination of coefficients
         from the MCMC chain, and sample from the Balmer and
         CaIIK EWs, given their errors
         '''
@@ -90,6 +89,15 @@ class find_feh():
 
         # loop over samples in the MCMC chain
         N_MCMC_samples = len(self.mcmc_chain)
+
+        # check if there is already something else in pickle directory
+        preexisting_file_list = glob.glob(self.write_pickle_dir + "/*.{*}")
+        if (len(preexisting_file_list) != 0):
+            logging.info("------------------------------")
+            logging.info("Directory to pickle Fe/H retrievals to is not empty!!")
+            logging.info(self.write_pickle_dir)
+            logging.info("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
 
         # loop over the rows of the table of good EW data, with each row
         # corresponding to a spectrum
@@ -133,8 +141,9 @@ class find_feh():
                                           coeff_k = self.mcmc_chain["k"][t],
                                           H = Balmer_EW + offset_H,
                                           K = CaIIK_EW + offset_K)
+                        feh1_sample = feh1_sample[0] # just want positive answer
 
-                    feh_sample_array[t][integral_piece] = feh_1sample[0] # just want positive answer
+                    feh_sample_array[t][integral_piece] = feh_1sample
 
 
                 print("Spectrum number " + str(row_num) + " out of " + str(len(self.ew_data)))
@@ -214,20 +223,57 @@ class find_feh():
 
         print(data_all)
 
+        # plot retrieved and injected metallicities
+        # matplotlib to show error bars
 
+        fig, axes = plt.subplots(2, 1, figsize=(15, 24), sharex=True)
+        fig.suptitle("Retrieval comparison, from MCMC file\n" + str(self.mcmc_posteriors_file))
 
+        # Fe/H difference
+        df["feh_diff"] = np.subtract(df["retr_med_feh"],df["inj_feh"])
 
-        '''
-        import matplotlib.pyplot as plt
-        plt.hist(np.ravel(feh_sample_array), bins=100)
-        plt.title(self.ew_data.iloc[row_num]["realization_spec_file_name"] + \
-                "\nmedian [Fe/H]=" +str(np.median(feh_sample_array)) + \
-                "\n+-" + str(np.std(feh_sample_array)))
-        plt.savefig(self.ew_data.iloc[row_num]["realization_spec_file_name"] + ".pdf")
-        plt.clf()
-        print("median fe/h")
-        print(np.median(feh_sample_array))
-        print("std fe/h")
-        print(np.std(feh_sample_array))
-        #import ipdb; ipdb.set_trace()
-        '''
+        # introduce scatter in x
+        scatter_x = 0.1*np.random.rand(len(df["inj_feh"]))
+        df["inj_feh_scatter"] = np.add(scatter_x,df["inj_feh"])
+
+        cmap = sns.color_palette("YlOrBr", as_cmap=True)
+        #cmap = sns.rocket_palette(rot=-.2, as_cmap=True)
+
+        axes[0].plot([-2.5,0.5],[-2.5,0.5],linestyle="--",color="k",zorder=0)
+
+        # underplot error bars
+        axes[0].errorbar(x=df["inj_feh_scatter"],y=df["retr_med_feh"],xerr=df["err_inj_feh"],yerr=df["lower_err_ret_feh"],linestyle="",color="k",zorder=1)
+
+        g_abs = sns.scatterplot(
+            ax=axes[0],
+            data=df,
+            x="inj_feh_scatter", y="retr_med_feh",
+            hue="teff", size="logg",
+            edgecolor="k",
+            palette=cmap, sizes=(50, 150),
+            zorder=10
+        )
+        axes[0].set_ylabel("Retrieved: [Fe/H]$_{r}$")
+
+        axes[1].plot([-2.5,0.5],[0,0],linestyle="--",color="k",zorder=0)
+        g_diff = sns.scatterplot(
+            ax=axes[1],
+            data=df,
+            x="inj_feh_scatter", y="feh_diff",
+            hue="teff", size="logg",
+            edgecolor="k",
+            palette=cmap, sizes=(50, 150),
+            legend=False,
+            zorder=10
+        )
+        axes[1].set_ylabel("Residual: [Fe/H]$_{r}$-[Fe/H]$_{i}$")
+        axes[1].set_xlabel("Injected: [Fe/H]$_{i}$")
+        #axes[0].set_ylim([-3.,10.])
+        #axes[1].set_ylim([-0.45,0.8])
+
+        plt.savefig("/Users/bandari/Desktop/junk.pdf")
+
+        #g.set(xscale="log", yscale="log")
+        #g.ax.xaxis.grid(True, "minor", linewidth=.25)
+        #g.ax.yaxis.grid(True, "minor", linewidth=.25)
+        #g.despine(left=True, bottom=True)

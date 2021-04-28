@@ -29,6 +29,7 @@ from astropy.io import fits
 from astropy.table import Table
 import pyfits
 import numpy as np
+from pathlib import *
 from rrlyrae_metallicity.modules2 import *
 from . import *
 
@@ -91,6 +92,7 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
         outdir: The working directory
         spec_file_format: The format of the input spectra ["fits", "ascii.no_header"]
         num: Number of realizations to generate
+        noise: 'None': add no noise; 'file': take Gaussian samples of error with spread based on the error column in file
     Returns:
        A list of filenames for the realization spectra.
     '''
@@ -118,11 +120,13 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
         new_name_ascii = os.path.join(outdir, new_name_ascii)
         new_name_fits = os.path.join(outdir, new_name_fits)
 
-        if (noise_level != 0):
-            # add Gaussian error to the empirical flux
+        #import ipdb; ipdb.set_trace()
+        if (noise_level == "file"):
+            # add Gaussian error to the empirical flux, taking sigma to be the
+            # 'error' column in an input file
             noise_to_add = np.random.standard_normal(len(spec_tab))*spec_tab['error']
             logging.info("Injecting Gaussian noise")
-        else:
+        elif (noise_level == "None"):
             # don't inject noise at all
             noise_to_add = 0
             logging.info("Injecting no noise at all")
@@ -329,10 +333,51 @@ def create_spec_realizations_main(noise_level,
     else:
         # Check to see if there are any files in the output directories (if not,
         # there is data from a previous run that will inadvertently be used later)
-        preexisting_file_list_1 = glob.glob(outdir + "/*.{*}")
-        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.{*}")
-        preexisting_file_list_3 = glob.glob(final_dir + "/*.{*}")
+        # read the entries
 
+        #import ipdb; ipdb.set_trace()
+
+        with os.scandir(outdir) as list_of_entries1:
+            counter1 = 0
+            for entry1 in list_of_entries1:
+                if entry1.is_file():
+                    counter1 += 1
+        if (counter1 != 0):
+            logging.info("------------------------------")
+            logging.info("Directory to write realizations not empty!!")
+            logging.info(outdir)
+            logging.info("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
+
+        with os.scandir(bkgrnd_output_dir) as list_of_entries2:
+            counter2 = 0
+            for entry2 in list_of_entries2:
+                if entry2.is_file():
+                    counter2 += 1
+        if (counter2 != 0):
+            logging.info("------------------------------")
+            logging.info("Directory to write raw normalization output not empty!!")
+            logging.info(bkgrnd_output_dir)
+            logging.info("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
+
+        with os.scandir(final_dir) as list_of_entries3:
+            counter3 = 0
+            for entry3 in list_of_entries3:
+                if entry3.is_file():
+                    counter3 += 1
+        if (counter3 != 0):
+            logging.info("------------------------------")
+            logging.info("Directory to write final normalization output not empty!!")
+            logging.info(final_dir)
+            logging.info("------------------------------")
+            input("Do what you want with those files, then hit [Enter]")
+
+        '''
+        preexisting_file_list_1 = glob.glob(outdir + "/*.*") # "/*.{*}")
+        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.*")
+        preexisting_file_list_3 = glob.glob(final_dir + "/*.*")
+        import ipdb; ipdb.set_trace()
         if (len(preexisting_file_list_1) != 0):
             logging.info("------------------------------")
             logging.info("Directory to write realizations not empty!!")
@@ -351,6 +396,7 @@ def create_spec_realizations_main(noise_level,
             logging.info(final_dir)
             logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
+        '''
 
     # create noise-churned realizations for each spectrum
     name_list = list() # initialize

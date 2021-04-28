@@ -243,7 +243,7 @@ def stack_spectra(
     objective = "find_abcd"):
     '''
     Takes output of quality_check() and
-    1.  calculates errors in EW
+    1.  calculates errors in EW, using two methods
     2.  generates a scaled, net Balmer line EW
     3.  transposes and stacks data so that the data has *rows* of spectra and *cols* of absorption lines
 
@@ -257,6 +257,49 @@ def stack_spectra(
         to apply the calibration, just stack the scraped EW information
         ["find_abcd"/"apply_abcd"]
     '''
+
+    def error_scatter_ew(df_pass):
+        '''
+        Adds a column of errors, as calculated using the method of taking the
+        scatter in measured EWs of different lines (as opposed to taking Robospec's
+        errors at face value)
+        '''
+
+        import ipdb; ipdb.set_trace()
+        # get list of original file names with no repeats
+        orig_file_array = np.array((df_pass["original_spec_file_name"].drop_duplicates()))
+
+        # add new columns of nans
+        df_pass["err_EW_Hbeta_from_EW_variation"] = np.nan
+        df_pass["err_EW_Hgamma_from_EW_variation"] = np.nan
+        df_pass["err_EW_Hdelta_from_EW_variation"] = np.nan
+        df_pass["err_EW_Heps_from_EW_variation"] = np.nan
+        df_pass["err_EW_CaIIK_from_EW_variation"] = np.nan
+
+        for orig_file_name_num in range(0,len(orig_file_array)):
+
+            # mask all rows that do not correspond to the original spectrum
+
+            this_orig_spec = orig_file_array[orig_file_name_num]
+            df_masked = df_pass.where(df_pass["original_spec_file_name"] == this_orig_spec)
+
+            # find stdev of EWs, as measured for all realizations of those file names
+            '''
+            df_masked["err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
+            df_masked["err_EW_Hgamma_from_EW_variation"] = np.nanstd(df_masked["EW_Hgamma"])
+            df_masked["err_EW_Hdelta_from_EW_variation"] = np.nanstd(df_masked["EW_Hdelta"])
+            df_masked["err_EW_Heps_from_EW_variation"] = np.nanstd(df_masked["EW_Heps"])
+            '''
+
+            # insert into columns of input table
+            idx = df_pass.index[df_pass["original_spec_file_name"] == this_orig_spec] # indices
+            df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
+            df_pass.loc[idx, "err_EW_Hgamma_from_EW_variation"] = np.nanstd(df_masked["EW_Hgamma"])
+            df_pass.loc[idx, "err_EW_Hdelta_from_EW_variation"] = np.nanstd(df_masked["EW_Hdelta"])
+            df_pass.loc[idx, "err_EW_Heps_from_EW_variation"] = np.nanstd(df_masked["EW_Heps"])
+            df_pass.loc[idx, "err_EW_CaIIK_from_EW_variation"] = np.nanstd(df_masked["EW_CaIIK"])
+
+        return df_pass
 
     # read in data
     df_prestack = pd.read_csv(read_in_filename)
@@ -272,11 +315,11 @@ def stack_spectra(
                                          "original_spec_file_name",
                                          "FeH", "err_FeH",
                                          "logg", "alpha","Teff",
-                                         "EW_Hbeta", "err_EW_Hbeta",
-                                         "EW_Hdelta", "err_EW_Hdelta",
-                                         "EW_Hgamma", "err_EW_Hgamma",
-                                         "EW_Heps", "err_EW_Heps",
-                                         "EW_CaIIK", "err_EW_CaIIK"], index=range(num_indiv_spectra)) # initialize
+                                         "EW_Hbeta", "err_EW_Hbeta_from_robo",
+                                         "EW_Hdelta", "err_EW_Hdelta_from_robo",
+                                         "EW_Hgamma", "err_EW_Hgamma_from_robo",
+                                         "EW_Heps", "err_EW_Heps_from_robo",
+                                         "EW_CaIIK", "err_EW_CaIIK_from_robo"], index=range(num_indiv_spectra)) # initialize
 
     for t in range(0,num_indiv_spectra):
         # loop over all spectra realizations we have measured EWs from to populate the dataframe
@@ -297,6 +340,10 @@ def stack_spectra(
 
         # select data from table relevant to this spectrum
         data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
+
+
+        # calculate line errors using
+        # method 1: values directly from Robospect
 
         # extract original file name (the one from which realizations are made)
         orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
@@ -321,22 +368,29 @@ def stack_spectra(
         df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
         df_poststack.iloc[t]["original_spec_file_name"] = orig_name
         df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
-        df_poststack.iloc[t]["err_EW_Hbeta"] = err_Hbeta
+        df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
         df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
-        df_poststack.iloc[t]["err_EW_Hdelta"] = err_Hdelta
+        df_poststack.iloc[t]["err_EW_Hdelta_from_robo"] = err_Hdelta
         df_poststack.iloc[t]["EW_Hgamma"] = Hgamma
-        df_poststack.iloc[t]["err_EW_Hgamma"] = err_Hgamma
+        df_poststack.iloc[t]["err_EW_Hgamma_from_robo"] = err_Hgamma
         df_poststack.iloc[t]["EW_Heps"] = Heps
-        df_poststack.iloc[t]["err_EW_Heps"] = err_Heps
+        df_poststack.iloc[t]["err_EW_Heps_from_robo"] = err_Heps
         df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
-        df_poststack.iloc[t]["err_EW_CaIIK"] = err_CaIIK
-        if (objective == "find_abcd"):
-            # if the stellar spectra are synthetic, add in that info
-            df_poststack.iloc[t]["logg"] = logg
-            df_poststack.iloc[t]["Teff"] = teff
-            df_poststack.iloc[t]["alpha"] = alpha
-            df_poststack.iloc[t]["FeH"] = feh
-            df_poststack.iloc[t]["err_FeH"] = err_feh
+        df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
+
+
+    # calculate line errors using
+    # method 2: stdev of line EWs
+    df_poststack = error_scatter_ew(df_poststack)
+    import ipdb; ipdb.set_trace()
+
+    if (objective == "find_abcd"):
+        # if the stellar spectra are synthetic, add in that info
+        df_poststack.iloc[t]["logg"] = logg
+        df_poststack.iloc[t]["Teff"] = teff
+        df_poststack.iloc[t]["alpha"] = alpha
+        df_poststack.iloc[t]["FeH"] = feh
+        df_poststack.iloc[t]["err_FeH"] = err_feh
 
     # to generate a net Balmer line, make a rescaling of Hgamma
     # based on Hdelta
@@ -347,7 +401,7 @@ def stack_spectra(
     y_data = df_poststack["EW_Hgamma"].values.astype(float) # Hgam
     # better names for clarity below
     Hgamma_all = np.copy(y_data)
-    err_Hgamma_all = df_poststack["err_EW_Hgamma"].values
+    err_Hgamma_all = df_poststack["err_EW_Hgamma_from_robo"].values
 
     coeff, cov = np.polyfit(x_data, y_data, 1, full=False, cov=True)
     m = coeff[0]
@@ -389,7 +443,7 @@ def stack_spectra(
     plt.clf()
     plt.title("KH plot")
     plt.errorbar(df_poststack["EW_resc_Hgamma"],df_poststack["EW_CaIIK"],
-                 yerr=df_poststack["err_EW_CaIIK"],
+                 yerr=df_poststack["err_EW_CaIIK_from_robo"],
                  marker="o", markersize=2, mfc="k", mec="k", ecolor="gray", linestyle="")
     plt.ylim([0,30])
     plt.xlabel("EW, net Balmer (Angstr)")
@@ -397,6 +451,9 @@ def stack_spectra(
     plt.savefig("junk_KH_plot.pdf")
     '''
 
+    logging.info("------------------------------")
+    #logging.info("Data will be written out to file " + write_out_filename)
+    #input("Hit [Enter] to continue")
     logging.info("Writing out re-casting of Robospect EWs and rescaled Balmer line to " + write_out_filename)
     df_poststack.to_csv(write_out_filename)
 
