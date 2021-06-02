@@ -67,13 +67,13 @@ def main():
     # incorporating equivalent width errors
     find_feh_instance = find_feh.find_feh(
                                         model = 'abcdfghk',
-                                        good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"]
+                                        good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+                                        mcmc_posteriors_file = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"]+config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"]
                                         )
 
-    '''
     # find Fe/H and pickle
     find_feh_instance.pickle_feh_retrieval()
-    '''
+
     # retrieve pickle files and compare values
     find_feh_instance.compare_feh()
 
