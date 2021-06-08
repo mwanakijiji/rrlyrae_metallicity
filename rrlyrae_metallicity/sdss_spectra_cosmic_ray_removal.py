@@ -115,9 +115,14 @@ def main():
     file_list = glob.glob(stem_s82_norm + dir_normalized_first + "/*")
     # find all parent names (i.e., one name for each target, whether or not multiepoch observations were made)
     parent_list = list(set([i.split("g00")[0] for i in file_list]))
+    #import ipdb; ipdb.set_trace()
 
     # find the file names of spectra corresponding to each parent; if there is only 1, ignore;
     # if >= 2, do median comparison to flag it for cosmic rays
+    counter1 = 0 # to check for thoroughness
+    counter2 = 0
+    counter3 = 0
+    counter4 = 0
     for t in range(0,len(parent_list)):
 
         matching = list(filter(lambda x: parent_list[t] in x, file_list))
@@ -125,6 +130,7 @@ def main():
         print("-------------------------")
 
         if (len(matching) == 1):
+            #import ipdb; ipdb.set_trace()
 
             df_dummy = pd.read_csv(matching[0], names=["wavel","flux","noise"], delim_whitespace=True)
             fig_file_name = stem_s82_norm + dir_1st_inspect_manually + \
@@ -138,6 +144,8 @@ def main():
                         facecolor="white", edgecolor='white')
             plt.clf()
             print("Figure written out as " + fig_file_name)
+
+            counter1 += 1
 
             '''
 
@@ -223,26 +231,31 @@ def main():
                                                         )
 
 
-                if (len(np.where(flagged_empirical["flux_flag_1"])) > 0):
-                    # if there are cosmic ray candidates
+                if np.any(np.where(flagged_empirical["flux_flag_1"])):
+                    # if there are cosmic ray candidates (i.e., if the list of them
+                    # is not empty)
+                    print(len(np.where(flagged_empirical["flux_flag_1"])))
+                    #import ipdb; ipdb.set_trace()
 
                     if (np.logical_and(flagged_empirical["flux_flag_1"],line_bool_array)).any():
                         # if the cosmic ray appears to be in an absorption line, write image
                         # for manually checking
-
-                        csv_write_name = stem_s82_norm + dir_1st_inspect_manually + os.path.basename(matching[0])
-                        fig_write_name = stem_s82_norm + dir_1st_inspect_manually + os.path.basename(matching[0].split(".")[0]) + ".png"
+                        #import ipdb; ipdb.set_trace()
+                        #csv_write_name = stem_s82_norm + dir_1st_inspect_manually + os.path.basename(matching[p])
+                        fig_write_name = stem_s82_norm + dir_1st_inspect_manually + os.path.basename(matching[p].split(".")[-2]) + ".png"
 
                         # simply write out FYI image to the dir to inspect by hand
                         fig = plt.figure(figsize=(24,10))
                         plt.plot(df_dummy["wavel"],df_dummy["flux"])
                         plt.plot(flagged_empirical["wavel"],line_bool_array)
                         plt.plot([3900,5000],[limit,limit],linestyle="--")
-                        plt.title("Possible ray in line, " + str(os.path.basename(matching[0])))
-                        plt.savefig(fig_file_name,
+                        plt.title("Possible ray in line, " + str(os.path.basename(matching[p])))
+                        plt.savefig(fig_write_name,
                                     facecolor="white", edgecolor='white')
                         plt.clf()
-                        print("Flagged pixels appear in absorption line; figure written out as " + fig_file_name)
+                        print("Flagged pixels appear in absorption line; figure written out as " + fig_write_name)
+
+                        counter2 += 1
 
                         '''
                         df_dummy.to_csv(csv_write_name)
@@ -266,16 +279,20 @@ def main():
                         #import ipdb; ipdb.set_trace()
                         #stem_s82_norm + dir_1st_masks
                         #flagged_empirical["wavel"]
-                        csv_write_name = stem_s82_norm + dir_1st_masks + "/mask1_" + os.path.basename(matching[0])
+
+                        csv_write_name = stem_s82_norm + dir_1st_masks + "/mask1_" + os.path.basename(matching[p])
                         flagged_empirical.to_csv(csv_write_name, columns = ["wavel","flux_flag_1"])
                         print("Wrote mask of spectrum with apparent ray: " + csv_write_name)
+
+                        counter3 += 1
+
                         '''
                         df_original_unnorm = pd.read_csv(stem_s82_norm,names=["wavel","flux","noise"], delim_whitespace=True)
                         #df_single_p =
 
                         # write out
 
-                        fig_write_name = stem_s82_norm + dir_to_normalize_second + os.path.basename(matching[0].split(".")[0]) + ".png"
+                        fig_write_name = stem_s82_norm + dir_to_normalize_second + os.path.basename(matching[p].split(".")[0]) + ".png"
                         df_dummy.to_csv(csv_write_name)
 
                         print(csv_write_name)
@@ -297,13 +314,24 @@ def main():
                                                                                noise_level="None",
                                                                                spec_file_type="ascii.no_header")
                         '''
-                elif (len(np.where(flagged_empirical["flux_flag_1"])) == 0):
-                    # if there are no identified cosmic rays, just write out the
-                    # mask of points also--a mask with all False
-
-                    csv_write_name = stem_s82_norm + dir_1st_masks + "/mask1_" + os.path.basename(matching[0])
+                elif not np.any(np.where(flagged_empirical["flux_flag_1"])):
+                    # if there are no identified cosmic rays (i.e., if the list of them
+                    # is empty), just write out the mask of points also--a mask with all False
+                    #import ipdb; ipdb.set_trace()
+                    csv_write_name = stem_s82_norm + dir_1st_masks + "/mask1_" + os.path.basename(matching[p])
                     flagged_empirical.to_csv(csv_write_name, columns = ["wavel","flux_flag_1"])
                     print("Wrote mask of spectrum with NO apparent ray: " + csv_write_name)
+
+                    counter4 += 1
+
+                else:
+                    print("Condition unknown!")
+                    import ipdb; ipdb.set_trace()
+
+    print("counter1: " + str(counter1))
+    print("counter2: " + str(counter2))
+    print("counter3: " + str(counter3))
+    print("counter4: " + str(counter4))
 
 
 if __name__ == "__main__":
