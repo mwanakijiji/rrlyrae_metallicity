@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 # read in data
 
 #df = pd.read_csv("data/test_hk_data_winnowed_20200210_comparison.csv")
-df = pd.read_csv("../rrlyrae_metallicity/ew_products/20210225_restacked_ew_info_good_only.csv")
+df = pd.read_csv("../rrlyrae_metallicity/ew_products/20210405_restacked_ew_info_good_only_no_fehm30.csv")
 
 # remove the three really bad datapoints
 '''
@@ -291,18 +291,18 @@ def find_bic_of_1_subarray(new_coeffs_array):
 
 # In[13]:
 
-'''
+
 # map the function across all available cores
 ncpu = multiprocessing.cpu_count()
 pool = multiprocessing.Pool(ncpu)
 pool.map(find_bic_of_1_subarray, new_coeffs_mother_array)
-'''
+
 
 # In[9]:
 
 
 # baseline check
-
+'''
 abcd_older = [12.513685,-0.78716521,3.8778512,-0.24297523]
 abcd_now = [19.09,-1.48,6.28,-0.49] # get more precise values later
 
@@ -312,15 +312,13 @@ ssr = np.sum(np.power(np.subtract(df_choice["EW_CaIIK"],K_baseline),2.))
 n_params = 4
 n_samples = len(df_choice["EW_Balmer"])
 bic = astropy.stats.bayesian_info_criterion_lsq(ssr, n_params, n_samples)
-print("BIC using original Layden 94 coeffs:")
+print("BIC using Layden 94 coeffs:")
 print(bic)
-
+'''
 
 # ### Compare BICs
 
 # In[6]:
-
-
 '''
 BIC_orig = 245.1464970126952
 BIC_1_f = 245.36213036898667

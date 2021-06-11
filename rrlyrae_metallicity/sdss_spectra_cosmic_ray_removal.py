@@ -46,7 +46,7 @@ def fyi_plot(flagged_empirical_pass, df_mean_pass, matching_pass, saved_pathname
     plt.plot([3900,5000],[limit,limit],linestyle="--")
     plt.title(str(os.path.basename(matching_pass[p])))
     plt.legend(loc="lower right")
-    plt.savefig("plot_" + str(os.path.basename(matching_pass[p])) + ".png",
+    plt.savefig(str(os.path.basename(matching_pass[p])).split(".")[-2] + ".png",
                 facecolor="white", edgecolor='white')
     plt.clf()
 
@@ -134,7 +134,7 @@ def main():
 
             df_dummy = pd.read_csv(matching[0], names=["wavel","flux","noise"], delim_whitespace=True)
             fig_file_name = stem_s82_norm + dir_1st_inspect_manually + \
-                        "plot_" + str(os.path.basename(matching[0])) + ".png"
+                        str(os.path.basename(matching[0])).split(".")[-2] + ".png"
 
             # simply write out FYI image to the dir to inspect by hand
             fig = plt.figure(figsize=(24,10))
@@ -246,7 +246,7 @@ def main():
 
                         # simply write out FYI image to the dir to inspect by hand
                         fig = plt.figure(figsize=(24,10))
-                        plt.plot(df_dummy["wavel"],df_dummy["flux"])
+                        plt.plot(df_single_p["wavel"],df_single_p["flux"])
                         plt.plot(flagged_empirical["wavel"],line_bool_array)
                         plt.plot([3900,5000],[limit,limit],linestyle="--")
                         plt.title("Possible ray in line, " + str(os.path.basename(matching[p])))

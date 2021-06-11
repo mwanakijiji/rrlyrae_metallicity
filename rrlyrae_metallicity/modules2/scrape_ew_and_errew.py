@@ -265,7 +265,6 @@ def stack_spectra(
         errors at face value)
         '''
 
-        import ipdb; ipdb.set_trace()
         # get list of original file names with no repeats
         orig_file_array = np.array((df_pass["original_spec_file_name"].drop_duplicates()))
 
@@ -292,12 +291,15 @@ def stack_spectra(
             '''
 
             # insert into columns of input table
-            idx = df_pass.index[df_pass["original_spec_file_name"] == this_orig_spec] # indices
-            df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
-            df_pass.loc[idx, "err_EW_Hgamma_from_EW_variation"] = np.nanstd(df_masked["EW_Hgamma"])
-            df_pass.loc[idx, "err_EW_Hdelta_from_EW_variation"] = np.nanstd(df_masked["EW_Hdelta"])
-            df_pass.loc[idx, "err_EW_Heps_from_EW_variation"] = np.nanstd(df_masked["EW_Heps"])
-            df_pass.loc[idx, "err_EW_CaIIK_from_EW_variation"] = np.nanstd(df_masked["EW_CaIIK"])
+            try:
+                idx = df_pass.index[df_pass["original_spec_file_name"] == this_orig_spec] # indices
+                df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
+                df_pass.loc[idx, "err_EW_Hgamma_from_EW_variation"] = np.nanstd(df_masked["EW_Hgamma"])
+                df_pass.loc[idx, "err_EW_Hdelta_from_EW_variation"] = np.nanstd(df_masked["EW_Hdelta"])
+                df_pass.loc[idx, "err_EW_Heps_from_EW_variation"] = np.nanstd(df_masked["EW_Heps"])
+                df_pass.loc[idx, "err_EW_CaIIK_from_EW_variation"] = np.nanstd(df_masked["EW_CaIIK"])
+            except:
+                print("Anomaly in finding scatter in EW measurements in " + str(this_orig_spec))
 
         return df_pass
 
@@ -348,41 +350,48 @@ def stack_spectra(
         # extract original file name (the one from which realizations are made)
         orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
 
-        # extract Balmer lines from the table of data from all the spectra
-        Hbeta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
-        err_Hbeta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
+        try:
+            # extract Balmer lines from the table of data from all the spectra
+            Hbeta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
+            err_Hbeta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
 
-        Hgamma = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
-        err_Hgamma = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
+            Hgamma = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
+            err_Hgamma = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
 
-        Hdelta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
-        err_Hdelta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
+            Hdelta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
+            err_Hdelta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
 
-        Heps = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
-        err_Heps = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
+            Heps = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
+            err_Heps = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
 
-        CaIIK = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
-        err_CaIIK = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
+            CaIIK = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
+            err_CaIIK = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
 
-        # fill in that row in the dataframe
-        df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
-        df_poststack.iloc[t]["original_spec_file_name"] = orig_name
-        df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
-        df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
-        df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
-        df_poststack.iloc[t]["err_EW_Hdelta_from_robo"] = err_Hdelta
-        df_poststack.iloc[t]["EW_Hgamma"] = Hgamma
-        df_poststack.iloc[t]["err_EW_Hgamma_from_robo"] = err_Hgamma
-        df_poststack.iloc[t]["EW_Heps"] = Heps
-        df_poststack.iloc[t]["err_EW_Heps_from_robo"] = err_Heps
-        df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
-        df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
+            # fill in that row in the dataframe
+            df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
+            df_poststack.iloc[t]["original_spec_file_name"] = orig_name
+            df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
+            df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
+            df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
+            df_poststack.iloc[t]["err_EW_Hdelta_from_robo"] = err_Hdelta
+            df_poststack.iloc[t]["EW_Hgamma"] = Hgamma
+            df_poststack.iloc[t]["err_EW_Hgamma_from_robo"] = err_Hgamma
+            df_poststack.iloc[t]["EW_Heps"] = Heps
+            df_poststack.iloc[t]["err_EW_Heps_from_robo"] = err_Heps
+            df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
+            df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
 
+        except:
+            print("Data anomaly; skipping " + this_spectrum)
+
+    # save intermediary table of data, before adding rescaled Balmer line
+    intermediary_file_name = write_out_filename + "_intermediary"
+    logging.info("Writing out intermediary file of stacked Robospect EWs and rescaled Balmer lines to " + intermediary_file_name)
+    df_poststack.to_csv(intermediary_file_name)
 
     # calculate line errors using
     # method 2: stdev of line EWs
     df_poststack = error_scatter_ew(df_poststack)
-    import ipdb; ipdb.set_trace()
 
     if (objective == "find_abcd"):
         # if the stellar spectra are synthetic, add in that info

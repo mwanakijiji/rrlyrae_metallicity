@@ -21,13 +21,15 @@ import os
 from dataclasses import dataclass
 from typing import *
 
-get_ipython().run_line_magic('matplotlib', 'qt')
+#get_ipython().run_line_magic('matplotlib', 'qt')
 
 
 # In[2]:
 
+input_file_name = "models_bics_using_20210406_restacked_ew_info_good_only_with_fehm30.csv"
+output_plot_name = "bic_bar_chart_using_20210406_restacked_ew_info_good_only_with_fehm30.pdf"
 
-df = pd.read_csv("junk.csv",names=["coeffs_array",
+df = pd.read_csv(input_file_name,names=["coeffs_array",
                                                     "bic",
                                                     "n_params",
                                                     "ssr",
@@ -71,7 +73,7 @@ df_sorted["del_bic"] = np.subtract(df_sorted["bic"],BIC_baseline)
 #plt.ylabel("BIC")
 #plt.show()
 
-ax = df_sorted["del_bic"].plot(kind='barh') 
+ax = df_sorted["del_bic"].plot(kind='barh')
 ax.set_title("$\Delta$BIC")
 ax.set_ylabel("permutation, sorted by $\Delta$BIC")
 ax.set_xlabel("BIC")
@@ -82,5 +84,6 @@ ax.set_yticklabels(list(zip(df_sorted["coeffs_array"],df_sorted["res"])), fontsi
 #for p in ax.patches:
 #    ax.annotate(str(df_sorted["coeffs_array"][p]), (p.get_x() * 1.0, p.get_height() * 1.005))
 
-plt.show()
-
+plt.savefig(output_plot_name)
+print("Saved BIC plot as " + output_plot_name)
+#plt.show()
