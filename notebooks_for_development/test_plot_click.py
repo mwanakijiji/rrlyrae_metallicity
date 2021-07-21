@@ -19,7 +19,7 @@ plt.plot(x_test,y_test)
 num_rays = input("Enter number of cosmic rays: ")
 tellme('Click to begin')
 
-plt.waitforbuttonpress()
+#plt.waitforbuttonpress()
 
 row_index = 0
 

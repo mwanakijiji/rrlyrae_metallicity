@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 # This compares Fe/H values as calculated by nSSPP and by us
 
-# Created 2021 July 19 by E.S.
-
-
-# In[1]:
-
+# Parent notebook created 2021 July 19 by E.S.
 
 import pickle
 import pandas as pd
@@ -20,27 +13,14 @@ import os
 import re
 import matplotlib.pyplot as plt
 
-get_ipython().run_line_magic('matplotlib', 'qt')
-
-
-# In[2]:
-
-
 # directory of pickled Fe/H using our abcd calibration (note just first 1k lines of posterior!)
-dir_pickled_feh_abcd = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/rrlyrae_metallicity/calib_application/" +         "bin/pickled_info/escrow_us_abcd_on_sdss"
-
-
-# In[3]:
-
+dir_pickled_feh_abcd = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/rrlyrae_metallicity/calib_application/" +         "bin/pickled_info/escrow_us_abcdfghk_on_sdss"
 
 # read in nSSPP values
-
-df_nsspp = pd.read_csv("./data/nSSPP82.out", names=["sdss","spectrum", "teff", "logg", 
+df_nsspp = pd.read_csv("./data/nSSPP82.out", names=["sdss","spectrum", "teff", "logg",
                                                      "feh_direct_nsspp", "feh_beers"], delim_whitespace=True)
 
-
-# In[4]:
-
+string_calib_type = "abcdfghk" # 'abcd' or 'abcdfghk'
 
 # excavate all pickle files in the directory
 pickle_list = glob.glob(dir_pickled_feh_abcd + "/*.p")
@@ -57,7 +37,6 @@ pickle_list = glob.glob(dir_pickled_feh_abcd + "/*.p")
 
 df = pd.DataFrame(columns=["inj_feh", "err_inj_feh", "retr_med_feh",
                             "lower_err_ret_feh", "upper_err_ret_feh", "logg", "teff", "pickle_file_name"]) #, index=range(len(pickle_list)))
-
 
 for file_name in pickle_list:
 
@@ -82,13 +61,8 @@ for file_name in pickle_list:
     row_to_add = pd.Series(values_to_add, name="x")
     df = df.append(row_to_add)
 
-
-# In[34]:
-
-
 # loop through the nSSPP spectra names and [Fe/H] values, find matches with our retrieved [Fe/H]s,
 # and put into table
-
 df_nsspp["feh_us_abcd"] = np.nan
 for nsspp_spec_num in range(0,len(df_nsspp)):
 
@@ -96,12 +70,12 @@ for nsspp_spec_num in range(0,len(df_nsspp)):
     this_string = df_nsspp["spectrum"][nsspp_spec_num]
     this_obj_number = re.split('spec-|h', this_string)[1]
     this_group_number = re.split('spec-|h', this_string)[2]
-    
+
     # find this (obj number, group number) combination in the DataFrame of retrieved metallicities
     val_interest = df[df["pickle_file_name"].str.contains(this_obj_number + "g" + this_group_number)]
     num_matches = len(val_interest)
     feh_retrieved_vals = val_interest["retr_med_feh"].values
-    
+
     # ... if there is no match, print so
     if len(feh_retrieved_vals)==1:
         df_nsspp["feh_us_abcd"].iloc[nsspp_spec_num] = feh_retrieved_vals[0]
@@ -109,13 +83,9 @@ for nsspp_spec_num in range(0,len(df_nsspp)):
         print("ERROR! Too many matches")
 
 
-# In[37]:
-
-
 fig, ax1 = plt.subplots(1, 1)
 
-plt.plot([np.nanmin(df_nsspp["feh_us_abcd"]),np.nanmax(df_nsspp["feh_us_abcd"])],
-         [np.nanmin(df_nsspp["feh_us_abcd"]),np.nanmax(df_nsspp["feh_us_abcd"])],linestyle="--",color="gray")
+plt.plot([-50,50],[-50,50],linestyle="--",color="gray")
 plt.scatter(df_nsspp["feh_us_abcd"],df_nsspp["feh_direct_nsspp"])
 
 # annotate
@@ -125,36 +95,29 @@ for label_num, txt in enumerate(df_nsspp["feh_us_abcd"]):
         print(df_nsspp["feh_us_abcd"].iloc[label_num],df_nsspp["feh_direct_nsspp"].iloc[label_num])
         print("---")
         '''
-        ax1.annotate(str(df_nsspp["spectrum"].iloc[label_num]), 
-                     xy=(df_nsspp["feh_us_abcd"].iloc[label_num],df_nsspp["feh_direct_nsspp"].iloc[label_num]), 
-                     xytext=(df_nsspp["feh_us_abcd"].iloc[label_num],df_nsspp["feh_direct_nsspp"].iloc[label_num]), 
+        ax1.annotate(str(df_nsspp["spectrum"].iloc[label_num]),
+                     xy=(df_nsspp["feh_us_abcd"].iloc[label_num],df_nsspp["feh_direct_nsspp"].iloc[label_num]),
+                     xytext=(df_nsspp["feh_us_abcd"].iloc[label_num],df_nsspp["feh_direct_nsspp"].iloc[label_num]),
                      xycoords='data')
         '''
 
 
-plt.xlabel("Retrieved [Fe/H], abcd calibration, 1-to-1")
+plt.xlabel("Retrieved [Fe/H], "+string_calib_type+" calibration, 1-to-1")
 plt.ylabel("Direct nSSPP [Fe/H]")
+#plt.savefig("junk_retrieved_vs_nsspp.pdf")
+plt.xlim([-8.5,4])
+plt.ylim([-5,1])
 plt.show()
-
-
-# In[7]:
-
 
 plt.figure(figsize=(10,5))
 plt.hist(df["retr_med_feh"],bins=1000)
-plt.title("Retrieved [Fe/H] (abcd only), ~2600 SDSS spectra\nMean="+str(np.nanmean(df["retr_med_feh"]))+", Median="+str(np.nanmedian(df["retr_med_feh"])))
+plt.title("Retrieved [Fe/H] ("+string_calib_type+" calibration), ~2600 SDSS spectra\nMean="+str(np.nanmean(df["retr_med_feh"]))+", Median="+str(np.nanmedian(df["retr_med_feh"])))
+#plt.savefig("junk_hist_retrieved.pdf")
+plt.xlim([-60,40])
 plt.show()
-
-
-# In[19]:
-
 
 print("Mean: "+str(np.mean(df["retr_med_feh"])))
 print("Median: "+str(np.median(df["retr_med_feh"])))
-
-
-# In[ ]:
-
 
 '''
 import ipdb; ipdb.set_trace()
@@ -211,4 +174,3 @@ axes[1].set_xlabel("Injected: [Fe/H]$_{i}$")
 
 plt.savefig("/Users/bandari/Desktop/junk.pdf")
 '''
-
