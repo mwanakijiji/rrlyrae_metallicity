@@ -4,6 +4,7 @@
 # This compares Fe/H values as calculated by nSSPP and by us
 
 # Parent notebook created 2021 July 19 by E.S.
+# Updated 2021 Aug 9 to include S/N of spectra
 
 import pickle
 import pandas as pd
@@ -14,11 +15,15 @@ import re
 import matplotlib.pyplot as plt
 
 # directory of pickled Fe/H using our abcd calibration (note just first 1k lines of posterior!)
-dir_pickled_feh_abcd = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/rrlyrae_metallicity/calib_application/" +         "bin/pickled_info/escrow_us_abcdfghk_on_sdss"
+dir_pickled_feh_abcd = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/rrlyrae_metallicity/calib_application/" + \
+        "bin/pickled_info/escrow_us_abcdfghk_on_sdss"
 
-# read in nSSPP values
+# read in nSSPP Fe/H values
 df_nsspp = pd.read_csv("./data/nSSPP82.out", names=["sdss","spectrum", "teff", "logg",
                                                      "feh_direct_nsspp", "feh_beers"], delim_whitespace=True)
+
+# read in S/N
+df_s2n = pd.read_csv("./data/s2n_sdss_spec.csv")
 
 string_calib_type = "abcdfghk" # 'abcd' or 'abcdfghk'
 
@@ -36,7 +41,8 @@ pickle_list = glob.glob(dir_pickled_feh_abcd + "/*.p")
 # 'Teff'            injected effective temperature Teff
 
 df = pd.DataFrame(columns=["inj_feh", "err_inj_feh", "retr_med_feh",
-                            "lower_err_ret_feh", "upper_err_ret_feh", "logg", "teff", "pickle_file_name"]) #, index=range(len(pickle_list)))
+                            "lower_err_ret_feh", "upper_err_ret_feh", "logg",
+                            "teff", "pickle_file_name"]) #, index=range(len(pickle_list)))
 
 for file_name in pickle_list:
 
@@ -64,6 +70,7 @@ for file_name in pickle_list:
 # loop through the nSSPP spectra names and [Fe/H] values, find matches with our retrieved [Fe/H]s,
 # and put into table
 df_nsspp["feh_us_abcd"] = np.nan
+df_nsspp["s2n"] = np.nan
 for nsspp_spec_num in range(0,len(df_nsspp)):
 
     # extract the numbers corresponding to the (obj number, group number)
@@ -75,18 +82,28 @@ for nsspp_spec_num in range(0,len(df_nsspp)):
     val_interest = df[df["pickle_file_name"].str.contains(this_obj_number + "g" + this_group_number)]
     num_matches = len(val_interest)
     feh_retrieved_vals = val_interest["retr_med_feh"].values
-
     # ... if there is no match, print so
     if len(feh_retrieved_vals)==1:
         df_nsspp["feh_us_abcd"].iloc[nsspp_spec_num] = feh_retrieved_vals[0]
     elif len(feh_retrieved_vals)>1:
         print("ERROR! Too many matches")
 
+    # ... and also find this (obj number, group number) combination in the DataFrame of S/N
+    val_interest_s2n = df_s2n[df_s2n["file_name"].str.contains(this_obj_number + "g" + this_group_number)]
+    num_matches_s2n = len(val_interest_s2n)
+    s2n_vals = val_interest_s2n["s_to_n"].values
+    # ... if there is no match, print so
+    if len(s2n_vals)==1:
+        df_nsspp["s2n"].iloc[nsspp_spec_num] = s2n_vals
+    elif len(s2n_vals)>1:
+        print("ERROR! Too many matches")
 
+import ipdb; ipdb.set_trace()
 fig, ax1 = plt.subplots(1, 1)
 
 plt.plot([-50,50],[-50,50],linestyle="--",color="gray")
-plt.scatter(df_nsspp["feh_us_abcd"],df_nsspp["feh_direct_nsspp"])
+plt.scatter(df_nsspp["feh_us_abcd"],df_nsspp["feh_direct_nsspp"], c=df_nsspp["s2n"], cmap="Greens", edgecolors="k")
+plt.colorbar()
 
 # annotate
 for label_num, txt in enumerate(df_nsspp["feh_us_abcd"]):
