@@ -15,11 +15,10 @@ from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
 @patch('builtins.print')
-def test_compile_bkgrnd():
+def test_compile_bkgrnd(self):
     # does bkgrnd compile?
 
-    final_list = compile_bkgrnd(compiled_bkgrnd_file_path_abs_pass=compiled_bkgrnd_file_path_abs,
-                                cc_bkgrnd_file_path_abs_pass=cc_bkgrnd_file_path_abs)
+    final_list = compile_bkgrnd()
 
     # check that what would be printed is what we expect upon
     # successful compilation
