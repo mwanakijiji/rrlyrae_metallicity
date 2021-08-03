@@ -18,7 +18,7 @@ from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalizati
 #mock = MagicMock()
 
 #@patch('builtins.print')
-def test_compile_bkgrnd(self):
+def test_compile_bkgrnd():
     # does bkgrnd compile?
 
     compile_status = modules2.compile_normalization.compile_bkgrnd()
