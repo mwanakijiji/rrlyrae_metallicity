@@ -1,6 +1,6 @@
 import matplotlib
 matplotlib.use('Agg')
-
+from io import StringIO
 import sys, os
 from unittest.mock import patch, call
 
