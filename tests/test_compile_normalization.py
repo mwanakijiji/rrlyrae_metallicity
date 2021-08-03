@@ -14,6 +14,7 @@ sys.path.insert(0, target_dir)
 #from modules2 import compile_normalization
 from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalization
+from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
 #mock = MagicMock()
 
