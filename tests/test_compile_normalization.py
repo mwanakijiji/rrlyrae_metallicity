@@ -10,10 +10,10 @@ print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
 
-from rrlyrae_metallicity.rrlyrae_metallicity import modules2.compile_normalization
+#from rrlyrae_metallicity.rrlyrae_metallicity import modules2.compile_normalization
 #from modules2 import compile_normalization
 from rrlyrae_metallicity.rrlyrae_metallicity import *
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
+from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalization
 
 @patch('builtins.print')
 def test_compile_bkgrnd(self):
