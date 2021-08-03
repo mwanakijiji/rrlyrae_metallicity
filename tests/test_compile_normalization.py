@@ -1,8 +1,8 @@
 import matplotlib
 matplotlib.use('Agg')
-from io import StringIO
+#from io import StringIO
 import sys, os
-from unittest.mock import patch, call
+#from unittest.mock import patch, call
 
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
@@ -17,16 +17,16 @@ from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalizati
 
 #mock = MagicMock()
 
-@patch('builtins.print')
+#@patch('builtins.print')
 def test_compile_bkgrnd(self):
     # does bkgrnd compile?
 
-    #final_list = modules2.compile_normalization.compile_bkgrnd()
+    compile_status = modules2.compile_normalization.compile_bkgrnd()
 
-    with patch('sys.stdout.readlines()[-1]', new = StringIO()) as fake_out:
-        modules2.compile_normalization.compile_bkgrnd()
-        self.assertEqual(fake_out.getvalue(), "--------------------------")
+    #with patch('sys.stdout.readlines()[-1]', new = StringIO()) as fake_out:
+#        modules2.compile_normalization.compile_bkgrnd()
+    #    self.assertEqual(fake_out.getvalue(), "--------------------------")
 
     # check that what would be printed is what we expect upon
     # successful compilation
-    #assert mock_print.mock_calls == [call("--------------------------")]
+    assert compile_status == True
