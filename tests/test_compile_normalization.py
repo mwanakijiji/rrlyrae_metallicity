@@ -18,11 +18,15 @@ from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalizati
 #mock = MagicMock()
 
 @patch('builtins.print')
-def test_compile_bkgrnd(self, mock_print):
+def test_compile_bkgrnd(self):
     # does bkgrnd compile?
 
-    final_list = modules2.compile_normalization.compile_bkgrnd()
+    #final_list = modules2.compile_normalization.compile_bkgrnd()
+
+    with patch('sys.stdout.readlines()[-1]', new = StringIO()) as fake_out:
+        modules2.compile_normalization.compile_bkgrnd()
+        self.assertEqual(fake_out.getvalue(), "--------------------------")
 
     # check that what would be printed is what we expect upon
     # successful compilation
-    assert mock_print.mock_calls == [call("--------------------------")]
+    #assert mock_print.mock_calls == [call("--------------------------")]
