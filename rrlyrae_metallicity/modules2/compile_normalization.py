@@ -22,6 +22,14 @@ def compile_bkgrnd(
                                     cc_bkgrnd_file_path_abs_pass],
                                     stdout=PIPE, stderr=PIPE)
 
-            logging.info("Binary for spectrum normalization saved to")
-            logging.info(compiled_bkgrnd_file_path_abs_pass)
-            logging.info("--------------------------")
+            output, error = bkgrnd_compile.communicate()
+            if bkgrnd_compile.returncode != 0:
+                print("Compile error %d %s %s" % (bkgrnd_compile.returncode, output, error))
+                success_val = bool(False)
+            else:
+                logging.info("Binary for spectrum normalization saved to")
+                logging.info(compiled_bkgrnd_file_path_abs_pass)
+                logging.info("--------------------------")
+                success_val = bool(True)
+
+    return success_val

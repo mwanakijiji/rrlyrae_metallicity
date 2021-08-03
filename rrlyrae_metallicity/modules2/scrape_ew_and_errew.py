@@ -412,7 +412,9 @@ def stack_spectra(
     Hgamma_all = np.copy(y_data)
     err_Hgamma_all = df_poststack["err_EW_Hgamma_from_robo"].values
 
-    coeff, cov = np.polyfit(x_data, y_data, 1, full=False, cov=True)
+    # safety check that both pairs of coordinates are simultaneously finite
+    idx_good = np.logical_and(np.isfinite(x_data),np.isfinite(y_data))
+    coeff, cov = np.polyfit(x_data[idx_good], y_data[idx_good], 1, full=False, cov=True)
     m = coeff[0]
     b = coeff[1]
     err_m = np.sqrt(np.diag(cov))[0]

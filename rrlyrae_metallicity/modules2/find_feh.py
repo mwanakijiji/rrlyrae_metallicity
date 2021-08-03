@@ -103,7 +103,7 @@ class find_feh():
         # corresponding to a spectrum
         for row_num in range(0,len(self.ew_data)):
 
-            logging.info("Finding Fe/H for spectrum " + self.ew_data.iloc[row_num]["realization_spec_file_name"])
+            logging.info("Finding Fe/H for spectrum " + str(self.ew_data.iloc[row_num]["realization_spec_file_name"]))
 
             Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
             CaIIK_EW = self.ew_data.iloc[row_num]["EW_CaIIK"]
@@ -141,7 +141,7 @@ class find_feh():
                                           coeff_k = self.mcmc_chain["k"][t],
                                           H = Balmer_EW + offset_H,
                                           K = CaIIK_EW + offset_K)
-                        feh1_sample = feh1_sample[0] # just want positive answer
+                        feh_1sample = feh_1sample[0] # just want positive answer
 
                     feh_sample_array[t][integral_piece] = feh_1sample
 
@@ -165,7 +165,7 @@ class find_feh():
             data_all["logg"] = logg
             data_all["Teff"] = Teff
 
-            pickle_file_name = self.write_pickle_dir + file_name_stem + ".p"
+            pickle_file_name = str(self.write_pickle_dir) + str(file_name_stem) + ".p"
             with open( pickle_file_name, "wb" ) as f:
                 pickle.dump(data_all, f)
             '''
@@ -175,7 +175,7 @@ class find_feh():
             '''
             logging.info("Pickled retrieved [Fe/H] info as " + pickle_file_name)
 
-    def compare_feh(self):
+    def compare_feh_synthetic(self):
         '''
         Retrieves pickle files and plots injected and retrieved Fe/H
         '''
