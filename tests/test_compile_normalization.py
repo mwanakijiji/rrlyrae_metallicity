@@ -11,6 +11,7 @@ print(target_dir)
 sys.path.insert(0, target_dir)
 
 from rrlyrae_metallicity.rrlyrae_metallicity import modules2
+#from modules2 import compile_normalization
 from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
@@ -18,7 +19,7 @@ from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 def test_compile_bkgrnd(self):
     # does bkgrnd compile?
 
-    final_list = modules2.compile_bkgrnd()
+    final_list = compile_normalization.compile_bkgrnd()
 
     # check that what would be printed is what we expect upon
     # successful compilation
