@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.3.4
+      - name: check the file list
+        run: |
+          ls -al
       - name: Install Python 3
         uses: actions/setup-python@v1
         with:
