@@ -22,6 +22,9 @@ from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 def test_compile_bkgrnd():
     # does bkgrnd compile?
 
+    import os
+    cwd = os.getcwd()
+    print(cwd)
     root_dir_test = "/home/runner/work/rrlyrae_metallicity/rrlyrae_metallicity/"
     #root_dir_test = $GITHUB_WORKSPACE
     compile_status = modules2.compile_normalization.compile_bkgrnd(
