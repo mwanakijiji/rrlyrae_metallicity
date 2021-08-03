@@ -27,6 +27,5 @@ def test_compile_bkgrnd():
 #        modules2.compile_normalization.compile_bkgrnd()
     #    self.assertEqual(fake_out.getvalue(), "--------------------------")
 
-    # check that what would be printed is what we expect upon
-    # successful compilation
-    assert compile_status == True
+    # check that compilation is successful via boolean value
+    assert compile_status
