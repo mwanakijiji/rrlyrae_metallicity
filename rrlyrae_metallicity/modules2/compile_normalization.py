@@ -32,4 +32,6 @@ def compile_bkgrnd(
                 logging.info("--------------------------")
                 success_val = bool(True)
 
+    print(success_val)
+
     return success_val
