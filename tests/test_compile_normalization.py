@@ -29,7 +29,7 @@ def test_compile_bkgrnd():
     #root_dir_test = $GITHUB_WORKSPACE
     compile_status = modules2.compile_normalization.compile_bkgrnd(
         compiled_bkgrnd_file_path_abs_pass = root_dir_test+"src/"+os.path.basename(compiled_bkgrnd_file_path_abs),
-        cc_bkgrnd_file_path_abs_pass = root_dir_test+"src/"+os.path.basename(cc_bkgrnd_file_path_abs)
+        cc_bkgrnd_file_path_abs_pass = "src/bkgrnd.cc"
         )
 
     #with patch('sys.stdout.readlines()[-1]', new = StringIO()) as fake_out:
