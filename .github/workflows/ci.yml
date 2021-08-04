@@ -40,11 +40,6 @@ jobs:
           --sdist
           --wheel
           --outdir dist/
-      - uses: actions/checkout@master
-      - uses: codecov/codecov-action@v2
-        with:
-          name: codecov-umbrella # optional
-          verbose: true # optional (default = false)
       # commented out below to avoid new build every time
       #- name: Publish distribution to Test PyPI
       #  uses: pypa/gh-action-pypi-publish@master
