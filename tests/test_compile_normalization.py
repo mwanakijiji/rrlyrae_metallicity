@@ -16,6 +16,7 @@ from rrlyrae_metallicity.rrlyrae_metallicity import *
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import compile_normalization
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
+#from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import create_spec_realizations
 #mock = MagicMock()
 
 #@patch('builtins.print')
@@ -31,6 +32,10 @@ def test_compile_bkgrnd():
 
 
     #compile_status = modules2.compile_normalization.compile_bkgrnd()
+
+    ## BEGIN TEST
+    # return_filenames_fits = generate_realizations()
+    ## END TEST
 
     print("Compilation of bkgrnd.cc skipped.")
 

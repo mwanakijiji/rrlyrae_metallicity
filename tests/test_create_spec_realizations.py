@@ -5,13 +5,29 @@ import sys, os
 
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
+#target_dir2 = os.path.abspath(current_dir)
 print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
+#sys.path.insert(0, target_dir2)
 
-from rrlyrae_metallicity.rrlyrae_metallicity import modules2
+'''
 from rrlyrae_metallicity.rrlyrae_metallicity import *
+#from rrlyrae_metallicity.rrlyrae_metallicity import modules2
 from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
+from rrlyrae_metallicity.rrlyrae_metallicity.modules2.create_spec_realizations import *
+'''
+from . import *
+#from . import rrlyrae_metallicity.rrlyrae_metallicity.modules2.generate_realizations
+from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
+#from rrlyrae_metallicity.rrlyrae_metallicity import modules2.generate_realizations
+#from modules2 import generate_realizations
+
+from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import create_spec_realizations
+
+#from rrlyrae_metallicity.rrlyrae_metallicity import modules2
+#from rrlyrae_metallicity.modules2 import *
+#from rrlyrae_metallicity.modules2.create_spec_realizations import *
 
 '''
 # check if the directory-making function works
@@ -27,6 +43,17 @@ def test_make_dirs():
 '''
 
 def test_create_norm_spec():
+    '''
+    Create final normalized spectra, using the output from the bkgrnd routine (which
+    puts out wavelength, flux, and continuum flux, but not the actual normalized flux)
+
+    Arguments:
+        name_list: List of Realization file names (no path info)
+        normdir: bkgrnd ascii files
+        finaldir: The final directory for files which have completed the full normalization process.
+    Returns:
+       A list of final file names
+    '''
 
     #test_name_list =
     #test_normdir =
@@ -36,18 +63,62 @@ def test_create_norm_spec():
     # is min smaller than max
     assert 1 < 2
 
-'''
+
 def test_generate_realizations():
 
-    %min_good_phase, max_good_phase = phase_regions()
+    # two test spectra for each format
+    abs_stem_src = config["data_dirs"]["TEST_DIR_SRC"]
+    abs_stem_bin = config["data_dirs"]["TEST_DIR_BIN"]
 
-    # is min smaller than max
-    %assert min_good_phase < max_good_phase
+    # test on FITS files
+    test_spec_list_fits = [
+                            abs_stem_src+"575030m20.fits",
+                            abs_stem_src+"spec-3480-54999-0629g003.fits"
+                            ]
+    # expected names
+    expected_filenames_fits = [
+                            abs_stem_bin+"575030m20.fits_000",
+                            abs_stem_bin+"575030m20.fits_001",
+                            abs_stem_bin+"spec-3480-54999-0629g003.fits_000",
+                            abs_stem_bin+"spec-3480-54999-0629g003.fits_001"
+                            ]
+    for spec_num in range(0,len(test_spec_list_fits)):
+        return_filenames_fits = rrlyrae_metallicity.rrlyrae_metallicity.modules2.generate_realizations(spec_name=test_spec_list_fits[spec_num],
+                                               outdir=abs_stem_bin,
+                                               spec_file_format="fits",
+                                               num=2,
+                                               noise_level=0.01)
+    # test on ascii files
+    test_spec_list_ascii = [
+                            abs_stem_src+"700025m20.smo",
+                            abs_stem_src+"spec-3478-55008-0186g002.dat"
+                            ]
+    # expected names
+    expected_filenames_ascii = [
+                            abs_stem_bin+"700025m20.smo_000",
+                            abs_stem_bin+"700025m20.smo_001",
+                            abs_stem_bin+"spec-3478-55008-0186g002.dat_000",
+                            abs_stem_bin+"spec-3478-55008-0186g002.dat_001"
+                            ]
+    for spec_num in range(0,len(test_spec_list_ascii)):
+        return_filenames_ascii = generate_realizations(spec_name=test_spec_list_ascii[spec_num],
+                                               outdir=abs_stem_bin,
+                                               spec_file_format="ascii.no_header",
+                                               num=2,
+                                               noise_level=0.01)
+
+    # check if elements in list __ are in list __
+    result_fits =  all(elem in return_filenames_fits  for elem in expected_filenames_fits)
+    result_ascii =  all(elem in return_filenames_fits  for elem in expected_filenames_ascii)
+
+    # originals divided by the realizations should be equivalent
+    # to 1 + noise residuals
 
     # are the phases interpreted as floats
-    %assert isinstance(min_good_phase,float)
+    assert result_fits
+    assert result_ascii
 
-
+'''
 def test_read_bkgrnd_spec():
 
     %min_good_phase, max_good_phase = phase_regions()

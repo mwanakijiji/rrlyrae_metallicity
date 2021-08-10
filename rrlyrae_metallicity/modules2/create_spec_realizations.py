@@ -28,10 +28,32 @@ from subprocess import Popen, PIPE
 from astropy.io import fits
 from astropy.table import Table
 import pyfits
+import sys
 import numpy as np
 from pathlib import *
+'''
+# TROUBLESHOOTING HERE
+current_dir = os.path.dirname(__file__)
+print(current_dir)
+print("error above")
+
+current_dir = os.path.dirname(__file__)
+target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+sys.path.insert(0, target_dir)
+print("Current dir:")
+print(current_dir)
+print("Target dir:")
+print(target_dir)
+'''
+current_dir = os.path.dirname(__file__)
+print("Current dir:")
+print(current_dir)
+
+from rrlyrae_metallicity import *
 from rrlyrae_metallicity.modules2 import *
 from . import *
+
+
 
 # --------------------
 # Function Definitions
@@ -405,6 +427,7 @@ def create_spec_realizations_main(noise_level,
     name_list = list() # initialize
     #import ipdb; ipdb.set_trace()
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
+        import ipdb; ipdb.set_trace()
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+"/"+list_arr[i],
                                                outdir=outdir,
                                                spec_file_format=spec_file_type,
