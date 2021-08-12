@@ -13,7 +13,7 @@ from astropy.io.fits import getdata
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
-from rrlyrae_metallicity.modules2 import *
+from . import *
 
 class Scraper():
     '''
@@ -21,8 +21,8 @@ class Scraper():
     '''
 
     def __init__(self,
-                 subdir=config["data_dirs"]["DIR_ROBO_OUTPUT"],
-                 file_scraped_info=config["file_names"]["SCRAPED_EW_ALL_DATA"],
+                 subdir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
+                 file_scraped_info=config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
                  verbose=False):
 
         # directory containing the *.fits.robolines
@@ -160,15 +160,15 @@ class Scraper():
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         #df_master_reset = df_master.reset_index(drop=True).copy()
         # this is effectively the same, but gets written out
-        df_master.reset_index(drop=True).to_csv(config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"])
-        logging.info("Table of ALL EW info written to " + config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"])
+        df_master.reset_index(drop=True).to_csv(config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"])
+        logging.info("Table of ALL EW info written to " + config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"])
         #if self.verbose:
         #    return df_master_reset, df_master_reset_drop_bad_spectra
         return
 
 def quality_check(
-    read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_ALL_DATA"],
-    write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]):
+    read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
+    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]):
     '''
     This reads in all the scraped EW data in raw form, removes spectra that have fits
     which are bad based on multiple criteria, and writes out another data_table
@@ -237,9 +237,9 @@ def quality_check(
 
 
 def stack_spectra(
-    read_in_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
-    write_out_filename = config["data_dirs"]["DIR_EW_PRODS"]+config["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-    fits_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
+    read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
+    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+    fits_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"],
     objective = "find_abcd"):
     '''
     Takes output of quality_check() and

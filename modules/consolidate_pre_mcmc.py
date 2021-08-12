@@ -9,12 +9,12 @@ import numpy as np
 import pandas as pd
 from pylab import *
 from IPython.display import clear_output
-from rrlyrae_metallicity.modules2 import *
+from . import *
 
 
-def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
-              stars_and_offsets_info_file=config["file_names"]["RRAB_RRAB_OFFSETS"],
-              hk_source_dir=config["data_dirs"]["DIR_SRC"],
+def graft_feh(pickle_source_dir=config_red["data_dirs"]["DIR_PICKLE"],
+              stars_and_offsets_info_file=config_red["file_names"]["RRAB_RRAB_OFFSETS"],
+              hk_source_dir=config_red["data_dirs"]["DIR_SRC"],
               synthetic=False):
     '''
     Read in the EW and phase data, and attach Fe/H values
@@ -79,7 +79,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
                                                ignore_index=True)
 
     # read in the EW and phase info
-    hk_ews = pd.read_csv(hk_source_dir + config["file_names"]["MORE_REALISTIC"])
+    hk_ews = pd.read_csv(hk_source_dir + config_red["file_names"]["MORE_REALISTIC"])
     #import ipdb; ipdb.set_trace()
     # paste the feh values onto the HK table
     # loop over each row of the HK table and assign an FeH based
@@ -120,7 +120,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
         print("Filling in Fe/H values for synthetic spectra")
 
         # read in FeH values
-        feh_info = pd.read_csv(hk_source_dir + config["file_names"]["LIST_SPEC_PHASE"],
+        feh_info = pd.read_csv(hk_source_dir + config_red["file_names"]["LIST_SPEC_PHASE"],
                     delim_whitespace=True)
         #print(feh_info)
         #import ipdb; ipdb.set_trace()
@@ -168,7 +168,7 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
 
     # pickle the table of H,K,phases,Fe/H
     ## ## NEED TO ADD STAR TYPE, TOO
-    pickle_write_name = pickle_source_dir + config["file_names"]["KH_FINAL_PKL"]
+    pickle_write_name = pickle_source_dir + config_red["file_names"]["KH_FINAL_PKL"]
     with open(pickle_write_name, "wb") as f:
         pickle.dump(hk_ews, f)
     print("-----------------------------")
@@ -178,8 +178,8 @@ def graft_feh(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
     return
 
 
-def winnow(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
-                         hk_winnowed_write_dir=config["data_dirs"]["DIR_BIN"]):
+def winnow(pickle_source_dir=config_red["data_dirs"]["DIR_PICKLE"],
+                         hk_winnowed_write_dir=config_red["data_dirs"]["DIR_BIN"]):
     '''
     This removes the program star spectra based on criteria such as
     1. phase (0 to 1)
@@ -196,7 +196,7 @@ def winnow(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
 
     # restore pickle file with all the H,K data
     hk_data = pickle.load( open( pickle_source_dir +
-                                 config["file_names"]["KH_FINAL_PKL"], "rb" ) )
+                                 config_red["file_names"]["KH_FINAL_PKL"], "rb" ) )
     #hk_data_df = pd.DataFrame(hk_data)
     #print(hk_data)
     #print("hk_data keys:")
@@ -216,7 +216,7 @@ def winnow(pickle_source_dir=config["data_dirs"]["DIR_PICKLE"],
 
 
     #hk_data_winnowed_file_name = "hk_data_winnowed.csv"
-    winnowed_file_name = hk_winnowed_write_dir + config["file_names"]["KH_WINNOWED"]
+    winnowed_file_name = hk_winnowed_write_dir + config_red["file_names"]["KH_WINNOWED"]
     hk_data_winnowed.to_csv(winnowed_file_name)
     print("--------------------------")
     print("Wrote winnowed EW data for MCMC to ")

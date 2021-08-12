@@ -49,8 +49,8 @@ current_dir = os.path.dirname(__file__)
 print("Current dir:")
 print(current_dir)
 
-from rrlyrae_metallicity import *
-from rrlyrae_metallicity.modules2 import *
+#from rrlyrae_metallicity import *
+#from rrlyrae_metallicity.modules2 import *
 from . import *
 
 
@@ -318,12 +318,12 @@ def write_bckgrnd_input(name_list, indir, normdir):
 def create_spec_realizations_main(noise_level,
                                 spec_file_type,
                                 num = 100,
-                                  input_spec_list_dir = config["data_dirs"]["DIR_SRC"],
-                                  input_list = config["data_dirs"]["DIR_SRC"] + config["file_names"]["LIST_SPEC_PHASE"],
-                                  unnorm_empirical_spectra_dir = config["data_dirs"]["DIR_RAW_SPEC_DATA"],
-                                  unnorm_noise_churned_spectra_dir = config["data_dirs"]["DIR_SYNTH_SPEC"],
-                                  bkgrnd_output_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
-                                  final_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                                  input_spec_list_dir = config_red["data_dirs"]["DIR_SRC"],
+                                  input_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"],
+                                  unnorm_empirical_spectra_dir = config_red["data_dirs"]["DIR_RAW_SPEC_DATA"],
+                                  unnorm_noise_churned_spectra_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"],
+                                  bkgrnd_output_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
+                                  final_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
                                   verb=False):
     '''
     INPUTS:
@@ -346,7 +346,7 @@ def create_spec_realizations_main(noise_level,
     logging.info("Making "+str(num)+" realizations of each input spectrum")
 
     # Read list of input spectra
-    # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config["file_names"]["LIST_SPEC_PHASE"]
+    # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config_red["file_names"]["LIST_SPEC_PHASE"]
     list_arr = read_list(input_list)
     #logging.info('list_arr')
     #logging.info(list_arr)
@@ -444,10 +444,10 @@ def create_spec_realizations_main(noise_level,
     # normalize each spectrum realization (smoothing parameter is set in __init__)
     '''
     # I used this snippet before re-installing Anaconda
-    bkgrnd = Popen([get_setuptools_script_dir() + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
+    bkgrnd = Popen([get_setuptools_script_dir() + "bkgrnd", "--smooth "+str(config_red["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     '''
-    bkgrnd = Popen([str(config["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config["reduc_params"]["SMOOTH"]),
+    bkgrnd = Popen([str(config_red["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config_red["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out, err) = bkgrnd.communicate() # returns tuple (stdout, stderr)
 

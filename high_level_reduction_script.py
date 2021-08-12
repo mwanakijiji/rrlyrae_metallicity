@@ -4,6 +4,7 @@ obtain updated Layden coefficients [a, b, c, d]
 '''
 
 import sys
+from conf import *
 from modules import *
 from modules import (compile_normalization,
                       create_spec_realizations,
@@ -12,18 +13,17 @@ from modules import (compile_normalization,
                       make_high_res_feh_basis,
                       ca_correction,
                       consolidate_pre_mcmc,
-                      run_emcee,
-                      error_propagation_and_mapping)
+                      run_emcee)
 
 def main():
 
     # make all the directories
 
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
-    '''
+
     # compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
-
+    '''
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write out normalizations
     ## ## just 1 or 2 realizations for testing (default is 100)
@@ -37,11 +37,11 @@ def main():
     scraper_instance = scrape_ew_and_errew.Scraper()
     scraper_instance() # call instance
     scrape_ew_and_errew.quality_check()
-    '''
+
     # put the good EW data into a table with
     # rows corresponding to files and cols for the lines
     scrape_ew_and_errew.stack_spectra(objective="find_abcd")
-    '''
+
     # run_emcee with input data_table_winnowed
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]

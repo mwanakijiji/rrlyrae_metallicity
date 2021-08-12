@@ -7,7 +7,7 @@ import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from rrlyrae_metallicity.modules2 import *
+from . import *
 
 class LitMetallicities():
     '''
@@ -17,7 +17,7 @@ class LitMetallicities():
     '''
 
     def __init__(self,
-                 source_dir=config["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]):
+                 source_dir=config_red["data_dirs"]["DIR_LIT_HIGH_RES_FEH"]):
 
         # stand-in that consists of our program star names
         self.our_program_stars = pd.read_csv(source_dir + "our_program_stars_names_only.csv")
@@ -322,7 +322,7 @@ def plot_mapping(input_matches,
                  mapped,
                  title_string,
                  plot_file_name,
-                 write_plot_subdir=config["data_dirs"]["DIR_FYI_INFO"],
+                 write_plot_subdir=config_red["data_dirs"]["DIR_FYI_INFO"],
                  write_plot=True):
 
     # if plot is not to be written
@@ -447,7 +447,7 @@ def make_basis_via_offsets(df_to_offset,
                            df_offsets,
                            plot_string,
                            csv_string,
-                           feh_basis_csv_dir=config["data_dirs"]["DIR_FYI_INFO"],
+                           feh_basis_csv_dir=config_red["data_dirs"]["DIR_FYI_INFO"],
                            make_plot=True):
     '''
     Apply offsets (which may be from RRabs, RRcs, combo, etc.) to data to make a basis
@@ -549,7 +549,7 @@ def make_basis_via_offsets(df_to_offset,
     # save the data to a csv
     pd_merged.to_csv(feh_basis_csv_dir +
                      csv_string +
-                     config["file_names"]["MERGED_LIT_FEH_CSV"])
+                     config_red["file_names"]["MERGED_LIT_FEH_CSV"])
 
     # save a plot (raw high_res vs. basis on top; shifted residuals vs. basis in middle;
     # corrected high_res vs. basis on bottom)
@@ -694,7 +694,7 @@ def make_basis_via_offsets(df_to_offset,
     return d
 
 
-def calc_feh_program_stars(pickle_subdir=config["data_dirs"]["DIR_PICKLE"]):
+def calc_feh_program_stars(pickle_subdir=config_red["data_dirs"]["DIR_PICKLE"]):
     '''
     Calculate metallicities for the program stars which form
     the basis of the metallicity calibration, by using the
@@ -726,28 +726,28 @@ def calc_feh_program_stars(pickle_subdir=config["data_dirs"]["DIR_PICKLE"]):
     print("======= STEP 3: MAKE RRAB BASIS W RRAB OFFSETS ========")
     rrab_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset=rrab_matches,
                                                            df_offsets=rrab_offsets,
-                                                           plot_string=(config["data_dirs"]["DIR_FYI_INFO"]+
+                                                           plot_string=(config_red["data_dirs"]["DIR_FYI_INFO"]+
                                                                         "rrab_w_rrab_offsets.png"),
                                                            csv_string="rrab_w_rrab_offsets",
                                                            make_plot=True)
     print("======= STEP 4: MAKE RRAB BASIS W RRC OFFSETS ========")
     rrab_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset=rrab_matches,
                                                           df_offsets=rrc_offsets,
-                                                          plot_string=(config["data_dirs"]["DIR_FYI_INFO"]+
+                                                          plot_string=(config_red["data_dirs"]["DIR_FYI_INFO"]+
                                                                        "rrab_w_rrc_offsets.png"),
                                                           csv_string="rrab_w_rrc_offsets",
                                                           make_plot=True)
     print("======= STEP 5: MAKE RRC BASIS W RRC OFFSETS ========")
     rrc_basis_w_rrc_offsets = make_basis_via_offsets(df_to_offset=rrc_matches,
                                                          df_offsets=rrc_offsets,
-                                                         plot_string=(config["data_dirs"]["DIR_FYI_INFO"]+
+                                                         plot_string=(config_red["data_dirs"]["DIR_FYI_INFO"]+
                                                                       "rrc_w_rrc_offsets.png"),
                                                          csv_string="rrc_w_rrc_offsets",
                                                          make_plot=True)
     print("======= STEP 6: MAKE RRC BASIS W RRAB OFFSETS ========")
     rrc_basis_w_rrab_offsets = make_basis_via_offsets(df_to_offset=rrc_matches,
                                                           df_offsets=rrab_offsets,
-                                                          plot_string=(config["data_dirs"]["DIR_FYI_INFO"]+
+                                                          plot_string=(config_red["data_dirs"]["DIR_FYI_INFO"]+
                                                                        "rrc_w_rrab_offsets.png"),
                                                           csv_string="rrc_w_rrab_offsets",
                                                           make_plot=True)
@@ -805,13 +805,13 @@ def calc_feh_program_stars(pickle_subdir=config["data_dirs"]["DIR_PICKLE"]):
                      plot_file_name="rrc_w_c_offsets_basis.png")
 
     pickle.dump( [rrab_matches, rrab_feh_highres_ab_offsets],
-                     open( pickle_subdir + config["file_names"]["RRAB_RRAB_OFFSETS"], "wb" ) )
+                     open( pickle_subdir + config_red["file_names"]["RRAB_RRAB_OFFSETS"], "wb" ) )
     pickle.dump( [rrab_matches, rrab_feh_highres_c_offsets],
-                     open( pickle_subdir + config["file_names"]["RRAB_RRC_OFFSETS"], "wb" ) )
+                     open( pickle_subdir + config_red["file_names"]["RRAB_RRC_OFFSETS"], "wb" ) )
     pickle.dump( [rrc_matches, rrc_feh_highres_ab_offsets],
-                     open( pickle_subdir + config["file_names"]["RRC_RRAB_OFFSETS"], "wb" ) )
+                     open( pickle_subdir + config_red["file_names"]["RRC_RRAB_OFFSETS"], "wb" ) )
     pickle.dump( [rrc_matches, rrc_feh_highres_c_offsets],
-                     open( pickle_subdir + config["file_names"]["RRC_RRC_OFFSETS"], "wb" ) )
+                     open( pickle_subdir + config_red["file_names"]["RRC_RRC_OFFSETS"], "wb" ) )
 
     # PRINT m (slope) and b (y-intercept) info for the mapping ## ## FYI ONLY, AT THE MOMENT
     print("rrab_basis_w_rrab_offsets:")

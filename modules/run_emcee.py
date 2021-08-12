@@ -10,12 +10,12 @@ import pandas as pd
 import emcee
 import corner
 import logging
-from rrlyrae_metallicity.modules2 import *
+from . import *
 
 
 def corner_plot(model,
-                mcmc_text_output_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"],
-                corner_plot_putput_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_CORNER"]):
+                mcmc_text_output_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["MCMC_OUTPUT"],
+                corner_plot_putput_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["MCMC_CORNER"]):
     '''
     Reads in MCMC output and writes out a corner plot
     '''
@@ -157,8 +157,8 @@ class RunEmcee():
     '''
 
     def __init__(self,
-                 scraped_ews_good_only_file_name = config["data_dirs"]["DIR_EW_PRODS"] + config["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-                 mcmc_text_output_file_name = config["data_dirs"]["DIR_BIN"] + config["file_names"]["MCMC_OUTPUT"]
+                 scraped_ews_good_only_file_name = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+                 mcmc_text_output_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["MCMC_OUTPUT"]
                  ):
 
         # name of file with final K, H, FeH, and error values (and not the others from the noise-churned spectra)

@@ -6,7 +6,7 @@ import os
 import glob
 import multiprocessing
 import logging
-from rrlyrae_metallicity.modules2 import *
+from . import *
 
 
 class RunRobo:
@@ -85,9 +85,9 @@ class RunRobo:
 
 
 def main(
-        normzed_spec_source_dir = config["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
-        write_dir=config["data_dirs"]["DIR_ROBO_OUTPUT"],
-        robo_dir=config["data_dirs"]["DIR_ROBO"]
+        normzed_spec_source_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+        write_dir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
+        robo_dir=config_red["data_dirs"]["DIR_ROBO"]
         ):
     '''
     Accumulate list of filenames of normalized synthetic spectra, then

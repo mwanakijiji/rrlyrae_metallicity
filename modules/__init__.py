@@ -27,11 +27,12 @@ logging.basicConfig(
 # configuration data for reduction
 config_red = configparser.ConfigParser() # for parsing values in .init file
 # config for reduction to find a, b, c, d
-config_red.read("modules/config_red.ini")
+config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
+
 # config for applying a calibration
 config_apply = configparser.ConfigParser()
 #config_apply.read("rrlyrae_metallicity/modules/config_apply.ini")
-config_apply.read("modules/config_apply.ini")
+config_apply.read("../conf/config_apply.ini")
 
 # set pathnames for important files that are used by different modules
 cc_bkgrnd_file_path_abs = config_red["data_dirs"]["DIR_SRC"] + "/bkgrnd.cc"
