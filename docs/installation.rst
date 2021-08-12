@@ -21,4 +21,4 @@ Change to the robospect.py/tmp/ directory and copy the file ll to it:
 This file tells Robospect which absorption lines
 to look for.
 
-Users can file issues at https://github.com/mwanakijiji/rrlyrae_metallicity
+Users can file issues `here <https://github.com/mwanakijiji/rrlyrae_metallicity/issues>'
