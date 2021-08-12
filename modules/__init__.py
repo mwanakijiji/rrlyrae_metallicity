@@ -24,18 +24,18 @@ logging.basicConfig(
     ]
 )
 
-# configuration data
-config = configparser.ConfigParser() # for parsing values in .init file
+# configuration data for reduction
+config_red = configparser.ConfigParser() # for parsing values in .init file
 # config for reduction to find a, b, c, d
-config.read("rrlyrae_metallicity/modules/config.ini")
-# config for applying a, b, c, d
+config_red.read("modules/config_red.ini")
+# config for applying a calibration
 config_apply = configparser.ConfigParser()
 #config_apply.read("rrlyrae_metallicity/modules/config_apply.ini")
-config_apply.read("rrlyrae_metallicity/modules/config_apply.ini")
+config_apply.read("modules/config_apply.ini")
 
 # set pathnames for important files that are used by different modules
-cc_bkgrnd_file_path_abs = config["data_dirs"]["DIR_SRC"] + "/bkgrnd.cc"
-compiled_bkgrnd_file_path_abs = config["data_dirs"]["DIR_BIN"] + "/bkgrnd"
+cc_bkgrnd_file_path_abs = config_red["data_dirs"]["DIR_SRC"] + "/bkgrnd.cc"
+compiled_bkgrnd_file_path_abs = config_red["data_dirs"]["DIR_BIN"] + "/bkgrnd"
 
 ncpu = multiprocessing.cpu_count()
 
@@ -71,7 +71,7 @@ def make_dirs(objective="apply_abcd"):
     if (objective == "apply_abcd"):
         config_choice = config_apply
     elif (objective == "find_abcd"):
-        config_choice = config
+        config_choice = config_red
 
     # loop over all directory paths we will need
     for vals in config_choice["data_dirs"]:
@@ -92,7 +92,7 @@ def phase_regions():
     '''
 
     # obtain values as floats
-    value1 = config.getfloat("phase", "MIN_GOOD")
-    value2 = config.getfloat("phase", "MAX_GOOD")
+    value1 = config_red.getfloat("phase", "MIN_GOOD")
+    value2 = config_red.getfloat("phase", "MAX_GOOD")
 
     return value1, value2
