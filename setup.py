@@ -20,6 +20,6 @@ setup(name="rrlyrae_metallicity",
       author_email="espaldin@nd.edu",
       url="https://github.com/mwanakijiji/rrlyrae_metallicity",
       license="MIT",
-      packages=['rrlyrae_metallicity','rrlyrae_metallicity/modules2'],
+      packages=['rrlyrae_metallicity','rrlyrae_metallicity/modules'],
       include_package_data=True
       )
