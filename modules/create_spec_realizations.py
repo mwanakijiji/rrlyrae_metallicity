@@ -427,7 +427,7 @@ def create_spec_realizations_main(noise_level,
     name_list = list() # initialize
     #import ipdb; ipdb.set_trace()
     for i in range(len(list_arr)): # make spectrum realizations and list of their filenames
-        import ipdb; ipdb.set_trace()
+        #import ipdb; ipdb.set_trace()
         name_list.extend(generate_realizations(spec_name=unnorm_empirical_spectra_dir+"/"+list_arr[i],
                                                outdir=outdir,
                                                spec_file_format=spec_file_type,
