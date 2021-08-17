@@ -2,32 +2,20 @@ import matplotlib
 matplotlib.use('Agg')
 
 import sys, os
+import configparser
 
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
-#target_dir2 = os.path.abspath(current_dir)
-print(current_dir)
-print(target_dir)
 sys.path.insert(0, target_dir)
-#sys.path.insert(0, target_dir2)
 
-'''
-from rrlyrae_metallicity.rrlyrae_metallicity import *
-#from rrlyrae_metallicity.rrlyrae_metallicity import modules2
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2.create_spec_realizations import *
-'''
+# import more things with changed system path
 from . import *
-#from . import rrlyrae_metallicity.rrlyrae_metallicity.modules2.generate_realizations
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
-#from rrlyrae_metallicity.rrlyrae_metallicity import modules2.generate_realizations
-#from modules2 import generate_realizations
+from conf import *
 
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import create_spec_realizations
-
-#from rrlyrae_metallicity.rrlyrae_metallicity import modules2
-#from rrlyrae_metallicity.modules2 import *
-#from rrlyrae_metallicity.modules2.create_spec_realizations import *
+# configuration data for reduction
+config_red = configparser.ConfigParser() # for parsing values in .init file
+# config for reduction to find a, b, c, d
+config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
 '''
 # check if the directory-making function works
@@ -67,8 +55,8 @@ def test_create_norm_spec():
 def test_generate_realizations():
 
     # two test spectra for each format
-    abs_stem_src = config["data_dirs"]["TEST_DIR_SRC"]
-    abs_stem_bin = config["data_dirs"]["TEST_DIR_BIN"]
+    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
+    abs_stem_bin = config_red["data_dirs"]["TEST_DIR_BIN"]
 
     # test on FITS files
     test_spec_list_fits = [

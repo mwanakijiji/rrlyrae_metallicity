@@ -25,11 +25,11 @@ def test_make_dirs():
     # call function to make directories
     # (here we choose 'objective' to apply a calibration, though it could
     # also be to find a new calibration)
-    make_dirs(objective = "apply_abcd")
+    make_dirs(objective = "find_abcd")
 
     # do all the directories exist now?
-    for vals in config_apply["data_dirs"]:
-        abs_path_name = str(config_apply["data_dirs"][vals])
+    for vals in config_red["data_dirs"]:
+        abs_path_name = str(config_red["data_dirs"][vals])
         assert os.path.exists(abs_path_name)
 
 
