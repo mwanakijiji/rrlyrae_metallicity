@@ -148,18 +148,21 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
     basename = os.path.basename(spec_name) # shave off path stem
 
     # generate realizations
-    new_name_list = list()
+    new_basename_list = list()
 
     for i in range(num):
 
         # make file names
 
         # basename of spectrum realization, ascii
-        new_basename_ascii = "{}_{:03d}".format(basename.split(".fits")[0], i)
+        new_prefix_ascii = "{}_noise_ver_{:03d}".format(basename.split(".")[-2], i)
+        suffix_ascii = basename.split(".")[-1] # could be .dat, .csv, .txt, etc.
+        new_basename_ascii = new_prefix_ascii + "." + suffix_ascii
         # if we want to change to FITS intermediary files:
-        new_basename_fits = "{}_{:03d}".format(basename.split(".fits")[0], i) + ".fits"
+        new_basename_fits = "{}_noise_ver_{:03d}".format(basename.split(".fits")[0], i) + ".fits"
         # don't need path info in spec_name list; add ascii name here
         new_basename_list.append(new_basename_ascii)
+
         # name of spectrum realization, with path
         new_name_ascii = os.path.join(outdir, new_basename_ascii)
         new_name_fits = os.path.join(outdir, new_basename_fits)
@@ -198,7 +201,7 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
 
         ## second format: ascii, so bkgrnd can read it in
         logging.info("Writing out ascii realization file " + new_name_ascii + \
-            " with noise level " + str(noise_to_add))
+            " with noise level stdev " + str(np.std(noise_to_add)))
         for j in range(len(new_flux)):
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
         outfile.close()

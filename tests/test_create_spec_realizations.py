@@ -12,6 +12,7 @@ sys.path.insert(0, target_dir)
 from modules import *
 from modules import create_spec_realizations
 from conf import *
+import numpy as np
 
 # configuration data for reduction
 config_red = configparser.ConfigParser() # for parsing values in .init file
@@ -56,26 +57,29 @@ def test_create_norm_spec():
 def test_read_spec():
 
     # FITS format
-    spec_name_fits = config_red["TEST_DIR_SRC"] + "575030m20.fits"
-    test_spec_tab_fits, test_hdr_fits = read_spec(spec_name=spec_name_fits, format="fits")
+    spec_name_fits = config_red["data_dirs"]["TEST_DIR_SRC"] + "575030m20.fits"
+    test_spec_tab_fits, test_hdr_fits = create_spec_realizations.read_spec(spec_name=spec_name_fits, format="fits")
 
     # for FITS data, there should be 3 columns of floats, and a header
-    assert np.isfinite(test_hdr_fits) == True
-    assert len(test_spec_tab_fits.colnames) == 3 # 3 solumns
-    assert (test_spec_tab_fits["wavelength"].info.dtype == np.float64)
-    assert (test_spec_tab_fits["flux"].info.dtype == np.float64)
-    assert (test_spec_tab_fits["error"].info.dtype == np.float64)
+    assert test_hdr_fits
+    assert len(test_spec_tab_fits.colnames) == 3 # 3 columns
+    assert isinstance(test_spec_tab_fits["wavelength"][0],np.float64)
+    assert isinstance(test_spec_tab_fits["flux"][0],np.float64)
+    assert isinstance(test_spec_tab_fits["error"][0],np.float64)
+    #assert (test_spec_tab_fits["wavelength"].info.dtype == np.float64)
+    #assert (test_spec_tab_fits["flux"].info.dtype == np.float64)
+    #assert (test_spec_tab_fits["error"].info.dtype == np.float64)
 
     # ascii format
-    spec_name_ascii = config_red["TEST_DIR_SRC"] + "700025m20.smo"
-    test_spec_tab_ascii, test_hdr_ascii = read_spec(spec_name=spec_name_ascii, format="ascii.no_header")
+    spec_name_ascii = config_red["data_dirs"]["TEST_DIR_SRC"] + "700025m20.smo"
+    test_spec_tab_ascii, test_hdr_ascii = create_spec_realizations.read_spec(spec_name=spec_name_ascii, format="ascii.no_header")
 
     # for ascii data, there should be 3 columns of floats, and NO header
     assert np.isfinite(test_hdr_ascii) == False
-    assert len(test_spec_tab_ascii.colnames) == 3 # 3 solumns
-    assert (test_spec_tab_ascii["wavelength"].info.dtype == np.float64)
-    assert (test_spec_tab_ascii["flux"].info.dtype == np.float64)
-    assert (test_spec_tab_ascii["error"].info.dtype == np.float64)
+    assert len(test_spec_tab_ascii.colnames) == 3 # 3 columns
+    assert isinstance(test_spec_tab_ascii["wavelength"][0],np.float64)
+    assert isinstance(test_spec_tab_ascii["flux"][0],np.float64)
+    assert isinstance(test_spec_tab_ascii["error"][0],np.float64)
 
 def test_generate_realizations():
 
@@ -89,47 +93,64 @@ def test_generate_realizations():
                             abs_stem_src+"spec-3480-54999-0629g003.fits"
                             ]
     # expected names
+    # (note these should just be basenames)
     expected_filenames_fits = [
-                            abs_stem_bin+"575030m20.fits_000",
-                            abs_stem_bin+"575030m20.fits_001",
-                            abs_stem_bin+"spec-3480-54999-0629g003.fits_000",
-                            abs_stem_bin+"spec-3480-54999-0629g003.fits_001"
+                            "575030m20_noise_ver_000.fits",
+                            "575030m20_noise_ver_001.fits",
+                            "spec-3480-54999-0629g003_noise_ver_000.fits",
+                            "spec-3480-54999-0629g003_noise_ver_001.fits"
                             ]
+    returned_filenames_fits = []
     for spec_num in range(0,len(test_spec_list_fits)):
-        return_filenames_fits = create_spec_realizations.generate_realizations(spec_name=test_spec_list_fits[spec_num],
+        return_names_one_spec = create_spec_realizations.generate_realizations(spec_name=test_spec_list_fits[spec_num],
                                                outdir=abs_stem_bin,
                                                spec_file_format="fits",
                                                num=2,
                                                noise_level=0.01)
+        returned_filenames_fits.extend(return_names_one_spec)
+
     # test on ascii files
     test_spec_list_ascii = [
                             abs_stem_src+"700025m20.smo",
                             abs_stem_src+"spec-3478-55008-0186g002.dat"
                             ]
     # expected names
+    # (note these should just be basenames)
     expected_filenames_ascii = [
-                            abs_stem_bin+"700025m20.smo_000",
-                            abs_stem_bin+"700025m20.smo_001",
-                            abs_stem_bin+"spec-3478-55008-0186g002.dat_000",
-                            abs_stem_bin+"spec-3478-55008-0186g002.dat_001"
+                            "700025m20_noise_ver_000.smo",
+                            "700025m20_noise_ver_001.smo",
+                            "spec-3478-55008-0186g002_noise_ver_000.dat",
+                            "spec-3478-55008-0186g002_noise_ver_001.dat"
                             ]
+    returned_filenames_ascii = []
     for spec_num in range(0,len(test_spec_list_ascii)):
-        return_filenames_ascii = generate_realizations(spec_name=test_spec_list_ascii[spec_num],
+        return_names_one_spec = create_spec_realizations.generate_realizations(spec_name=test_spec_list_ascii[spec_num],
                                                outdir=abs_stem_bin,
                                                spec_file_format="ascii.no_header",
                                                num=2,
                                                noise_level=0.01)
+        returned_filenames_ascii.extend(return_names_one_spec)
 
-    # check if elements in list __ are in list __
-    result_fits =  all(elem in return_filenames_fits  for elem in expected_filenames_fits)
-    result_ascii =  all(elem in return_filenames_fits  for elem in expected_filenames_ascii)
+    # flatten lists
+    #returned_filenames_fits = [item for sublist in t for item in sublist]
+    #returned_filenames_ascii = [item for sublist in t for item in sublist]
 
-    # originals divided by the realizations should be equivalent
-    # to 1 + noise residuals
+    # check if elements in list 1 are in list 2
+    result_fits =  all(elem in returned_filenames_fits for elem in expected_filenames_fits)
+    result_ascii =  all(elem in returned_filenames_ascii for elem in expected_filenames_ascii)
 
-    # are the phases interpreted as floats
+    # test: are the file names right?
+    print('returned/expected filenames fits')
+    print(returned_filenames_fits)
+    print(expected_filenames_fits)
+    print('returned/expected filenames ascii')
+    print(returned_filenames_ascii)
+    print(expected_filenames_ascii)
     assert result_fits
     assert result_ascii
+
+    # test: are the original spectra divided by the realizations equivalent
+    # to 1 + noise residuals
 
 '''
 def test_read_bkgrnd_spec():
