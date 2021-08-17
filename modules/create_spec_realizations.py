@@ -105,6 +105,25 @@ def create_norm_spec(name_list,
 
     return(new_name_list)
 
+def calc_noise(noise_level, spectrum_df):
+
+    if (noise_level == "file"):
+        # add Gaussian error to the empirical flux, taking sigma to be the
+        # 'error' column in an input file
+        noise_to_add = np.random.standard_normal(len(spectrum_df))*spectrum_df['error']
+        logging.info("Injecting Gaussian noise based on error column in file.")
+    elif (noise_level == "None"):
+        # don't inject noise at all
+        noise_to_add = 0
+        logging.info("Injecting no noise at all")
+    else:
+        # noise is a set value, representing a Gaussian sigma
+        noise_to_add = np.random.standard_normal(len(spectrum_df))*noise_level
+        logging.info("Injecting Gaussian noise based on fixed value.")
+
+    return noise_to_add
+
+
 def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level):
     '''
     Calculates a Number of Realizations of a given spectrum using Gaussian Errorbars
@@ -132,29 +151,26 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
     new_name_list = list()
 
     for i in range(num):
-        # basename of spectrum realization, ascii
-        new_name_ascii = "{}_{:03d}".format(basename.split(".fits")[0], i)
-        # if we want to change to FITS intermediary files:
-        new_name_fits = "{}_{:03d}".format(basename.split(".fits")[0],i) + ".fits"
-        # don't need path info in spec_name list; add ascii name here
-        new_name_list.append(new_name_ascii)
-        # name of spectrum realization, with path
-        new_name_ascii = os.path.join(outdir, new_name_ascii)
-        new_name_fits = os.path.join(outdir, new_name_fits)
 
-        #import ipdb; ipdb.set_trace()
-        if (noise_level == "file"):
-            # add Gaussian error to the empirical flux, taking sigma to be the
-            # 'error' column in an input file
-            noise_to_add = np.random.standard_normal(len(spec_tab))*spec_tab['error']
-            logging.info("Injecting Gaussian noise")
-        elif (noise_level == "None"):
-            # don't inject noise at all
-            noise_to_add = 0
-            logging.info("Injecting no noise at all")
+        # make file names
+
+        # basename of spectrum realization, ascii
+        new_basename_ascii = "{}_{:03d}".format(basename.split(".fits")[0], i)
+        # if we want to change to FITS intermediary files:
+        new_basename_fits = "{}_{:03d}".format(basename.split(".fits")[0], i) + ".fits"
+        # don't need path info in spec_name list; add ascii name here
+        new_basename_list.append(new_basename_ascii)
+        # name of spectrum realization, with path
+        new_name_ascii = os.path.join(outdir, new_basename_ascii)
+        new_name_fits = os.path.join(outdir, new_basename_fits)
+
+        noise_to_add = calc_noise(noise_level=noise_level, spectrum_df=spec_tab)
 
         # add the noise
         new_flux = noise_to_add + spec_tab['flux']
+        #print(new_flux)
+        print(new_name_ascii)
+
 
         try:
             outfile = open(new_name_ascii, 'w')
@@ -177,7 +193,7 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
             hdr["HISTORY"] = "-------------"
             hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
             logging.info("Writing out FITS realization file " + new_name_fits + \
-                " with noise level " + str(noise_to_add))
+                " with noise level stdev " + str(np.std(noise_to_add)))
             t.writeto(new_name_fits, overwrite=True)
 
         ## second format: ascii, so bkgrnd can read it in
@@ -187,7 +203,7 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
             outfile.write("{} {:.2f}\n".format(spec_tab['wavelength'][j], new_flux[j]))
         outfile.close()
 
-    return(new_name_list)
+    return(new_basename_list)
 
 def read_bkgrnd_spec(spec_name):
     '''
@@ -259,7 +275,6 @@ def read_spec(spec_name, format):
 
     logging.info("Reading spectrum " + spec_name)
 
-    ## note Feb. 9 2021: change to read in FITS files, but output same
     if (format == "fits"):
         # read in table info
         spec_tab = Table.read(spec_name, format='fits')
@@ -274,7 +289,7 @@ def read_spec(spec_name, format):
 
     else:
         logging.info("File format unknown!!!")
-
+    #import ipdb; ipdb.set_trace()
     return(spec_tab, hdr)
 
 
@@ -398,31 +413,6 @@ def create_spec_realizations_main(noise_level,
             logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
 
-        '''
-        preexisting_file_list_1 = glob.glob(outdir + "/*.*") # "/*.{*}")
-        preexisting_file_list_2 = glob.glob(bkgrnd_output_dir + "/*.*")
-        preexisting_file_list_3 = glob.glob(final_dir + "/*.*")
-        import ipdb; ipdb.set_trace()
-        if (len(preexisting_file_list_1) != 0):
-            logging.info("------------------------------")
-            logging.info("Directory to write realizations not empty!!")
-            logging.info(outdir)
-            logging.info("------------------------------")
-            input("Do what you want with those files, then hit [Enter]")
-        if (len(preexisting_file_list_2) != 0):
-            logging.info("------------------------------")
-            logging.info("Directory to write raw normalization output not empty!!")
-            logging.info(bkgrnd_output_dir)
-            logging.info("------------------------------")
-            input("Do what you want with those files, then hit [Enter]")
-        if (len(preexisting_file_list_3) != 0):
-            logging.info("------------------------------")
-            logging.info("Directory to write final normalization output not empty!!")
-            logging.info(final_dir)
-            logging.info("------------------------------")
-            input("Do what you want with those files, then hit [Enter]")
-        '''
-
     # create noise-churned realizations for each spectrum
     name_list = list() # initialize
     #import ipdb; ipdb.set_trace()
@@ -442,11 +432,6 @@ def create_spec_realizations_main(noise_level,
                 'into the normalization routine is ' + bkg_input_file)
 
     # normalize each spectrum realization (smoothing parameter is set in __init__)
-    '''
-    # I used this snippet before re-installing Anaconda
-    bkgrnd = Popen([get_setuptools_script_dir() + "bkgrnd", "--smooth "+str(config_red["reduc_params"]["SMOOTH"]),
-                    "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
-    '''
     bkgrnd = Popen([str(config_red["data_dirs"]["DIR_BIN"]) + "bkgrnd", "--smooth "+str(config_red["reduc_params"]["SMOOTH"]),
                     "--sismoo 1", "--no-plot", "{}".format(bkg_input_file)], stdout=PIPE, stderr=PIPE)
     (out, err) = bkgrnd.communicate() # returns tuple (stdout, stderr)
@@ -477,6 +462,6 @@ if __name__ == '__main__':
     parser.add_argument('-v', action='store_true', help='Turn on verbosity')
     #Put this in a dictionary
     args = vars(parser.parse_args())
-    print("afds")
-    print(args['input_list'])
+    #print("afds")
+    #print(args['input_list'])
     ret = create_spec_realizations_main(args['input_list'], args['o'], args['n'], args['v'])

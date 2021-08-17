@@ -9,7 +9,8 @@ target_dir = os.path.abspath(os.path.join(current_dir, "../"))
 sys.path.insert(0, target_dir)
 
 # import more things with changed system path
-from . import *
+from modules import *
+from modules import create_spec_realizations
 from conf import *
 
 # configuration data for reduction
@@ -52,9 +53,33 @@ def test_create_norm_spec():
     assert 1 < 2
 
 
+def test_read_spec():
+
+    # FITS format
+    spec_name_fits = config_red["TEST_DIR_SRC"] + "575030m20.fits"
+    test_spec_tab_fits, test_hdr_fits = read_spec(spec_name=spec_name_fits, format="fits")
+
+    # for FITS data, there should be 3 columns of floats, and a header
+    assert np.isfinite(test_hdr_fits) == True
+    assert len(test_spec_tab_fits.colnames) == 3 # 3 solumns
+    assert (test_spec_tab_fits["wavelength"].info.dtype == np.float64)
+    assert (test_spec_tab_fits["flux"].info.dtype == np.float64)
+    assert (test_spec_tab_fits["error"].info.dtype == np.float64)
+
+    # ascii format
+    spec_name_ascii = config_red["TEST_DIR_SRC"] + "700025m20.smo"
+    test_spec_tab_ascii, test_hdr_ascii = read_spec(spec_name=spec_name_ascii, format="ascii.no_header")
+
+    # for ascii data, there should be 3 columns of floats, and NO header
+    assert np.isfinite(test_hdr_ascii) == False
+    assert len(test_spec_tab_ascii.colnames) == 3 # 3 solumns
+    assert (test_spec_tab_ascii["wavelength"].info.dtype == np.float64)
+    assert (test_spec_tab_ascii["flux"].info.dtype == np.float64)
+    assert (test_spec_tab_ascii["error"].info.dtype == np.float64)
+
 def test_generate_realizations():
 
-    # two test spectra for each format
+    # use a pair of test spectra for each format (FITS or ascii)
     abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
     abs_stem_bin = config_red["data_dirs"]["TEST_DIR_BIN"]
 
@@ -71,7 +96,7 @@ def test_generate_realizations():
                             abs_stem_bin+"spec-3480-54999-0629g003.fits_001"
                             ]
     for spec_num in range(0,len(test_spec_list_fits)):
-        return_filenames_fits = rrlyrae_metallicity.rrlyrae_metallicity.modules2.generate_realizations(spec_name=test_spec_list_fits[spec_num],
+        return_filenames_fits = create_spec_realizations.generate_realizations(spec_name=test_spec_list_fits[spec_num],
                                                outdir=abs_stem_bin,
                                                spec_file_format="fits",
                                                num=2,
@@ -129,15 +154,7 @@ def test_read_list():
     %assert isinstance(min_good_phase,float)
 
 
-def test_read_spec():
 
-    %min_good_phase, max_good_phase = phase_regions()
-
-    # is min smaller than max
-    %assert min_good_phase < max_good_phase
-
-    # are the phases interpreted as floats
-    %assert isinstance(min_good_phase,float)
 
 
 def test_write_bckgrnd_input():
