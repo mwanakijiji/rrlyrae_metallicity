@@ -13,22 +13,25 @@ print(current_dir)
 print(target_dir)
 sys.path.insert(0, target_dir)
 
-from rrlyrae_metallicity.rrlyrae_metallicity import modules2
-from rrlyrae_metallicity.rrlyrae_metallicity import *
-from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
+#from rrlyrae_metallicity.rrlyrae_metallicity import modules2
+from modules import *
+from conf import *
+#from rrlyrae_metallicity.rrlyrae_metallicity.modules2 import *
 
-'''
+
 # check if the directory-making function works
 def test_make_dirs():
 
     # call function to make directories
-    make_dirs() # this leads to permissions errors in online build
+    # (here we choose 'objective' to apply a calibration, though it could
+    # also be to find a new calibration)
+    make_dirs(objective = "apply_abcd")
 
     # do all the directories exist now?
-    for vals in config["data_dirs"]:
-        abs_path_name = str(config["data_dirs"][vals])
+    for vals in config_apply["data_dirs"]:
+        abs_path_name = str(config_apply["data_dirs"][vals])
         assert os.path.exists(abs_path_name)
-'''
+
 
 # test if the phase region boundaries are being read in correctly
 def test_phase_regions():
