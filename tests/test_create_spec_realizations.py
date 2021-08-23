@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 
 import sys, os
 import configparser
+import pandas as pd
 
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
@@ -87,6 +88,9 @@ def test_generate_realizations():
     abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
     abs_stem_bin = config_red["data_dirs"]["TEST_DIR_BIN"]
 
+    # set fractional noise level for these tests
+    noise_choice = 0.01
+
     # test on FITS files
     test_spec_list_fits = [
                             abs_stem_src+"575030m20.fits",
@@ -106,7 +110,7 @@ def test_generate_realizations():
                                                outdir=abs_stem_bin,
                                                spec_file_format="fits",
                                                num=2,
-                                               noise_level=0.01)
+                                               noise_level=noise_choice)
         returned_filenames_fits.extend(return_names_one_spec)
 
     # test on ascii files
@@ -128,7 +132,7 @@ def test_generate_realizations():
                                                outdir=abs_stem_bin,
                                                spec_file_format="ascii.no_header",
                                                num=2,
-                                               noise_level=0.01)
+                                               noise_level=noise_choice)
         returned_filenames_ascii.extend(return_names_one_spec)
 
     # flatten lists
@@ -150,7 +154,55 @@ def test_generate_realizations():
     assert result_ascii
 
     # test: are the original spectra divided by the realizations equivalent
-    # to 1 + noise residuals
+    # to 1 + noise residuals? (this is just on ascii for now)
+
+    # read in original spectra
+
+    # sorting is critical here, to keep spectra and their realizations organized
+    test_spec_list_ascii.sort() # in-place
+    expected_filenames_ascii.sort()
+
+    orig_spec_0 = pd.read_csv(test_spec_list_ascii[0], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
+    orig_spec_1 = pd.read_csv(test_spec_list_ascii[1], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
+    print("orig_spec_0")
+    print(orig_spec_0)
+    print("orig_spec_1")
+    print(orig_spec_1)
+
+    # read in the realizations based off of the original spectra
+    # realizations of orig spec 0
+    realzn_spec_0_0 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[0], names=["wavel", "abs_flux"], delim_whitespace=True)
+    realzn_spec_0_1 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[1], names=["wavel", "abs_flux"], delim_whitespace=True)
+    # realizations of orig spec 1
+    realzn_spec_1_0 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[2], names=["wavel", "abs_flux"], delim_whitespace=True)
+    realzn_spec_1_1 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[3], names=["wavel", "abs_flux"], delim_whitespace=True)
+
+    # do the division
+    div_spec_0_by_0 = np.divide(orig_spec_0["abs_flux"],realzn_spec_0_0["abs_flux"])
+    div_spec_0_by_1 = np.divide(orig_spec_0["abs_flux"],realzn_spec_0_1["abs_flux"])
+    div_spec_1_by_0 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_0["abs_flux"])
+    div_spec_1_by_1 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_1["abs_flux"])
+
+    print("medians")
+    print(orig_spec_0["abs_flux"])
+    print(realzn_spec_0_0["abs_flux"])
+    print(div_spec_0_by_0)
+    print("stedev")
+    print(round(np.median(div_spec_0_by_0), 2))
+    print(np.std(div_spec_0_by_0))
+    print(np.std(div_spec_0_by_1))
+    print(np.std(div_spec_1_by_0))
+    print(np.std(div_spec_1_by_1))
+
+    # are the original and realization spectra really of the same amplitude?
+    assert round(np.median(div_spec_0_by_0), 2) == 1.00
+    assert round(np.median(div_spec_0_by_1), 2) == 1.00
+    assert round(np.median(div_spec_1_by_0), 2) == 1.00
+    assert round(np.median(div_spec_1_by_1), 2) == 1.00
+
+    ## ## noise injection level not well tested yet
+
+
 
 '''
 def test_read_bkgrnd_spec():
