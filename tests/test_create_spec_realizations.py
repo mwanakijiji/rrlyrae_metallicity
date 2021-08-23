@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import sys, os
 import configparser
 import pandas as pd
+import astropy
 
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
@@ -183,39 +184,31 @@ def test_generate_realizations():
     div_spec_1_by_0 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_0["abs_flux"])
     div_spec_1_by_1 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_1["abs_flux"])
 
-    print("medians")
-    print(orig_spec_0["abs_flux"])
-    print(realzn_spec_0_0["abs_flux"])
-    print(div_spec_0_by_0)
-    print("stedev")
-    print(round(np.median(div_spec_0_by_0), 2))
-    print(np.std(div_spec_0_by_0))
-    print(np.std(div_spec_0_by_1))
-    print(np.std(div_spec_1_by_0))
-    print(np.std(div_spec_1_by_1))
-
     # are the original and realization spectra really of the same amplitude?
-    assert round(np.median(div_spec_0_by_0), 2) == 1.00
-    assert round(np.median(div_spec_0_by_1), 2) == 1.00
-    assert round(np.median(div_spec_1_by_0), 2) == 1.00
-    assert round(np.median(div_spec_1_by_1), 2) == 1.00
+    assert round(np.median(div_spec_0_by_0), 1) == 1.0
+    assert round(np.median(div_spec_0_by_1), 1) == 1.0
+    assert round(np.median(div_spec_1_by_0), 1) == 1.0
+    assert round(np.median(div_spec_1_by_1), 1) == 1.0
 
     ## ## noise injection level not well tested yet
 
 
+def test_read_bkgrnd_spec():
+    # just ascii for now
+
+    abs_stem_bin = config_red["data_dirs"]["TEST_DIR_SRC"]
+
+    # this is a file that looks like what it should after bkgrnd has done its thing
+    file_name_test = "spec-0266-51630-0197g001_noise_ver_000.dat"
+
+    # choose a random spectrum from these four
+    returned_table = create_spec_realizations.read_bkgrnd_spec(abs_stem_bin + file_name_test)
+
+    # is returned table a non-empty numpy table?
+    assert isinstance(returned_table, astropy.table.table.Table)
+    assert len(returned_table) > 0
 
 '''
-def test_read_bkgrnd_spec():
-
-    %min_good_phase, max_good_phase = phase_regions()
-
-    # is min smaller than max
-    %assert min_good_phase < max_good_phase
-
-    # are the phases interpreted as floats
-    %assert isinstance(min_good_phase,float)
-
-
 def test_read_list():
 
     %min_good_phase, max_good_phase = phase_regions()
