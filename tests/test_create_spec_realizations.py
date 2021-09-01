@@ -145,12 +145,6 @@ def test_generate_realizations():
     result_ascii =  all(elem in returned_filenames_ascii for elem in expected_filenames_ascii)
 
     # test: are the file names right?
-    print('returned/expected filenames fits')
-    print(returned_filenames_fits)
-    print(expected_filenames_fits)
-    print('returned/expected filenames ascii')
-    print(returned_filenames_ascii)
-    print(expected_filenames_ascii)
     assert result_fits
     assert result_ascii
 
@@ -165,10 +159,6 @@ def test_generate_realizations():
 
     orig_spec_0 = pd.read_csv(test_spec_list_ascii[0], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
     orig_spec_1 = pd.read_csv(test_spec_list_ascii[1], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
-    print("orig_spec_0")
-    print(orig_spec_0)
-    print("orig_spec_1")
-    print(orig_spec_1)
 
     # read in the realizations based off of the original spectra
     # realizations of orig spec 0
@@ -196,40 +186,44 @@ def test_generate_realizations():
 def test_read_bkgrnd_spec():
     # just ascii for now
 
-    abs_stem_bin = config_red["data_dirs"]["TEST_DIR_SRC"]
+    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
 
     # this is a file that looks like what it should after bkgrnd has done its thing
-    file_name_test = "spec-0266-51630-0197g001_noise_ver_000.dat"
+    file_name_test = abs_stem_src + "spec-0266-51630-0197g001_noise_ver_000.dat"
 
     # choose a random spectrum from these four
-    returned_table = create_spec_realizations.read_bkgrnd_spec(abs_stem_bin + file_name_test)
+    returned_table = create_spec_realizations.read_bkgrnd_spec(file_name_test)
 
     # is returned table a non-empty numpy table?
     assert isinstance(returned_table, astropy.table.table.Table)
     assert len(returned_table) > 0
 
-'''
+
 def test_read_list():
 
-    %min_good_phase, max_good_phase = phase_regions()
+    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
 
-    # is min smaller than max
-    %assert min_good_phase < max_good_phase
+    file_name_test = abs_stem_src + "test_input_file_list.list"
 
-    # are the phases interpreted as floats
-    %assert isinstance(min_good_phase,float)
+    returned_list = create_spec_realizations.read_list(input_list=file_name_test)
 
-
-
+    # is a numpy array with the expected first element returned?
+    assert isinstance(returned_list, np.ndarray)
+    assert returned_list[0] == "spec-0266-51630-0197g001.dat"
 
 
 def test_write_bckgrnd_input():
 
-    %min_good_phase, max_good_phase = phase_regions()
+    indir_test = config_red["data_dirs"]["TEST_DIR_SRC"]
+    normdir_test = config_red["data_dirs"]["TEST_DIR_BIN"]
+    name_list_test = ["dummy_spec_001.dat","dummy_spec_002.dat","dummy_spec_003.dat"]
 
-    # is min smaller than max
-    %assert min_good_phase < max_good_phase
+    bgrnd_input_filename_test = create_spec_realizations.write_bckgrnd_input(
+                                        name_list=name_list_test,
+                                        indir=indir_test,
+                                        normdir=normdir_test)
 
-    # are the phases interpreted as floats
-    %assert isinstance(min_good_phase,float)
-'''
+    # is the pathname of the written file what we would expect?
+    # note this doesn't test whether the file itself is written, but that
+    # would be easy to isolate
+    assert bgrnd_input_filename_test == indir_test + "bckgrnd_input.txt"
