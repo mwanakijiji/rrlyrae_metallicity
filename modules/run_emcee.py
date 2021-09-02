@@ -151,6 +151,186 @@ def find_indices(lst, condition):
     return [i for i, elem in enumerate(lst) if condition(elem)]
 
 
+def lnprior(theta):
+    '''
+    Prior
+
+    INPUTS:
+    theta: array of parameter values
+
+    OUTPUTS: 0 or -inf (top-hat priors only)
+    '''
+
+    if (len(theta) == 4):
+        # Layden '94 relation
+        a_test, b_test, c_test, d_test = theta
+    elif (len(theta) == 8):
+        # updated relation
+        a_test, b_test, c_test, d_test, f_test, g_test, h_test, k_test = theta
+
+    # top-hat priors
+    if ((np.abs(a_test) < 40) and
+        (np.abs(b_test) < 5) and
+        (np.abs(c_test) < 20) and
+        (np.abs(d_test) < 10)):
+        return 0.0
+    return -np.inf
+
+
+def function_K(coeffs_pass,H_pass,F_pass):
+    '''
+    Function which gives CaIIK EW as function of Balmer, [Fe/H]
+
+    INPUTS:
+    coeffs_pass: array of coefficients
+    H_pass: Balmer EWs
+    F_pass: [Fe/H]
+
+    OUTPUTS:
+    K_pasS: CaIIK EW
+    '''
+
+    if (len(coeffs_pass) == 4):
+        # Layden '94 relation
+
+        K_pass = coeffs_pass[0] \
+                    + coeffs_pass[1]*H_pass \
+                    + coeffs_pass[2]*F_pass \
+                    + coeffs_pass[3]*H_pass*F_pass
+
+    elif (len(coeffs_pass) == 8):
+        # updated relation
+
+        K_pass = coeffs_pass[0] \
+                    + coeffs_pass[1]*H_pass \
+                    + coeffs_pass[2]*F_pass \
+                    + coeffs_pass[3]*H_pass*F_pass \
+                    + coeffs_pass[4]*np.power(H_pass,2.) \
+                    + coeffs_pass[5]*np.power(F_pass,2.) \
+                    + coeffs_pass[6]*np.power(H_pass,2.)*F_pass \
+                    + coeffs_pass[7]*H_pass*np.power(F_pass,2.)
+
+    return K_pass
+
+
+def chi_sqd_fcn(xi_pass,
+                yi_pass,
+                zi_pass,
+                sig_xi_pass,
+                sig_yi_pass,
+                sig_zi_pass,
+                coeffs_pass):
+    '''
+    Chi-squared
+
+    INPUTS:
+    xi_pass: Balmer EW (angstroms)
+    yi_pass: [Fe/H]
+    zi_pass: CaIIK EW (angstroms)
+    err_xi_pass: error in Balmer EW (angstroms)
+    err_yi_pass: error in [Fe/H]
+    err_zi_pass: error in CaIIK EW (angstroms)
+    coeffs_pass: array of coefficients
+
+    OUTPUTS:
+    val: chi^2
+    '''
+
+    if (len(coeffs_pass) == 4):
+
+        a_pass = coeffs_pass[0]
+        b_pass = coeffs_pass[1]
+        c_pass = coeffs_pass[2]
+        d_pass = coeffs_pass[3]
+
+        # IDL syntax
+        # numerator_i = (zi_pass-a_pass-b_pass*xi_pass-c_pass*yi_pass-d_pass*xi_pass*yi_pass)**2
+        # denominator_i = (sig_xi_pass**2)* ((b_pass+d_pass*yi_pass)**2) +
+        #                  (sig_yi_pass**2)*((c_pass+d_pass*xi_pass)^2)+ sig_zi_pass**2
+
+        # ... and the awkward Python syntax
+        base = np.subtract(
+                            np.subtract(np.subtract(
+                                                    np.subtract(zi_pass,a_pass),
+                                                    np.multiply(b_pass,xi_pass)
+                                                    ),\
+                                        np.multiply(
+                                                    c_pass,
+                                                    yi_pass
+                                                    )
+                                        ),
+                            np.multiply(
+                                        np.multiply(
+                                                    d_pass,
+                                                    xi_pass
+                                                    ),
+                                        yi_pass
+                                        )
+                            )
+        numerator_i = base**2
+        term_i = (sig_xi_pass**2)
+        term_ii = (np.add(b_pass, np.multiply(d_pass, yi_pass))**2)
+        term_iii = (sig_yi_pass**2)
+        term_iv = (np.add(c_pass, np.multiply(d_pass, xi_pass)))**2
+        term_v = (sig_zi_pass**2)
+        denominator_i = np.add(np.add(np.multiply(term_i, term_ii),
+                                      np.multiply(term_iii, term_iv)), term_v) ## ## is a squared missing? (on second glance I think not...)
+
+        i_element = np.divide(numerator_i, denominator_i)
+        val = np.sum(i_element)
+
+
+    elif (len(coeffs_pass) == 8):
+        # updated relation
+
+        # name changes for clarity
+        Hi_pass = xi_pass
+        Fi_pass = yi_pass
+        Ki_pass = zi_pass
+        err_Hi_pass = sig_xi_pass
+        err_Fi_pass = sig_yi_pass
+        err_Ki_pass = sig_zi_pass
+
+        a_pass = coeffs_pass[0]
+        b_pass = coeffs_pass[1]
+        c_pass = coeffs_pass[2]
+        d_pass = coeffs_pass[3]
+        f_pass = coeffs_pass[4]
+        g_pass = coeffs_pass[5]
+        h_pass = coeffs_pass[6]
+        k_pass = coeffs_pass[7]
+
+
+
+        # ... and the awkward Python syntax
+        ##base = np.subtract(np.subtract(np.subtract(np.subtract(zi_pass,a_pass),np.multiply(b_pass,xi_pass)),\
+        ##                             np.multiply(c_pass,yi_pass)),np.multiply(np.multiply(d_pass,xi_pass),yi_pass))
+        ## numerator_i = base**2
+        ## ## CONTINUE HERE
+        term_H_i = (np.add(b_pass,2*np.multiply(f_pass,Hi_pass)))
+        term_H_ii = np.multiply(Fi_pass,np.add(d_pass,np.multiply(np.multiply(2.,h_pass),Hi_pass)))
+        term_H_iii = np.multiply(np.power(Fi_pass,2.),Ki_pass)
+        term_F_i = np.add(c_pass,np.multiply(2*g_pass,Fi_pass))
+        term_F_ii = np.multiply( Hi_pass,np.add(d_pass,np.multiply(2*k_pass,Fi_pass)) )
+        term_F_iii = np.multiply(np.power(Hi_pass,2.),h_pass)
+
+        part_I_i = np.power( np.add(np.add(term_H_i,term_H_ii),term_H_iii),2. )
+        part_II_i = np.power( np.add(np.add(term_F_i,term_F_ii),term_F_iii),2. )
+
+        sig_kmi_sqrd = np.add(
+                            np.multiply( part_I_i, np.power(err_Hi_pass,2.) ),
+                            np.multiply( part_II_i, np.power(err_Fi_pass,2.) )
+                            )
+
+        numerator_i = np.power( np.subtract(Ki_pass,function_K(coeffs_pass,Hi_pass,Fi_pass)),2. ) # ( K_empirical - K_model )^2
+        denominator_i = np.add( np.power(err_Ki_pass,2.), sig_kmi_sqrd )
+
+        i_element = np.divide(numerator_i, denominator_i)
+        val = np.sum(i_element)
+
+    return val
+
+
 class RunEmcee():
     '''
     Run the emcee MCMC to obtain coefficients a, b, c, d
@@ -206,25 +386,6 @@ class RunEmcee():
         #period = df_choice.type
         #star_type = dataFloats[:, 15]
 
-        '''
-        print("name")
-        print(name)
-        print("caii")
-        print(caii)
-        print("ecaii")
-        print(ecaii)
-        print("ave")
-        print(ave)
-        print("eave")
-        print(eave)
-        print("feh")
-        print(feh)
-        print("efeh")
-        print(efeh)
-        print("phase")
-        print(phase)
-        '''
-
         # val from previous IDL runs (kind of deprecated; just
         # appears as a constant in the MCMC)
         Teff = 0.0586758
@@ -249,51 +410,6 @@ class RunEmcee():
 
         # starting position, before adding a perturbation
 
-
-        # define the actual functions and coefficient array to fit, based
-        # on the coefficients the user provides
-
-        def lnprob(walker_pos,
-                   Teff_pass,
-                   measured_H_pass,
-                   measured_F_pass,
-                   measured_K_pass,
-                   err_measured_H_pass,
-                   err_measured_F_pass,
-                   err_measured_K_pass):
-            '''
-            Nat log of probability density
-
-            INPUTS:
-            walker_pos: array of walker positions
-            Teff_pass: Teff (a vestigial MCMC constant; this is NOT astrophysical Teff)
-            measured_H_pass: Balmer EW
-            measured_F_pass: [Fe/H]
-            measured_K_pass: CaIIK EW
-            err_measured_H_pass: error in Balmer EW
-            err_measured_F_pass: error in [Fe/H]
-            err_measured_K_pass: error in CaIIK EW
-
-
-            OUTPUTS:
-            ln(prior*like)
-            '''
-
-            # walker_pos is the proposed walker position in N-D (likely 4-D) space
-            # (i.e., these are the inputs to the model)
-            lp = lnprior(walker_pos) # prior
-            if not np.isfinite(lp): # afoul of prior
-              return -np.inf
-
-            result = -np.divide(1, 2*Teff_pass)*chi_sqd_fcn(measured_H_pass,
-                                                            measured_F_pass,
-                                                            measured_K_pass,
-                                                            err_measured_H_pass,
-                                                            err_measured_F_pass,
-                                                            err_measured_K_pass,
-                                                            walker_pos)
-            return lp + result # ln(prior*like)
-
         if model == 'abcd':
             # coeffs_pass = [a,b,c,d]
 
@@ -303,115 +419,6 @@ class RunEmcee():
                             float(b_layden),
                             float(c_layden),
                             float(d_layden)]
-
-            def function_K(coeffs_pass,H_pass,F_pass):
-                '''
-                Function which gives CaIIK EW as function of Balmer, [Fe/H]
-
-                INPUTS:
-                coeffs_pass: array of coefficients
-                H_pass: Balmer EWs
-                F_pass: [Fe/H]
-
-                OUTPUTS:
-                K_pasS: CaIIK EW
-                '''
-
-                K_pass = coeffs_pass[0] \
-                            + coeffs_pass[1]*H_pass \
-                            + coeffs_pass[2]*F_pass \
-                            + coeffs_pass[3]*H_pass*F_pass
-
-                return K_pass
-
-
-            def chi_sqd_fcn(xi_pass,
-                            yi_pass,
-                            zi_pass,
-                            sig_xi_pass,
-                            sig_yi_pass,
-                            sig_zi_pass,
-                            coeffs_pass):
-                '''
-                Chi-squared
-
-                INPUTS:
-                xi_pass: Balmer EW (angstroms)
-                yi_pass: [Fe/H]
-                zi_pass: CaIIK EW (angstroms)
-                sig_xi_pass: error in Balmer EW (angstroms)
-                sig_yi_pass: error in [Fe/H]
-                sig_zi_pass: error in CaIIK EW (angstroms)
-                coeffs_pass: array of coefficients
-
-                OUTPUTS:
-                val: chi^2
-                '''
-
-                a_pass = coeffs_pass[0]
-                b_pass = coeffs_pass[1]
-                c_pass = coeffs_pass[2]
-                d_pass = coeffs_pass[3]
-
-                # IDL syntax
-                # numerator_i = (zi_pass-a_pass-b_pass*xi_pass-c_pass*yi_pass-d_pass*xi_pass*yi_pass)**2
-                # denominator_i = (sig_xi_pass**2)* ((b_pass+d_pass*yi_pass)**2) +
-                #                  (sig_yi_pass**2)*((c_pass+d_pass*xi_pass)^2)+ sig_zi_pass**2
-
-                # ... and the awkward Python syntax
-                base = np.subtract(
-                                    np.subtract(np.subtract(
-                                                            np.subtract(zi_pass,a_pass),
-                                                            np.multiply(b_pass,xi_pass)
-                                                            ),\
-                                                np.multiply(
-                                                            c_pass,
-                                                            yi_pass
-                                                            )
-                                                ),
-                                    np.multiply(
-                                                np.multiply(
-                                                            d_pass,
-                                                            xi_pass
-                                                            ),
-                                                yi_pass
-                                                )
-                                    )
-                numerator_i = base**2
-                term_i = (sig_xi_pass**2)
-                term_ii = (np.add(b_pass, np.multiply(d_pass, yi_pass))**2)
-                term_iii = (sig_yi_pass**2)
-                term_iv = (np.add(c_pass, np.multiply(d_pass, xi_pass)))**2
-                term_v = (sig_zi_pass**2)
-                denominator_i = np.add(np.add(np.multiply(term_i, term_ii),
-                                              np.multiply(term_iii, term_iv)), term_v) ## ## is a squared missing? (on second glance I think not...)
-
-                i_element = np.divide(numerator_i, denominator_i)
-                val = np.sum(i_element)
-
-                return val
-
-
-            def lnprior(theta):
-                '''
-                Prior
-
-                INPUTS:
-                theta: array of parameter values
-
-                OUTPUTS: 0 or -inf (top-hat priors only)
-                '''
-
-                a_test, b_test, c_test, d_test = theta
-
-                # top-hat priors
-                if ((np.abs(a_test) < 40) and
-                    (np.abs(b_test) < 5) and
-                    (np.abs(c_test) < 20) and
-                    (np.abs(d_test) < 10)):
-                    return 0.0
-                return -np.inf
-
 
         elif model == 'abcdfghk':
             # coeffs_pass = [a,b,c,d,f,g,h,k]
@@ -426,112 +433,6 @@ class RunEmcee():
                             float(g_init),
                             float(h_init),
                             float(k_init)]
-
-            def function_K(coeffs_pass,H_pass,F_pass):
-
-                K_pass = coeffs_pass[0] \
-                            + coeffs_pass[1]*H_pass \
-                            + coeffs_pass[2]*F_pass \
-                            + coeffs_pass[3]*H_pass*F_pass \
-                            + coeffs_pass[4]*np.power(H_pass,2.) \
-                            + coeffs_pass[5]*np.power(F_pass,2.) \
-                            + coeffs_pass[6]*np.power(H_pass,2.)*F_pass \
-                            + coeffs_pass[7]*H_pass*np.power(F_pass,2.)
-
-                return K_pass
-
-
-            def chi_sqd_fcn(xi_pass,
-                            yi_pass,
-                            zi_pass,
-                            sig_xi_pass,
-                            sig_yi_pass,
-                            sig_zi_pass,
-                            coeffs_pass):
-                '''
-                Chi-squared
-
-                INPUTS:
-                xi_pass: Balmer EW (angstroms)
-                yi_pass: [Fe/H]
-                zi_pass: CaIIK EW (angstroms)
-                err_xi_pass: error in Balmer EW (angstroms)
-                err_yi_pass: error in [Fe/H]
-                err_zi_pass: error in CaIIK EW (angstroms)
-                coeffs_pass: array of coefficients
-
-                OUTPUTS:
-                val: chi^2
-                '''
-
-                # name changes for clarity
-                Hi_pass = xi_pass
-                Fi_pass = yi_pass
-                Ki_pass = zi_pass
-                err_Hi_pass = sig_xi_pass
-                err_Fi_pass = sig_yi_pass
-                err_Ki_pass = sig_zi_pass
-
-                a_pass = coeffs_pass[0]
-                b_pass = coeffs_pass[1]
-                c_pass = coeffs_pass[2]
-                d_pass = coeffs_pass[3]
-                f_pass = coeffs_pass[4]
-                g_pass = coeffs_pass[5]
-                h_pass = coeffs_pass[6]
-                k_pass = coeffs_pass[7]
-
-
-
-                # ... and the awkward Python syntax
-                ##base = np.subtract(np.subtract(np.subtract(np.subtract(zi_pass,a_pass),np.multiply(b_pass,xi_pass)),\
-                ##                             np.multiply(c_pass,yi_pass)),np.multiply(np.multiply(d_pass,xi_pass),yi_pass))
-                ## numerator_i = base**2
-                ## ## CONTINUE HERE
-                term_H_i = (np.add(b_pass,2*np.multiply(f_pass,Hi_pass)))
-                term_H_ii = np.multiply(Fi_pass,np.add(d_pass,np.multiply(np.multiply(2.,h_pass),Hi_pass)))
-                term_H_iii = np.multiply(np.power(Fi_pass,2.),Ki_pass)
-                term_F_i = np.add(c_pass,np.multiply(2*g_pass,Fi_pass))
-                term_F_ii = np.multiply( Hi_pass,np.add(d_pass,np.multiply(2*k_pass,Fi_pass)) )
-                term_F_iii = np.multiply(np.power(Hi_pass,2.),h_pass)
-
-                part_I_i = np.power( np.add(np.add(term_H_i,term_H_ii),term_H_iii),2. )
-                part_II_i = np.power( np.add(np.add(term_F_i,term_F_ii),term_F_iii),2. )
-
-                sig_kmi_sqrd = np.add(
-                                    np.multiply( part_I_i, np.power(err_Hi_pass,2.) ),
-                                    np.multiply( part_II_i, np.power(err_Fi_pass,2.) )
-                                    )
-
-                numerator_i = np.power( np.subtract(Ki_pass,function_K(coeffs_pass,Hi_pass,Fi_pass)),2. ) # ( K_empirical - K_model )^2
-                denominator_i = np.add( np.power(err_Ki_pass,2.), sig_kmi_sqrd )
-
-                i_element = np.divide(numerator_i, denominator_i)
-                val = np.sum(i_element)
-
-                return val
-
-
-            def lnprior(theta):
-                '''
-                Prior
-
-                INPUTS:
-                theta: array of parameter values
-
-                OUTPUTS: 0 or -inf (top-hat priors only)
-                '''
-
-                a_test, b_test, c_test, d_test, f_test, g_test, h_test, k_test = theta
-
-                # top-hat priors
-                if ((np.abs(a_test) < 40) and
-                    (np.abs(b_test) < 5) and
-                    (np.abs(c_test) < 20) and
-                    (np.abs(d_test) < 10)):
-                    return 0.0
-                return -np.inf
-
 
         ################# MCMC setup #################
 
