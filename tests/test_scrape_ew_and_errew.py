@@ -106,6 +106,40 @@ def test_stack_spectra():
     assert isinstance(data_stacked_test["err_EW_CaIIK_from_robo"].iloc[0],np.float64)
 
 
-def test_error_scatter_ew():
+def test_generate_net_balmer():
+
+    # generate the fake data: H_del =
+
+    params_data, params_1to1, data_net_balmer_test = scrape_ew_and_errew.generate_net_balmer(
+                                                    read_in_filename = config_red["data_dirs"]["TEST_DIR_BIN"]+"scraper_output/test_stacked_data_pre_net_balmer_calc.csv",
+                                                    write_out_filename = config_red["data_dirs"]["TEST_DIR_BIN"]+"scraper_output/test_stacked_data_post_net_balmer_calc.csv")
+
+    # extract parameters of the fit to the data
+    m_test = params_data[0]
+    err_m_test = params_data[1]
+    b_test = params_data[2]
+    err_b_test = params_data[3]
+
+    # extract parameters of the fit to the rescaled lines
+    m_test_1to1 = params_1to1[0]
+    err_m_test_1to1 = params_1to1[1]
+    b_test_1to1 = params_1to1[2]
+    err_b_test_1to1 = params_1to1[3]
+
+    # was the best-fit line fit correctly?
+    assert round(m_test, 3) == 4.100
+    assert round(b_test, 3) == 3.700
+    # is the best fit to Hdelta and the rescaled Hgamma really a 1-to-1 line?
+    assert round(m_test_1to1, 3) == 1.000
+    assert round(b_test_1to1, 3) == 0.000
+    # check data type of newly-added data
+    assert isinstance(data_net_balmer_test["EW_Balmer"].iloc[0],np.float64)
+    assert isinstance(data_net_balmer_test["err_EW_Balmer"].iloc[0],np.float64)
+
+
+def test_generate_addl_ew_errors():
+    # placeholder for now, until more decisions about how to calculate EW errors
+
+    #dummy = scrape_ew_and_errew.generate_addl_ew_errors()
 
     assert 1<2

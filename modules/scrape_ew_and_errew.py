@@ -303,64 +303,94 @@ def error_scatter_ew(df_pass):
     return df_pass
 
 
-def generate_net_balmer():
+def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+                        write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"]):
     '''
     Takes stacked spectra data and adds a column representing a net Balmer line
+
+    INPUTS:
+    read_in_filename: name of the file with stacked EW data from Robospect, and only including 'good' data
+    write_out_filename: name of the file to be written out; identical to the file read in,
+        except that additional columns contain info on a net Balmer line
     '''
 
-    return
-
-
-def generate_ew_errors():
-    '''
-    Calculates errors in EW, using two methods
-    '''
-
-    # calculate line errors using
-    # method 2: stdev of line EWs
-    df_poststack = error_scatter_ew(df_poststack)
+    # read in
+    df_poststack = pd.read_csv(read_in_filename)
 
     # to generate a net Balmer line, make a rescaling of Hgamma
     # based on Hdelta
     logging.info("Making a net Balmer line")
 
     # fit a straight line to all the Hgam vs Hdel
-    x_data = df_poststack["EW_Hdelta"].values.astype(float) # Hdel
-    y_data = df_poststack["EW_Hgamma"].values.astype(float) # Hgam
+    EW_Hdelta = df_poststack["EW_Hdelta"].values.astype(float) # Hdel
+    EW_Hgamma = df_poststack["EW_Hgamma"].values.astype(float) # Hgam
     # better names for clarity below
-    Hgamma_all = np.copy(y_data)
-    err_Hgamma_all = df_poststack["err_EW_Hgamma_from_robo"].values
+    err_Hgamma = df_poststack["err_EW_Hgamma_from_robo"].values
 
-    # safety check that both pairs of coordinates are simultaneously finite
-    idx_good = np.logical_and(np.isfinite(x_data),np.isfinite(y_data))
-    coeff, cov = np.polyfit(x_data[idx_good], y_data[idx_good], 1, full=False, cov=True)
+    # safety check that both pairs of coordinates used for the fit are simultaneously finite
+    # (otherwise a skipped 'nan' may cause a phase shift between the two series)
+    idx_good = np.logical_and(np.isfinite(EW_Hdelta),np.isfinite(EW_Hgamma))
+    # polyfit (x, y)
+    coeff, cov = np.polyfit(EW_Hdelta[idx_good], EW_Hgamma[idx_good], 1, full=False, cov=True)
     m = coeff[0]
     b = coeff[1]
     err_m = np.sqrt(np.diag(cov))[0]
     err_b = np.sqrt(np.diag(cov))[1]
 
-    print("m:")
-    print(m)
-    print("b:")
-    print(b)
-
-    # generate a rescaled Hgamma, call it rHgam
-    rHgam_all = np.divide(np.subtract(Hgamma_all, b), m)
+    # generate a rescaled Hgamma, call it rHgam; this is what will become the
+    # 'net Balmer' line
+    EW_rHgam = np.divide(np.subtract(EW_Hgamma, b), m)
     # find corresponding error`
-    piece1 = np.add(np.power(err_Hgamma_all,2),np.power(err_b,2)).astype(float)
-    piece2 = np.power(np.subtract(Hgamma_all,b),2)
+    piece1 = np.add(np.power(err_Hgamma,2),np.power(err_b,2)).astype(float)
+    piece2 = np.power(np.subtract(EW_Hgamma,b),2)
     piece3 = np.divide(np.power(err_m,2),np.power(m,2))
-    err_rHgam_all = np.multiply(rHgam_all,np.sqrt(np.subtract(np.divide(piece1,piece2),piece3)))
+    #err_rHgam = np.multiply(EW_rHgam,np.sqrt(np.subtract(np.divide(piece1,piece2),piece3)))
+    # fill with placeholder nans for now
+    err_rHgam = np.nan
+
+    # test: a line of best fit to the Hdelta and rHgamma should be a 1-to-1 line
+    idx_good_test = np.logical_and(np.isfinite(EW_Hdelta),np.isfinite(EW_rHgam))
+    coeff_test, cov_test = np.polyfit(EW_Hdelta[idx_good_test], EW_rHgam[idx_good_test], 1, full=False, cov=True)
+    m_1to1 = coeff_test[0]
+    b_1to1 = coeff_test[1]
+    err_m_1to1 = np.sqrt(np.diag(cov_test))[0]
+    err_b_1to1 = np.sqrt(np.diag(cov_test))[1]
 
     # add column of rescaled Hgamma to DataFrame
-    df_poststack["EW_Balmer"] = rHgam_all
-    df_poststack["err_EW_Balmer"] = err_rHgam_all
+    df_poststack["EW_Balmer"] = EW_rHgam
+    df_poststack["err_EW_Balmer"] = err_rHgam
 
+    # write out
+    df_poststack.to_csv(write_out_filename)
+
+    # returns parameters of line fit, and DataFrame with net Balmer info
+    return [m, err_m, b, err_b], [m_1to1, err_m_1to1, b_1to1, err_b_1to1], df_poststack
+
+
+def generate_addl_ew_errors():
+    '''
+    Calculates errors in EW, using two methods
+    '''
+
+    # skip this for now
+
+    # old text below
+    # calculate line errors using
+    ## calculate line errors using
+    # method 1: values directly from Robospect
+
+    # method 2: stdev of line EWs
+    #df_poststack = error_scatter_ew(df_poststack)
+
+    logging.info("Skipping the calculation of additional EW errors for now")
+
+    '''
     logging.info("------------------------------")
     #logging.info("Data will be written out to file " + write_out_filename)
     #input("Hit [Enter] to continue")
     logging.info("Writing out re-casting of Robospect EWs and rescaled Balmer line to " + write_out_filename)
     df_poststack.to_csv(write_out_filename)
+    '''
 
     # FYI plot: how do Balmer lines scale with each other?
     '''
@@ -469,9 +499,6 @@ def stack_spectra(
 
         # select data from table relevant to this spectrum
         data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
-
-        ## calculate line errors using
-        # method 1: values directly from Robospect
 
         # extract original file name (the one from which realizations are made)
         orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
