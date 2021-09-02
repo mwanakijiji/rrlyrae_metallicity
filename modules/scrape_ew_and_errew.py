@@ -303,125 +303,22 @@ def error_scatter_ew(df_pass):
     return df_pass
 
 
-def stack_spectra(
-    read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
-    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-    fits_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"],
-    objective = "find_abcd"):
+def generate_net_balmer():
     '''
-    Takes output of quality_check() and
-    1.  calculates errors in EW, using two methods
-    2.  generates a scaled, net Balmer line EW
-    3.  transposes and stacks data so that the data has *rows* of spectra and *cols* of absorption lines
-
-    INPUTS:
-    read_in_filename: file name of scraped Robospect data, after removing bad spectra
-    write_out_filename: name of file to contain re-stacked data
-    fits_dir: directory of FITS files which we will use for obtaining info
-        from the header (Fe/H, etc.)
-    objective: if it is to find the calibration, dig up intermediary FITS files
-        to get supplementary information on Fe/H etc. from the headers; if it is
-        to apply the calibration, just stack the scraped EW information
-        ["find_abcd"/"apply_abcd"]
+    Takes stacked spectra data and adds a column representing a net Balmer line
     '''
 
-    # read in data
-    df_prestack = pd.read_csv(read_in_filename)
-
-    # make list of individual spectra for which we have EW data, and
-    # initialize DataFrame to hold the re-cast data
-
-    list_indiv_spectra = list(df_prestack["realization_spec_file_name"].drop_duplicates())
-
-    num_indiv_spectra = len(list_indiv_spectra)
-
-    df_poststack = pd.DataFrame(columns=["realization_spec_file_name",
-                                         "original_spec_file_name",
-                                         "FeH", "err_FeH",
-                                         "logg", "alpha","Teff",
-                                         "EW_Hbeta", "err_EW_Hbeta_from_robo",
-                                         "EW_Hdelta", "err_EW_Hdelta_from_robo",
-                                         "EW_Hgamma", "err_EW_Hgamma_from_robo",
-                                         "EW_Heps", "err_EW_Heps_from_robo",
-                                         "EW_CaIIK", "err_EW_CaIIK_from_robo"], index=range(num_indiv_spectra)) # initialize
-
-    for t in range(0,num_indiv_spectra):
-        # loop over all spectra realizations we have measured EWs from to populate the dataframe
-
-        this_spectrum = list_indiv_spectra[t]
-        logging.info("Extracting EW data corresponding to " + this_spectrum)
-
-        if (objective == "find_abcd"):
-            # read in intermediary FITS file to extract values from header
-            logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
-            image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
-
-            logg = hdr["LOGG"]
-            teff = hdr["TEFF"]
-            alpha = hdr["ALPHA"]
-            feh = hdr["FEH"]
-            err_feh = 0.15 # ersatz for now
-
-        # select data from table relevant to this spectrum
-        data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
+    return
 
 
-        # calculate line errors using
-        # method 1: values directly from Robospect
-
-        # extract original file name (the one from which realizations are made)
-        orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
-
-        try:
-            # extract Balmer lines from the table of data from all the spectra
-            Hbeta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
-            err_Hbeta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
-
-            Hgamma = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
-            err_Hgamma = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
-
-            Hdelta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
-            err_Hdelta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
-
-            Heps = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
-            err_Heps = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
-
-            CaIIK = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
-            err_CaIIK = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
-
-            # fill in that row in the dataframe
-            df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
-            df_poststack.iloc[t]["original_spec_file_name"] = orig_name
-            df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
-            df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
-            df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
-            df_poststack.iloc[t]["err_EW_Hdelta_from_robo"] = err_Hdelta
-            df_poststack.iloc[t]["EW_Hgamma"] = Hgamma
-            df_poststack.iloc[t]["err_EW_Hgamma_from_robo"] = err_Hgamma
-            df_poststack.iloc[t]["EW_Heps"] = Heps
-            df_poststack.iloc[t]["err_EW_Heps_from_robo"] = err_Heps
-            df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
-            df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
-
-        except:
-            print("Data anomaly; skipping " + this_spectrum)
-
-    # save intermediary table of data, before adding rescaled Balmer line
-    intermediary_file_name = write_out_filename + "_intermediary"
-    logging.info("Writing out intermediary file of stacked Robospect EWs and rescaled Balmer lines to " + intermediary_file_name)
-    df_poststack.to_csv(intermediary_file_name)
+def generate_ew_errors():
+    '''
+    Calculates errors in EW, using two methods
+    '''
 
     # calculate line errors using
     # method 2: stdev of line EWs
     df_poststack = error_scatter_ew(df_poststack)
-
-    if (objective == "find_abcd"):
-        # if the stellar spectra are synthetic, add in that info
-        df_poststack.iloc[t]["logg"] = logg
-        df_poststack.iloc[t]["Teff"] = teff
-        df_poststack.iloc[t]["alpha"] = alpha
-        df_poststack.iloc[t]["FeH"] = feh
-        df_poststack.iloc[t]["err_FeH"] = err_feh
 
     # to generate a net Balmer line, make a rescaling of Hgamma
     # based on Hdelta
@@ -459,6 +356,12 @@ def stack_spectra(
     df_poststack["EW_Balmer"] = rHgam_all
     df_poststack["err_EW_Balmer"] = err_rHgam_all
 
+    logging.info("------------------------------")
+    #logging.info("Data will be written out to file " + write_out_filename)
+    #input("Hit [Enter] to continue")
+    logging.info("Writing out re-casting of Robospect EWs and rescaled Balmer line to " + write_out_filename)
+    df_poststack.to_csv(write_out_filename)
+
     # FYI plot: how do Balmer lines scale with each other?
     '''
     plt.clf()
@@ -484,10 +387,132 @@ def stack_spectra(
     plt.savefig("junk_KH_plot.pdf")
     '''
 
-    logging.info("------------------------------")
-    #logging.info("Data will be written out to file " + write_out_filename)
-    #input("Hit [Enter] to continue")
-    logging.info("Writing out re-casting of Robospect EWs and rescaled Balmer line to " + write_out_filename)
+    return
+
+
+def add_synthetic_meta_data():
+    '''
+    Reads in FITS files and extracts metadata (like Fe/H) and adds it to DataFrame
+
+    INPUTS:
+    fits_dir: directory of FITS files which we will use for obtaining info
+        from the header (Fe/H, etc.)
+    '''
+
+    '''
+    fits_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"]
+
+        if (objective == "find_abcd"):
+            # read in intermediary FITS file to extract values from header
+            logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
+            image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
+
+            logg = hdr["LOGG"]
+            teff = hdr["TEFF"]
+            alpha = hdr["ALPHA"]
+            feh = hdr["FEH"]
+            err_feh = 0.15 # ersatz for now
+
+
+
+    # add these cols to df
+                                             "FeH", "err_FeH",
+                                             "logg", "alpha","Teff",
+
+
+        if (objective == "find_abcd"):
+            # if the stellar spectra are synthetic, add in that info
+            df_poststack.iloc[t]["logg"] = logg
+            df_poststack.iloc[t]["Teff"] = teff
+            df_poststack.iloc[t]["alpha"] = alpha
+            df_poststack.iloc[t]["FeH"] = feh
+            df_poststack.iloc[t]["err_FeH"] = err_feh
+    '''
+
+    return
+
+
+def stack_spectra(
+    read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
+    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"]):
+    '''
+    Takes output of quality_check() and transposes and stacks data so that the data has *rows* of spectra and *cols* of absorption lines
+
+    INPUTS:
+    read_in_filename: file name of scraped Robospect data, after removing bad spectra
+    write_out_filename: name of file to contain re-stacked data
+    '''
+
+    # read in data
+    df_prestack = pd.read_csv(read_in_filename)
+
+    # make list of individual spectra for which we have EW data, and
+    # initialize DataFrame to hold the re-cast data
+
+    list_indiv_spectra = list(df_prestack["realization_spec_file_name"].drop_duplicates())
+
+    num_indiv_spectra = len(list_indiv_spectra)
+
+    df_poststack = pd.DataFrame(columns=["realization_spec_file_name",
+                                         "original_spec_file_name",
+                                         "EW_Hbeta", "err_EW_Hbeta_from_robo",
+                                         "EW_Hdelta", "err_EW_Hdelta_from_robo",
+                                         "EW_Hgamma", "err_EW_Hgamma_from_robo",
+                                         "EW_Heps", "err_EW_Heps_from_robo",
+                                         "EW_CaIIK", "err_EW_CaIIK_from_robo"], index=range(num_indiv_spectra))
+
+    for t in range(0,num_indiv_spectra):
+        # loop over all spectra realizations we have measured EWs from to populate the dataframe
+
+        this_spectrum = list_indiv_spectra[t]
+        logging.info("Extracting EW data corresponding to " + this_spectrum)
+
+        # select data from table relevant to this spectrum
+        data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
+
+        ## calculate line errors using
+        # method 1: values directly from Robospect
+
+        # extract original file name (the one from which realizations are made)
+        orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
+
+        try:
+            # extract Balmer lines from the table of data from all the spectra
+            Hbeta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
+            err_Hbeta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hbet").dropna().values[0]
+
+            Hgamma = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
+            err_Hgamma = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hgam").dropna().values[0]
+
+            Hdelta = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
+            err_Hdelta = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Hdel").dropna().values[0]
+
+            Heps = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
+            err_Heps = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "Heps").dropna().values[0]
+
+            CaIIK = data_this_spectrum["EQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
+            err_CaIIK = data_this_spectrum["uncertaintyEQW"].where(data_this_spectrum["line_name"] == "CaIIK").dropna().values[0]
+
+            # fill in that row in the dataframe
+            df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
+            df_poststack.iloc[t]["original_spec_file_name"] = orig_name
+            df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
+            df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
+            df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
+            df_poststack.iloc[t]["err_EW_Hdelta_from_robo"] = err_Hdelta
+            df_poststack.iloc[t]["EW_Hgamma"] = Hgamma
+            df_poststack.iloc[t]["err_EW_Hgamma_from_robo"] = err_Hgamma
+            df_poststack.iloc[t]["EW_Heps"] = Heps
+            df_poststack.iloc[t]["err_EW_Heps_from_robo"] = err_Heps
+            df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
+            df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
+
+        except:
+            logging.error("Data stacking error in data for " + this_spectrum)
+            print("Data anomaly; skipping " + this_spectrum)
+
+    # save intermediary table of data, before adding rescaled Balmer line
+    logging.info("Writing out intermediary file of stacked Robospect EWs and rescaled Balmer lines to " + write_out_filename)
     df_poststack.to_csv(write_out_filename)
 
     return df_poststack
