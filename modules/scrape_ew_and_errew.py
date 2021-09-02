@@ -420,46 +420,70 @@ def generate_addl_ew_errors():
     return
 
 
-def add_synthetic_meta_data():
+def add_synthetic_meta_data(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"],
+                            fits_dir = config_red["data_dirs"]["DIR_SYNTH_FITS"]):
     '''
-    Reads in FITS files and extracts metadata (like Fe/H) and adds it to DataFrame
+    Reads in FITS files, extracts header metadata (like Fe/H) and adds it to DataFrame
+    by matching file names
 
     INPUTS:
+    df_poststack: DataFrame following stacking of data, with one column "original_spec_file_name"
+        whose basename (without the extension) will be used to match to FITS files
     fits_dir: directory of FITS files which we will use for obtaining info
-        from the header (Fe/H, etc.)
+        from the header (Fe/H, etc.); these data are matched to the DataFrame based
+        on the basename of the file read in
     '''
 
-    '''
-    fits_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"]
+    import ipdb; ipdb.set_trace()
+    # read in the scraped EW data
+    df_poststack = pd.read_csv(read_in_filename)
 
-        if (objective == "find_abcd"):
-            # read in intermediary FITS file to extract values from header
-            logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
-            image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
+    # glob the FITS files
+    fits_file_names = glob.glob(fits_dir + "*fits")
 
-            logg = hdr["LOGG"]
-            teff = hdr["TEFF"]
-            alpha = hdr["ALPHA"]
-            feh = hdr["FEH"]
-            err_feh = 0.15 # ersatz for now
+    # initialize new cols in df
+    df_poststack["FeH"] = np.nan
+    df_poststack["err_FeH"] = np.nan
+    df_poststack["logg"] = np.nan
+    df_poststack["alpha"] = np.nan
+    df_poststack["Teff"] = np.nan
 
+    for num_fits_file in range(0,len(fits_file_names)):
 
+        import ipdb; ipdb.set_trace()
 
-    # add these cols to df
-                                             "FeH", "err_FeH",
-                                             "logg", "alpha","Teff",
+        this_spectrum = fits_file_names[num_fits_file]
 
+        ## ## CONTINUE HERE
 
-        if (objective == "find_abcd"):
-            # if the stellar spectra are synthetic, add in that info
-            df_poststack.iloc[t]["logg"] = logg
-            df_poststack.iloc[t]["Teff"] = teff
-            df_poststack.iloc[t]["alpha"] = alpha
-            df_poststack.iloc[t]["FeH"] = feh
-            df_poststack.iloc[t]["err_FeH"] = err_feh
-    '''
+        # get index of match
+        idx = df_poststack.index[df_poststack["original_spec_file_name"].split(".")[0] + ".fits" == this_spectrum]
+        if (len(idx)==0):
+            print("No FITS file match found for " + this_spectrum)
+            continue
+        df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
+        import ipdb; ipdb.set_trace()
 
-    return
+        # read in the FITS file to extract values from header
+        logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
+        image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
+        import ipdb; ipdb.set_trace()
+
+        logg = hdr["LOGG"]
+        teff = hdr["TEFF"]
+        alpha = hdr["ALPHA"]
+        feh = hdr["FEH"]
+        err_feh = 0.15 # ersatz for now
+        import ipdb; ipdb.set_trace()
+
+        # if the stellar spectra are synthetic, add in that info
+        df_poststack.iloc[idx]["logg"] = logg
+        df_poststack.iloc[idx]["Teff"] = teff
+        df_poststack.iloc[idx]["alpha"] = alpha
+        df_poststack.iloc[idx]["FeH"] = feh
+        df_poststack.iloc[idx]["err_FeH"] = err_feh
+
+    return df_poststack
 
 
 def stack_spectra(
