@@ -97,6 +97,7 @@ def main(
     normzed_spec_source_dir: source directory of normalized spectra which
         Robospect will be run on
     write_dir: directory to which Robospect output will be written to
+    robo_dir: directory of the robospect.py repo
 
     OUTPUTS:
     (EW data written to file)

@@ -22,7 +22,7 @@ class Scraper():
 
     def __init__(self,
                  subdir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
-                 file_scraped_info=config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
+                 file_scraped_info=config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
                  verbose=False):
 
         # directory containing the *.fits.robolines
@@ -38,7 +38,7 @@ class Scraper():
         self.file_list = sorted(file_list_unsorted)
 
         # EW info will get scraped into this
-        self.write_out_filename = subdir + file_scraped_info
+        self.write_out_filename = file_scraped_info
 
         # return tables of EW data?
         self.verbose = verbose
@@ -92,7 +92,7 @@ class Scraper():
             # read in Robospect output
             logging.info("--------------------")
             logging.info("Reading in Robospect output from directory")
-            logging.info(self.subdir+'/')
+            logging.info(self.subdir)
 
             '''
             The following parses lines from Robospect *robolines output files,
@@ -118,7 +118,27 @@ class Scraper():
                                         "[2","uncertaintyMu","uncertaintySigma","uncertaintyAmp",
                                         "[3","priorMu","priorSigma","priorAmp","EQW","uncertaintyEQW",
                                         "chiSqr","flags","blendGroup","line_name"])
+            # remove dummy columns
+            df = df.drop(columns=["[1","[2","[3"])
+            # remove Robospect delimiter strings from columns and cast contents as floats
+            print("df with new parsing")
+            print(df)
+            #import ipdb; ipdb.set_trace()
+            print("file")
+            print(self.subdir+'/'+self.file_list[t])
             logging.info("Parsing " + self.file_list[t])
+            try:
+                # this will fail if there are infs in the EWs
+                df["gaussianAmp"] = df["gaussianAmp"].str.replace("]","")
+                df["gaussianAmp"] = df["gaussianAmp"].astype(np.float)
+                df["uncertaintyAmp"] = df["uncertaintyAmp"].str.replace("]","")
+                df["uncertaintyAmp"] = df["uncertaintyAmp"].astype(np.float)
+                df["priorAmp"] = df["priorAmp"].str.replace("]","")
+                df["priorAmp"] = df["priorAmp"].astype(np.float)
+            except:
+                # skip this file
+                logging.error("Parsing error! " + self.file_list[t])
+                continue
 
             # check lines are in the right order
             # if they are not, a warning is printed in the log
@@ -160,8 +180,8 @@ class Scraper():
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         #df_master_reset = df_master.reset_index(drop=True).copy()
         # this is effectively the same, but gets written out
-        df_master.reset_index(drop=True).to_csv(config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"])
-        logging.info("Table of ALL EW info written to " + config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"])
+        df_master.reset_index(drop=True).to_csv(self.write_out_filename)
+        logging.info("Table of ALL EW info written to " + str(self.write_out_filename))
         #if self.verbose:
         #    return df_master_reset, df_master_reset_drop_bad_spectra
         return
@@ -234,6 +254,8 @@ def quality_check(
     logging.info("--------------------------")
     logging.info('Scraped Robospect output written to')
     logging.info(write_out_filename)
+
+    return pruned_data
 
 
 def stack_spectra(

@@ -260,7 +260,9 @@ def read_list(input_list):
 
     # col 0 contains the file names
     filenames_arr = np.genfromtxt(input_list, 'str', skip_header=0, usecols=(0))
+
     return(filenames_arr)
+
 
 def read_spec(spec_name, format):
     '''
@@ -328,6 +330,7 @@ def write_bckgrnd_input(name_list, indir, normdir):
     for j in range(len(name_list)):
         outfile.write("{}\n".format(name_list[j]))
     outfile.close()
+
     return(bckgrnd_input)
 
 # -------------

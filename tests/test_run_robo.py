@@ -25,7 +25,7 @@ config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.i
 
 def test_RunRobo():
 
-    write_dir_test = config_red["data_dirs"]["TEST_DIR_SRC"]
+    write_dir_test = config_red["data_dirs"]["TEST_DIR_BIN"]
     robo_dir = config_red["data_dirs"]["DIR_ROBO"]
     file_names_test = glob.glob(config_red["data_dirs"]["TEST_DIR_SRC"] + "spec_norm_final/*")
 
@@ -38,6 +38,7 @@ def test_RunRobo():
     try:
         run_robospect_instance(file_names_test[0])
     except Exception as e:
+        # e contains printable attributes of exception object
         function_state = False
 
     assert function_state
