@@ -47,21 +47,22 @@ def main():
                 )
 
     # scrape_ew_from_robo and calculate EWs + err_EW
+    '''
     scraper_instance = scrape_ew_and_errew.Scraper(subdir = config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
                                                    file_scraped_info = config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"])
     scraper_instance() # call instance
-
-    scrape_ew_and_errew.quality_check(
-        write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]
-        )
+    '''
+    # follow-up functions
+    data_checked = scrape_ew_and_errew.quality_check(
+                    write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]
+                    )
 
     # put the good EW data into a table with
     # rows corresponding to files and cols for the lines
-    scrape_ew_and_errew.stack_spectra(
+    data_stacked = scrape_ew_and_errew.stack_spectra(
         read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
         write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
         objective = objective_choice)
-    '''
 
     # find Fe/H values, sampling from the a, b, c, d posteriors and while
     # incorporating equivalent width errors
@@ -76,7 +77,7 @@ def main():
 
     # retrieve pickle files and compare values (only for case of synthetic values with injected and retrieved Fe/H)
     find_feh_instance.compare_feh_synthetic()
-
+    '''
 
 # entry point
 if __name__ == '__main__':
