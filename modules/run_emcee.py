@@ -23,6 +23,7 @@ def corner_plot(model,
     if (model == "abcd"):
 
         # corner plot (requires 'storechain=True' in enumerate above)
+        test_samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, nrows=5) # read in first rows to check column number
         samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4), names=["a", "b", "c", "d"])
         fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$"],
                             quantiles=[0.16, 0.5, 0.84],
@@ -30,10 +31,10 @@ def corner_plot(model,
                             show_titles=True,
                             verbose=True,
                             title_kwargs={"fontsize": 12})
-        fig.savefig(self.corner_file_string)
+        fig.savefig(corner_plot_putput_file_name)
         logging.info("--------------------------")
         logging.info("Corner plot of MCMC posteriors written out to")
-        print(str(self.corner_file_string))
+        print(corner_plot_putput_file_name)
 
         # if its necessary to read in MCMC output again
         #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
@@ -43,17 +44,28 @@ def corner_plot(model,
         a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
                                              zip(*np.percentile(samples, [16, 50, 84], axis=0)))
 
+        print("--------------------------")
+        print("Coefficients a, b, c, d, and errors (see corner plot):")
+        print("coeff a: " + " ".join(map(str,a_mcmc)))
+        print("coeff b: " + " ".join(map(str,b_mcmc)))
+        print("coeff c: " + " ".join(map(str,c_mcmc)))
+        print("coeff d: " + " ".join(map(str,d_mcmc)))
         logging.info("--------------------------")
         logging.info("Coefficients a, b, c, d, and errors (see corner plot):")
-        logging.info(a_mcmc, '\n', b_mcmc, '\n', c_mcmc, '\n', d_mcmc)
+        logging.info("coeff a: " + " ".join(map(str,a_mcmc)))
+        logging.info("coeff b: " + " ".join(map(str,b_mcmc)))
+        logging.info("coeff c: " + " ".join(map(str,c_mcmc)))
+        logging.info("coeff d: " + " ".join(map(str,d_mcmc)))
 
-        logging.info("--------------------------")
-        logging.info("MCMC data written to ")
-        logging.info(self.mcmc_text_output)
+        #logging.info("--------------------------")
+        #logging.info("MCMC data written to ")
+        #logging.info(self.mcmc_text_output)
+
 
     elif (model == "abcdfghk"):
         # corner plot (requires 'storechain=True' in enumerate above)
-        #samples = sampler.chain[:, int(1e3):, :].reshape((-1, ndim))
+        # just first few lines to test
+        test_samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, nrows=5) # read in first rows to check column number
         samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4,5,6,7,8), names=["a", "b", "c", "d", "f", "g", "h", "k"])
         fig = corner.corner(samples, labels=["$a$", "$b$", "$c$", "$d$", "$f$", "$g$", "$h$", "$k$"],
                             quantiles=[0.16, 0.5, 0.84],
@@ -69,6 +81,38 @@ def corner_plot(model,
         # if its necessary to read in MCMC output again
         #data = np.loadtxt(self.mcmc_text_output, usecols=range(1,5))
 
+        # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
+        # https://emcee.readthedocs.io/en/stable/user/line.html#results
+        a_mcmc, b_mcmc, c_mcmc, d_mcmc, f_mcmc, g_mcmc, h_mcmc, k_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
+                                             zip(*np.percentile(samples, [16, 50, 84], axis=0)))
+
+        print("--------------------------")
+        print("Coefficients a, b, c, d, f, g, h, k, and errors (see corner plot):")
+        print("coeff a: " + " ".join(map(str,a_mcmc)))
+        print("coeff b: " + " ".join(map(str,b_mcmc)))
+        print("coeff c: " + " ".join(map(str,c_mcmc)))
+        print("coeff d: " + " ".join(map(str,d_mcmc)))
+        print("coeff f: " + " ".join(map(str,f_mcmc)))
+        print("coeff g: " + " ".join(map(str,g_mcmc)))
+        print("coeff h: " + " ".join(map(str,h_mcmc)))
+        print("coeff k: " + " ".join(map(str,k_mcmc)))
+        logging.info("--------------------------")
+        logging.info("Coefficients a, b, c, d, f, g, h, k, and errors (see corner plot):")
+        logging.info("coeff a: " + " ".join(map(str,a_mcmc)))
+        logging.info("coeff b: " + " ".join(map(str,b_mcmc)))
+        logging.info("coeff c: " + " ".join(map(str,c_mcmc)))
+        logging.info("coeff d: " + " ".join(map(str,d_mcmc)))
+        logging.info("coeff f: " + " ".join(map(str,f_mcmc)))
+        logging.info("coeff g: " + " ".join(map(str,g_mcmc)))
+        logging.info("coeff h: " + " ".join(map(str,h_mcmc)))
+        logging.info("coeff k: " + " ".join(map(str,k_mcmc)))
+
+
+    else:
+
+        logging.error("Error! No calibration model chosen for the MCMC posteriors!")
+
+    return test_samples
 
 
 

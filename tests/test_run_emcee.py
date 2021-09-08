@@ -25,14 +25,24 @@ config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.i
 
 def test_corner_plot():
 
-    run_emcee.corner_plot()
+    # get a sample of the MCMC posterior data after being read in, and check the column
+    # numbers are consisten with the model
+    mcmc_sample_abcd = run_emcee.corner_plot(model = "abcd",
+                            mcmc_text_output_file_name = config_red["data_dirs"]["TEST_DIR_SRC"] + "test_mcmc_output_abcd.csv",
+                            corner_plot_putput_file_name = config_red["data_dirs"]["TEST_DIR_BIN"] + "test_abcd_plot.png")
 
-    assert 1<2
+    mcmc_sample_abcdfghk = run_emcee.corner_plot(model = "abcdfghk",
+                            mcmc_text_output_file_name = config_red["data_dirs"]["TEST_DIR_SRC"] + "test_mcmc_output_abcdfghk.csv",
+                            corner_plot_putput_file_name = config_red["data_dirs"]["TEST_DIR_BIN"] + "test_abcdfghk_plot.png")
+
+    # assert column numbers are N_coeff + 1 (from index column)
+    assert len(mcmc_sample_abcd.columns) == 5
+    assert len(mcmc_sample_abcdfghk.columns) == 9
 
 
 def test_rrmetal():
 
-    run_emcee.rrmetal()
+    #run_emcee.rrmetal()
 
     assert 1<2
 

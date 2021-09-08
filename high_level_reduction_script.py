@@ -48,18 +48,18 @@ def main():
     data_net_balmer = scrape_ew_and_errew.generate_net_balmer()
 
     data_errors = scrape_ew_and_errew.generate_addl_ew_errors()
-    '''
+
     data_add_metadata = scrape_ew_and_errew.add_synthetic_meta_data()
-    '''
+
     # run_emcee with input data_table_winnowed
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]
     emcee_instance = run_emcee.RunEmcee()
     #emcee_instance(model = 'abcd') # call instance
     emcee_instance(model = 'abcdfghk')
-
-    run_emcee.corner_plot(coeffs = 'abcdfghk')
     '''
+    posterior_sample = run_emcee.corner_plot(model = 'abcd')
+
 
 # entry point
 if __name__ == '__main__':
