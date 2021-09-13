@@ -115,7 +115,6 @@ def corner_plot(model,
     return test_samples
 
 
-
 def rrmetal(h_pass, f_pass, p_pass):
     '''
     Layden+ 1994 model
@@ -128,7 +127,7 @@ def rrmetal(h_pass, f_pass, p_pass):
     OUTPUTS:
     k_pass: CaIIK EW (angstroms)
     '''
-    import ipdb; ipdb.set_trace()
+
     print("This function is obsolete, right?")
     k_pass = (p_pass[0] +
               p_pass[1]*h_pass +
@@ -257,23 +256,50 @@ def function_K(coeffs_pass,H_pass,F_pass):
     return K_pass
 
 
-def chi_sqd_fcn(xi_pass,
-                yi_pass,
-                zi_pass,
-                sig_xi_pass,
-                sig_yi_pass,
-                sig_zi_pass,
+def sigma_Km_sqd(coeffs_pass,Bal_pass,err_Bal_pass,Feh_pass,err_Feh_pass):
+    # def of model CaIIK error squared (this is general, regardless of number of coeffs):
+    # sigma_Km^2 = (del_K/del_H)^2 * sig_H^2 + (del_K/del_F)^2 * sig_F^2
+
+    # case of 4 coefficients
+    if (len(coeffs_pass) == 4):
+
+        dKdH = coeffs_pass[1] + coeffs_pass[3]*Feh_pass
+        dKdF = coeffs_pass[2] + coeffs_pass[3]*Bal_pass
+
+    # case of 8 coefficients
+    elif (len(coeffs_pass) == 8):
+
+        dKdH = coeffs_pass[1] + coeffs_pass[3]*Feh_pass + 2.*coeffs_pass[4]*Bal_pass + \
+                    2.*coeffs_pass[6]*Feh_pass*Bal_pass + coeffs_pass[7]*np.power(Feh_pass,2.)
+        dKdF = coeffs_pass[2] + coeffs_pass[3]*Bal_pass + 2.*coeffs_pass[5]*Feh_pass + \
+                    coeffs_pass[6]*np.power(Bal_pass,2.) + 2.*coeffs_pass[7]*Bal_pass*Feh_pass
+
+    else:
+        logging.error("Number of coefficients does not make sense!")
+
+    # 'sigma_Km squared'
+    sigma_Km_2 = np.power(dKdH*err_Bal_pass,2.) + np.power(dKdF*err_Feh_pass,2.)
+
+    return sigma_Km_2
+
+
+def chi_sqd_fcn(Bal_pass,
+                Feh_pass,
+                Caiik_pass,
+                sig_Bal_pass,
+                sig_Feh_pass,
+                sig_Caiik_pass,
                 coeffs_pass):
     '''
     Chi-squared
 
     INPUTS:
-    xi_pass: Balmer EW (angstroms)
-    yi_pass: [Fe/H]
-    zi_pass: CaIIK EW (angstroms)
-    err_xi_pass: error in Balmer EW (angstroms)
-    err_yi_pass: error in [Fe/H]
-    err_zi_pass: error in CaIIK EW (angstroms)
+    Bal_pass: Balmer EW (angstroms)
+    Feh_pass: [Fe/H]
+    Caiik_pass: CaIIK EW (angstroms)
+    err_Bal_pass: error in Balmer EW (angstroms)
+    err_Feh_pass: error in [Fe/H]
+    err_Caiik_pass: error in CaIIK EW (angstroms)
     coeffs_pass: array of coefficients
 
     OUTPUTS:
@@ -287,36 +313,38 @@ def chi_sqd_fcn(xi_pass,
         c_pass = coeffs_pass[2]
         d_pass = coeffs_pass[3]
 
-        # IDL syntax
-        # numerator_i = (zi_pass-a_pass-b_pass*xi_pass-c_pass*yi_pass-d_pass*xi_pass*yi_pass)**2
-        # denominator_i = (sig_xi_pass**2)* ((b_pass+d_pass*yi_pass)**2) +
-        #                  (sig_yi_pass**2)*((c_pass+d_pass*xi_pass)^2)+ sig_zi_pass**2
+        # def. of chi-squared for collection of datapoints which each have
+        # subscript i:
+        # X2 = Sigma_i [(K0,i - Km,i)^2/(sigma_K0,i^2 + sigma_Km,i^2)]
+        # K0: measured CaIIK EW (error sigma_K0)
+        # Km: model CaIIK EW (error sigma_Km)
 
-        # ... and the awkward Python syntax
+
+
         base = np.subtract(
                             np.subtract(np.subtract(
-                                                    np.subtract(zi_pass,a_pass),
-                                                    np.multiply(b_pass,xi_pass)
+                                                    np.subtract(Caiik_pass,a_pass),
+                                                    np.multiply(b_pass,Bal_pass)
                                                     ),\
                                         np.multiply(
                                                     c_pass,
-                                                    yi_pass
+                                                    Feh_pass
                                                     )
                                         ),
                             np.multiply(
                                         np.multiply(
                                                     d_pass,
-                                                    xi_pass
+                                                    Bal_pass
                                                     ),
-                                        yi_pass
+                                        Feh_pass
                                         )
                             )
         numerator_i = base**2
-        term_i = (sig_xi_pass**2)
-        term_ii = (np.add(b_pass, np.multiply(d_pass, yi_pass))**2)
-        term_iii = (sig_yi_pass**2)
-        term_iv = (np.add(c_pass, np.multiply(d_pass, xi_pass)))**2
-        term_v = (sig_zi_pass**2)
+        term_i = (sig_Bal_pass**2)
+        term_ii = (np.add(b_pass, np.multiply(d_pass, Feh_pass))**2)
+        term_iii = (sig_Feh_pass**2)
+        term_iv = (np.add(c_pass, np.multiply(d_pass, Bal_pass)))**2
+        term_v = (sig_Caiik_pass**2)
         denominator_i = np.add(np.add(np.multiply(term_i, term_ii),
                                       np.multiply(term_iii, term_iv)), term_v) ## ## is a squared missing? (on second glance I think not...)
 
@@ -328,12 +356,12 @@ def chi_sqd_fcn(xi_pass,
         # updated relation
 
         # name changes for clarity
-        Hi_pass = xi_pass
-        Fi_pass = yi_pass
-        Ki_pass = zi_pass
-        err_Hi_pass = sig_xi_pass
-        err_Fi_pass = sig_yi_pass
-        err_Ki_pass = sig_zi_pass
+        Hi_pass = Bal_pass
+        Fi_pass = Feh_pass
+        Ki_pass = Caiik_pass
+        err_Hi_pass = sig_Bal_pass
+        err_Fi_pass = sig_Feh_pass
+        err_Ki_pass = sig_Caiik_pass
 
         a_pass = coeffs_pass[0]
         b_pass = coeffs_pass[1]
@@ -347,8 +375,8 @@ def chi_sqd_fcn(xi_pass,
 
 
         # ... and the awkward Python syntax
-        ##base = np.subtract(np.subtract(np.subtract(np.subtract(zi_pass,a_pass),np.multiply(b_pass,xi_pass)),\
-        ##                             np.multiply(c_pass,yi_pass)),np.multiply(np.multiply(d_pass,xi_pass),yi_pass))
+        ##base = np.subtract(np.subtract(np.subtract(np.subtract(Caiik_pass,a_pass),np.multiply(b_pass,Bal_pass)),\
+        ##                             np.multiply(c_pass,Feh_pass)),np.multiply(np.multiply(d_pass,Bal_pass),Feh_pass))
         ## numerator_i = base**2
         ## ## CONTINUE HERE
         term_H_i = (np.add(b_pass,2*np.multiply(f_pass,Hi_pass)))
