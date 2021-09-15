@@ -27,7 +27,7 @@ from subprocess import Popen, PIPE
 #from astropy.io import fits ## Pylint says this is not used
 from astropy.io import fits
 from astropy.table import Table
-import pyfits
+#import pyfits
 import sys
 import numpy as np
 from pathlib import *
