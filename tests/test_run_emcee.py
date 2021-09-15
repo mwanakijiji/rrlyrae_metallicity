@@ -108,21 +108,6 @@ def test_lnprior():
     assert round(lnprior_8_test_good, 3) == 0.000
     assert lnprior_8_test_bad == -np.inf
 
-'''
-def test_find_indices():
-
-    run_emcee.find_indices()
-
-    assert 1<2
-
-
-def test_RunEmcee():
-
-    run_emcee.RunEmcee()
-
-    assert 1<2
-'''
-
 
 def test_function_K():
 
@@ -185,3 +170,14 @@ def test_chi_sqd_fcn():
 
     assert round(chi_sq_4_test_i, 3) == 1.346
     assert round(chi_sq_8_test_i, 3) == 0.688
+
+'''
+def test_RunEmcee():
+
+    emcee_instance_test = run_emcee.RunEmcee(scraped_ews_good_only_file_name=config_red["data_dirs"]["TEST_DIR_SRC"]  + "test_restacked_ew_info_good_only.csv",
+                                            mcmc_text_output_file_name=config_red["data_dirs"]["TEST_DIR_BIN"] + "test_write_mcmc_output.csv")
+    emcee_instance_test(model = 'abcdfghk', post_burn_in_links=10)
+    emcee_instance_test(model = 'abcd', post_burn_in_links=10)
+
+    assert 1<2
+'''

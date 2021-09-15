@@ -143,3 +143,10 @@ def test_generate_addl_ew_errors():
     #dummy = scrape_ew_and_errew.generate_addl_ew_errors()
 
     assert 1<2
+
+def add_synthetic_meta_data():
+    # placeholder for now, until more decisions about how to calculate EW errors
+
+    #dummy = scrape_ew_and_errew.generate_addl_ew_errors()
+
+    assert 1<2

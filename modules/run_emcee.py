@@ -157,20 +157,6 @@ def lnprob(walker_pos_array,
     return lp + result # ln(prior*like)
 
 
-def find_indices(lst, condition):
-    '''
-    Stand-in equivalent of IDL 'where' function
-
-    INPUTS:
-    lst: list
-    condition: an anonymous function
-
-    RETURNS:
-
-    '''
-
-    return [i for i, elem in enumerate(lst) if condition(elem)]
-
 
 def lnprior(theta):
     '''
@@ -329,17 +315,15 @@ class RunEmcee():
         # name of file of the MCMC output
         self.mcmc_text_output = mcmc_text_output_file_name
 
-        # name of corner plot of the MCMC output
-        self.corner_file_string = corner_plot_putput_file_name
 
-
-    def __call__(self, model):
+    def __call__(self, model, post_burn_in_links = 3e3):
         '''
         INPUTS
 
         model: list of coefficients to use as the model
             'abcd':     corresponds to Layden '94
             'abcdfghk': corresponds to K = a + b*H + c*F + d*H*F + f*(H^2) + g*(F^2) + h*(H^2)*F + k*H*(F^2)
+        post_burn_in_links: chain links following burn-in
         '''
 
         # read in EWs, Fe/Hs, phases, errors, etc.
@@ -355,7 +339,8 @@ class RunEmcee():
         #caii = np.divide(df_choice['K'], 1000.)
         caii = df_choice['EW_CaIIK']
         #ecaii = np.divide(df_choice['err_K'], 1000.)
-        ecaii = df_choice['err_EW_CaIIK']
+        ecaii = df_choice['err_EW_CaIIK_from_robo'] # might try other error sources later
+        #ecaii = df_choice['err_EW_CaIIK']
         #ave = np.divide(df_choice['balmer'], 1000.)
         ave = df_choice['EW_Balmer']
         eave = df_choice['err_EW_Balmer']
@@ -427,7 +412,6 @@ class RunEmcee():
 
         # post-burn-in
         start_time = time.time()
-        post_burn_in_links = 3e3 # MCMC links following the burn-in
 
         ################# SAVE PROGRESSIVELY TO TEXT FILE #################
         ## ## refer to these code snippets from Foreman-Mackey's website
