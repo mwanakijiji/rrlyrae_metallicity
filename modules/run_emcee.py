@@ -115,29 +115,7 @@ def corner_plot(model,
     return test_samples
 
 
-def rrmetal(h_pass, f_pass, p_pass):
-    '''
-    Layden+ 1994 model
-
-    INPUTS:
-    h_pass: Balmer EW (angstroms)
-    f_pass: [Fe/H]
-    p_pass: coefficients [a,b,c,d]
-
-    OUTPUTS:
-    k_pass: CaIIK EW (angstroms)
-    '''
-
-    print("This function is obsolete, right?")
-    k_pass = (p_pass[0] +
-              p_pass[1]*h_pass +
-              p_pass[2]*f_pass +
-              p_pass[3]*h_pass*f_pass)
-
-    return k_pass
-
-
-def lnprob(walker_pos,
+def lnprob(walker_pos_array,
            Teff_pass,
            measured_H_pass,
            measured_F_pass,
@@ -149,7 +127,7 @@ def lnprob(walker_pos,
     Nat log of probability density
 
     INPUTS:
-    walker_pos: array of walker positions
+    walker_pos_array: array of coefficients (regardless of model)
     Teff_pass: Teff (a vestigial MCMC constant; this is NOT astrophysical Teff)
     measured_H_pass: Balmer EW
     measured_F_pass: [Fe/H]
@@ -157,7 +135,6 @@ def lnprob(walker_pos,
     err_measured_H_pass: error in Balmer EW
     err_measured_F_pass: error in [Fe/H]
     err_measured_K_pass: error in CaIIK EW
-    walker_pos_array: array of coefficients (regardless of model)
 
 
     OUTPUTS:
@@ -166,7 +143,7 @@ def lnprob(walker_pos,
 
     # walker_pos is the proposed walker position in N-D (likely 4-D) space
     # (i.e., these are the inputs to the model)
-    lp = lnprior(walker_pos) # prior
+    lp = lnprior(walker_pos_array) # prior
     if not np.isfinite(lp): # afoul of prior
       return -np.inf
     result = -np.divide(1, 2*Teff_pass)*chi_sqd_fcn(measured_H_pass,
@@ -176,6 +153,7 @@ def lnprob(walker_pos,
                                                     err_measured_F_pass,
                                                     err_measured_K_pass,
                                                     walker_pos_array)
+
     return lp + result # ln(prior*like)
 
 
@@ -217,16 +195,17 @@ def lnprior(theta):
         (np.abs(c_test) < 20) and
         (np.abs(d_test) < 10)):
         return 0.0
+
     return -np.inf
 
 
-def function_K(coeffs_pass,H_pass,F_pass):
+def function_K(coeffs_pass,Bal_pass,F_pass):
     '''
     Function which gives CaIIK EW as function of Balmer, [Fe/H]
 
     INPUTS:
     coeffs_pass: array of coefficients
-    H_pass: Balmer EWs
+    Bal_pass: Balmer EWs
     F_pass: [Fe/H]
 
     OUTPUTS:
@@ -237,21 +216,21 @@ def function_K(coeffs_pass,H_pass,F_pass):
         # Layden '94 relation
 
         K_pass = coeffs_pass[0] \
-                    + coeffs_pass[1]*H_pass \
+                    + coeffs_pass[1]*Bal_pass \
                     + coeffs_pass[2]*F_pass \
-                    + coeffs_pass[3]*H_pass*F_pass
+                    + coeffs_pass[3]*Bal_pass*F_pass
 
     elif (len(coeffs_pass) == 8):
         # updated relation
 
         K_pass = coeffs_pass[0] \
-                    + coeffs_pass[1]*H_pass \
+                    + coeffs_pass[1]*Bal_pass \
                     + coeffs_pass[2]*F_pass \
-                    + coeffs_pass[3]*H_pass*F_pass \
-                    + coeffs_pass[4]*np.power(H_pass,2.) \
+                    + coeffs_pass[3]*Bal_pass*F_pass \
+                    + coeffs_pass[4]*np.power(Bal_pass,2.) \
                     + coeffs_pass[5]*np.power(F_pass,2.) \
-                    + coeffs_pass[6]*np.power(H_pass,2.)*F_pass \
-                    + coeffs_pass[7]*H_pass*np.power(F_pass,2.)
+                    + coeffs_pass[6]*np.power(Bal_pass,2.)*F_pass \
+                    + coeffs_pass[7]*Bal_pass*np.power(F_pass,2.)
 
     return K_pass
 
@@ -306,99 +285,30 @@ def chi_sqd_fcn(Bal_pass,
     val: chi^2
     '''
 
-    if (len(coeffs_pass) == 4):
+    # def. of chi-squared for collection of datapoints which each have
+    # subscript i:
+    # X2 = Sigma_i [(K0,i - Km,i)^2/(sigma_K0,i^2 + sigma_Km,i^2)]
+    # K0: measured CaIIK EW (error sigma_K0)
+    # Km: model CaIIK EW (error sigma_Km)
 
-        a_pass = coeffs_pass[0]
-        b_pass = coeffs_pass[1]
-        c_pass = coeffs_pass[2]
-        d_pass = coeffs_pass[3]
+    # note the functions below accept  arrays of either 4 or 8 coefficients
+    Caiik_model_array = function_K(coeffs_pass=coeffs_pass,
+                                    Bal_pass=Bal_pass,
+                                    F_pass=Feh_pass)
 
-        # def. of chi-squared for collection of datapoints which each have
-        # subscript i:
-        # X2 = Sigma_i [(K0,i - Km,i)^2/(sigma_K0,i^2 + sigma_Km,i^2)]
-        # K0: measured CaIIK EW (error sigma_K0)
-        # Km: model CaIIK EW (error sigma_Km)
+    sigma_Km_sqd_array = sigma_Km_sqd(coeffs_pass=coeffs_pass,
+                                    Bal_pass=Bal_pass,
+                                    err_Bal_pass=sig_Bal_pass,
+                                    Feh_pass=Feh_pass,
+                                    err_Feh_pass=sig_Feh_pass)
 
+    numerator_array = np.power(np.subtract(Caiik_pass,Caiik_model_array),2.)
 
+    denominator_array = np.add(sigma_Km_sqd_array,np.power(sig_Caiik_pass,2.))
 
-        base = np.subtract(
-                            np.subtract(np.subtract(
-                                                    np.subtract(Caiik_pass,a_pass),
-                                                    np.multiply(b_pass,Bal_pass)
-                                                    ),\
-                                        np.multiply(
-                                                    c_pass,
-                                                    Feh_pass
-                                                    )
-                                        ),
-                            np.multiply(
-                                        np.multiply(
-                                                    d_pass,
-                                                    Bal_pass
-                                                    ),
-                                        Feh_pass
-                                        )
-                            )
-        numerator_i = base**2
-        term_i = (sig_Bal_pass**2)
-        term_ii = (np.add(b_pass, np.multiply(d_pass, Feh_pass))**2)
-        term_iii = (sig_Feh_pass**2)
-        term_iv = (np.add(c_pass, np.multiply(d_pass, Bal_pass)))**2
-        term_v = (sig_Caiik_pass**2)
-        denominator_i = np.add(np.add(np.multiply(term_i, term_ii),
-                                      np.multiply(term_iii, term_iv)), term_v) ## ## is a squared missing? (on second glance I think not...)
+    i_element = np.divide(numerator_array,denominator_array)
 
-        i_element = np.divide(numerator_i, denominator_i)
-        val = np.sum(i_element)
-
-
-    elif (len(coeffs_pass) == 8):
-        # updated relation
-
-        # name changes for clarity
-        Hi_pass = Bal_pass
-        Fi_pass = Feh_pass
-        Ki_pass = Caiik_pass
-        err_Hi_pass = sig_Bal_pass
-        err_Fi_pass = sig_Feh_pass
-        err_Ki_pass = sig_Caiik_pass
-
-        a_pass = coeffs_pass[0]
-        b_pass = coeffs_pass[1]
-        c_pass = coeffs_pass[2]
-        d_pass = coeffs_pass[3]
-        f_pass = coeffs_pass[4]
-        g_pass = coeffs_pass[5]
-        h_pass = coeffs_pass[6]
-        k_pass = coeffs_pass[7]
-
-
-
-        # ... and the awkward Python syntax
-        ##base = np.subtract(np.subtract(np.subtract(np.subtract(Caiik_pass,a_pass),np.multiply(b_pass,Bal_pass)),\
-        ##                             np.multiply(c_pass,Feh_pass)),np.multiply(np.multiply(d_pass,Bal_pass),Feh_pass))
-        ## numerator_i = base**2
-        ## ## CONTINUE HERE
-        term_H_i = (np.add(b_pass,2*np.multiply(f_pass,Hi_pass)))
-        term_H_ii = np.multiply(Fi_pass,np.add(d_pass,np.multiply(np.multiply(2.,h_pass),Hi_pass)))
-        term_H_iii = np.multiply(np.power(Fi_pass,2.),Ki_pass)
-        term_F_i = np.add(c_pass,np.multiply(2*g_pass,Fi_pass))
-        term_F_ii = np.multiply( Hi_pass,np.add(d_pass,np.multiply(2*k_pass,Fi_pass)) )
-        term_F_iii = np.multiply(np.power(Hi_pass,2.),h_pass)
-
-        part_I_i = np.power( np.add(np.add(term_H_i,term_H_ii),term_H_iii),2. )
-        part_II_i = np.power( np.add(np.add(term_F_i,term_F_ii),term_F_iii),2. )
-
-        sig_kmi_sqrd = np.add(
-                            np.multiply( part_I_i, np.power(err_Hi_pass,2.) ),
-                            np.multiply( part_II_i, np.power(err_Fi_pass,2.) )
-                            )
-
-        numerator_i = np.power( np.subtract(Ki_pass,function_K(coeffs_pass,Hi_pass,Fi_pass)),2. ) # ( K_empirical - K_model )^2
-        denominator_i = np.add( np.power(err_Ki_pass,2.), sig_kmi_sqrd )
-
-        i_element = np.divide(numerator_i, denominator_i)
-        val = np.sum(i_element)
+    val = np.sum(i_element)
 
     return val
 
@@ -455,26 +365,14 @@ class RunEmcee():
         efeh = df_choice['err_FeH']
         #import ipdb; ipdb.set_trace()
 
-        #period = df_choice.type
-        #star_type = dataFloats[:, 15]
-
-        # val from previous IDL runs (kind of deprecated; just
-        # appears as a constant in the MCMC)
-        Teff = 0.0586758
-
-        # coefficients from first line of Table 8 in Layden+ 1994
-        # (reddening not included), to serve as MCMC starting point
-        a_layden = 13.542
-        b_layden = -1.072
-        c_layden = 3.971
-        d_layden = -0.271
-        # ... with other coefficients fghk with a nonzero starting point
+        # non-zero starting points for coefficients fghk (i.e., those beyond the Layden
+        # model)
         f_init = 0.1
         g_init = 0.1
         h_init = 0.1
         k_init = 0.1
-        m_init = 0. # 4th-order term
-        n_init = 0. # 4th-order term
+        m_init = 0. # 4th-order term; vestigial
+        n_init = 0. # 4th-order term; vestigial
         #sigma_a_layden = 0.416
         #sigma_b_layden = 0.076
         #sigma_c_layden = 0.285

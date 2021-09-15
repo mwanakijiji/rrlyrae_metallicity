@@ -40,6 +40,18 @@ compiled_bkgrnd_file_path_abs = config_red["data_dirs"]["DIR_BIN"] + "/bkgrnd"
 
 ncpu = multiprocessing.cpu_count()
 
+# set some constants
+
+# vestigial constant in MCMC (this is NOT an astrophysical Teff)
+Teff = 0.0586758
+# coefficients from first line of Table 8 in Layden+ 1994
+# (reddening not included), to serve as MCMC starting point
+a_layden = 13.542
+b_layden = -1.072
+c_layden = 3.971
+d_layden = -0.271
+
+
 # The class OnlyGetScriptPath() and function get_setuptools_script_dir()
 # are from the setup.py script in the Apogee repository by jobovy
 # https://github.com/jobovy/apogee/blob/master/setup.py
