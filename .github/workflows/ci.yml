@@ -16,7 +16,7 @@ jobs:
           submodules: 'recursive'
       - name: check the file list
         run: |
-          ls -R rrlyrae_metallicity/src/*cc
+          ls -R src/*cc
       - name: Install Python 3
         uses: actions/setup-python@v1
         with:
