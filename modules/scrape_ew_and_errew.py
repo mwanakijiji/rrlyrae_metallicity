@@ -17,13 +17,21 @@ from . import *
 
 class Scraper():
     '''
-    Scrape all the equivalent width info from the Robospect *.fits.robolines files
+    Scrape all the equivalent width info from the Robospect *robolines files
     '''
 
     def __init__(self,
                  subdir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
                  file_scraped_info=config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
+                 orig_spec_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"],
                  verbose=False):
+
+        '''
+        INPUTS:
+        subdir:
+        file_scraped_info:
+        orig_spec_list: the file containing the original file names of the spectra
+        '''
 
         # directory containing the *.fits.robolines
         # files with the EW info
@@ -36,6 +44,10 @@ class Scraper():
         file_list_long = glob.glob(self.subdir+'/'+'*robolines')
         file_list_unsorted = [os.path.basename(x) for x in file_list_long]
         self.file_list = sorted(file_list_unsorted)
+
+        # read in original file names
+        input_list = pd.read_csv(orig_spec_list)
+        self.orig_spec_list = input_list["spectrum"]
 
         # EW info will get scraped into this
         self.write_out_filename = file_scraped_info
@@ -121,11 +133,6 @@ class Scraper():
             # remove dummy columns
             df = df.drop(columns=["[1","[2","[3"])
             # remove Robospect delimiter strings from columns and cast contents as floats
-            print("df with new parsing")
-            print(df)
-            #import ipdb; ipdb.set_trace()
-            print("file")
-            print(self.subdir+'/'+self.file_list[t])
             logging.info("Parsing " + self.file_list[t])
             try:
                 # this will fail if there are infs in the EWs
@@ -158,8 +165,10 @@ class Scraper():
                                               index=df.index)
 
             # names of original spectra
-            df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[-2],
+            ## ## improve the parsing later, to avoid having to update it repeatedly
+            df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
                                               index=df.index)
+            import ipdb; ipdb.set_trace()
 
             #df['star_name'] = pd.Series(self.file_list[t].split("__")[0], index=df.index)
 
@@ -180,11 +189,43 @@ class Scraper():
         # note THIS TABLE INCLUDES ALL DATA, GOOD AND BAD
         #df_master_reset = df_master.reset_index(drop=True).copy()
         # this is effectively the same, but gets written out
-        df_master.reset_index(drop=True).to_csv(self.write_out_filename)
+        df_master.reset_index(drop=True).to_csv(self.write_out_filename,index=False)
         logging.info("Table of ALL EW info written to " + str(self.write_out_filename))
         #if self.verbose:
         #    return df_master_reset, df_master_reset_drop_bad_spectra
         return
+
+
+def add_synthetic_meta_data(input_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"],
+                            read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"],
+                            write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_METADATA"]):
+
+    '''
+    For the generation of a calibration, this reads in a file with spectrum file
+    names and other info like Fe/H, and adds everything to the table with EWs
+
+    INPUTS:
+    input_list: file name of list containing original spectrum names and meta-data
+    read_in_filename: file name of table containing EW data including Balmer lines and their errors
+    write_out_filename: file name with everything together to write out
+    '''
+
+    # read in metadata
+    input_data_arr = pd.read_csv(input_list)
+
+    # read in EW data
+    all_data = pd.read_csv(read_in_filename)
+
+    import ipdb; ipdb.set_trace()
+
+    # add rows of meta-data table to EW data table, based on matchings of original spectrum file names
+
+
+    # write out
+    pruned_data.to_csv(write_out_filename,index=False)
+
+    return
+
 
 def quality_check(
     read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
@@ -249,7 +290,7 @@ def quality_check(
     # (note that if AT LEAST one absorption line was found to be bad, ALL the
     # data corresponding to that spectrum is removed)
     pruned_data = all_data[all_data.quality == "G"]#.reset_index()
-    pruned_data.to_csv(write_out_filename)
+    pruned_data.to_csv(write_out_filename,index=False)
 
     logging.info("--------------------------")
     logging.info('Scraped Robospect output written to')
@@ -312,6 +353,10 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     read_in_filename: name of the file with stacked EW data from Robospect, and only including 'good' data
     write_out_filename: name of the file to be written out; identical to the file read in,
         except that additional columns contain info on a net Balmer line
+
+    OUTPUTS:
+    (writes out csv with net Balmer line EWs)
+    [m, err_m, b, err_b], [m_1to1, err_m_1to1, b_1to1, err_b_1to1], df_poststack: info used in test functions
     '''
 
     # read in
@@ -361,13 +406,15 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     df_poststack["err_EW_Balmer"] = err_rHgam
 
     # write out
-    df_poststack.to_csv(write_out_filename)
+    df_poststack.to_csv(write_out_filename,index=False)
+    logging.info("Table with net Balmer line EWs written to " + str(write_out_filename))
 
     # returns parameters of line fit, and DataFrame with net Balmer info
     return [m, err_m, b, err_b], [m_1to1, err_m_1to1, b_1to1, err_b_1to1], df_poststack
 
 
-def generate_addl_ew_errors():
+def generate_addl_ew_errors(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"],
+                            write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"]):
     '''
     Calculates errors in EW, using two methods
     '''
@@ -381,8 +428,11 @@ def generate_addl_ew_errors():
 
     # method 2: stdev of line EWs
     #df_poststack = error_scatter_ew(df_poststack)
+    df_postbalmer = pd.read_csv(read_in_filename)
+    df_postbalmer_errors = df_postbalmer.to_csv(write_out_filename, index=False)
 
-    logging.info("Skipping the calculation of additional EW errors for now")
+    logging.info("Skipping the calculation of additional EW errors for now; just writing out same data again")
+    logging.info("Wrote table out to " + str(write_out_filename))
 
     '''
     logging.info("------------------------------")
@@ -418,72 +468,6 @@ def generate_addl_ew_errors():
     '''
 
     return
-
-
-def add_synthetic_meta_data(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"],
-                            fits_dir = config_red["data_dirs"]["DIR_SYNTH_FITS"]):
-    '''
-    Reads in FITS files, extracts header metadata (like Fe/H) and adds it to DataFrame
-    by matching file names
-
-    INPUTS:
-    df_poststack: DataFrame following stacking of data, with one column "original_spec_file_name"
-        whose basename (without the extension) will be used to match to FITS files
-    fits_dir: directory of FITS files which we will use for obtaining info
-        from the header (Fe/H, etc.); these data are matched to the DataFrame based
-        on the basename of the file read in
-    '''
-
-    import ipdb; ipdb.set_trace()
-    # read in the scraped EW data
-    df_poststack = pd.read_csv(read_in_filename)
-
-    # glob the FITS files
-    fits_file_names = glob.glob(fits_dir + "*fits")
-
-    # initialize new cols in df
-    df_poststack["FeH"] = np.nan
-    df_poststack["err_FeH"] = np.nan
-    df_poststack["logg"] = np.nan
-    df_poststack["alpha"] = np.nan
-    df_poststack["Teff"] = np.nan
-
-    for num_fits_file in range(0,len(fits_file_names)):
-
-        import ipdb; ipdb.set_trace()
-
-        this_spectrum = fits_file_names[num_fits_file]
-
-        ## ## CONTINUE HERE
-
-        # get index of match
-        idx = df_poststack.index[df_poststack["original_spec_file_name"].split(".")[0] + ".fits" == this_spectrum]
-        if (len(idx)==0):
-            print("No FITS file match found for " + this_spectrum)
-            continue
-        df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
-        import ipdb; ipdb.set_trace()
-
-        # read in the FITS file to extract values from header
-        logging.info("Reading in intermediary FITS file " + this_spectrum.split(".")[0] + ".fits for header data")
-        image, hdr = getdata(fits_dir + this_spectrum.split(".")[0] + ".fits", header=True, ignore_missing_end=True)
-        import ipdb; ipdb.set_trace()
-
-        logg = hdr["LOGG"]
-        teff = hdr["TEFF"]
-        alpha = hdr["ALPHA"]
-        feh = hdr["FEH"]
-        err_feh = 0.15 # ersatz for now
-        import ipdb; ipdb.set_trace()
-
-        # if the stellar spectra are synthetic, add in that info
-        df_poststack.iloc[idx]["logg"] = logg
-        df_poststack.iloc[idx]["Teff"] = teff
-        df_poststack.iloc[idx]["alpha"] = alpha
-        df_poststack.iloc[idx]["FeH"] = feh
-        df_poststack.iloc[idx]["err_FeH"] = err_feh
-
-    return df_poststack
 
 
 def stack_spectra(
@@ -564,6 +548,6 @@ def stack_spectra(
 
     # save intermediary table of data, before adding rescaled Balmer line
     logging.info("Writing out intermediary file of stacked Robospect EWs and rescaled Balmer lines to " + write_out_filename)
-    df_poststack.to_csv(write_out_filename)
+    df_poststack.to_csv(write_out_filename,index=False)
 
     return df_poststack

@@ -30,6 +30,7 @@ from astropy.table import Table
 #import pyfits
 import sys
 import numpy as np
+import pandas as pd
 from pathlib import *
 '''
 # TROUBLESHOOTING HERE
@@ -251,15 +252,24 @@ def read_list(input_list):
     Reads in list of spectrum names and returns a table of filenamse
 
     Arguments:
-        input_list: The spectrum filename
+        input_list: a csv file with columns
+            [0]: filename
+            [1]: subtype (RRab, RRc)
+            [2]: phase (0. to 1., -9999 for NaN)
+            [3]: metallicity (if producing the calibration)
+            [4]: error in metallicity (if producing the calibration)
     Returns:
        Numpy array of filenames
     '''
 
     logging.info("Reading in list of spectrum names to return table of filenames")
 
+    # expects header reading
+    # spectrum,subtype,phase,feh,err_feh
+    input_data_arr = pd.read_csv(input_list)
+
     # col 0 contains the file names
-    filenames_arr = np.genfromtxt(input_list, 'str', skip_header=0, usecols=(0))
+    filenames_arr = input_data_arr["orig_spec_file_name"].values
 
     return(filenames_arr)
 
