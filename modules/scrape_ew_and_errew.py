@@ -47,7 +47,7 @@ class Scraper():
 
         # read in original file names
         input_list = pd.read_csv(orig_spec_list)
-        self.orig_spec_list = input_list["spectrum"]
+        self.orig_spec_list = input_list["orig_spec_file_name"]
 
         # EW info will get scraped into this
         self.write_out_filename = file_scraped_info
@@ -166,9 +166,9 @@ class Scraper():
 
             # names of original spectra
             ## ## improve the parsing later, to avoid having to update it repeatedly
-            df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
-                                              index=df.index)
-            import ipdb; ipdb.set_trace()
+            #df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
+            #                                  index=df.index)
+            #import ipdb; ipdb.set_trace()
 
             #df['star_name'] = pd.Series(self.file_list[t].split("__")[0], index=df.index)
 
@@ -295,6 +295,7 @@ def quality_check(
     logging.info("--------------------------")
     logging.info('Scraped Robospect output written to')
     logging.info(write_out_filename)
+    #import ipdb; ipdb.set_trace()
 
     return pruned_data
 
@@ -472,17 +473,22 @@ def generate_addl_ew_errors(read_in_filename = config_red["data_dirs"]["DIR_EW_P
 
 def stack_spectra(
     read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
-    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"]):
+    write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+    input_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"]):
     '''
     Takes output of quality_check() and transposes and stacks data so that the data has *rows* of spectra and *cols* of absorption lines
 
     INPUTS:
     read_in_filename: file name of scraped Robospect data, after removing bad spectra
     write_out_filename: name of file to contain re-stacked data
+    input_list: list of original file names
     '''
 
-    # read in data
+    # read in EW data
     df_prestack = pd.read_csv(read_in_filename)
+
+    # read in the list of original file names
+    original_names = pd.read_csv(input_list)
 
     # make list of individual spectra for which we have EW data, and
     # initialize DataFrame to hold the re-cast data
@@ -505,11 +511,22 @@ def stack_spectra(
         this_spectrum = list_indiv_spectra[t]
         logging.info("Extracting EW data corresponding to " + this_spectrum)
 
+        # extract original file name (the one from which realizations are made)
+        # loop over all the original spectrum names; which contains a string that
+        # appears in the name of the noise-churned spectrum name?
+        ## ## inelegant; determine original spectrum name later in better way
+        #for orig_num in range(0,len(original_names)):
+        condition_array = []
+        for this_name in original_names["orig_spec_file_name"]:
+            condition_array.append(this_name.split(".")[0] in this_spectrum)
+        orig_name = original_names[condition_array]["orig_spec_file_name"].values[0]
+        # sanity check: if strings are not shared, abort
+        if orig_name.split(".")[0] not in this_spectrum:
+            input("Spectrum file strings don't match!!")
+
         # select data from table relevant to this spectrum
         data_this_spectrum = df_prestack.where(df_prestack["realization_spec_file_name"] == this_spectrum).dropna().reset_index()
-
-        # extract original file name (the one from which realizations are made)
-        orig_name = data_this_spectrum["original_spec_file_name"].drop_duplicates().values[0]
+        #import ipdb; ipdb.set_trace()
 
         try:
             # extract Balmer lines from the table of data from all the spectra
