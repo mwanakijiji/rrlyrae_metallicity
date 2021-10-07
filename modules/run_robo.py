@@ -85,7 +85,7 @@ class RunRobo:
 
 
 def main(
-        normzed_spec_source_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+        normzed_spec_source_dir = config_red["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"],
         write_dir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
         robo_dir=config_red["data_dirs"]["DIR_ROBO"]
         ):

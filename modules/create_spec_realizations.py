@@ -352,9 +352,9 @@ def create_spec_realizations_main(noise_level,
                                   input_spec_list_dir = config_red["data_dirs"]["DIR_SRC"],
                                   input_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"],
                                   unnorm_empirical_spectra_dir = config_red["data_dirs"]["DIR_RAW_SPEC_DATA"],
-                                  unnorm_noise_churned_spectra_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC"],
-                                  bkgrnd_output_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
-                                  final_dir = config_red["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                                  unnorm_noise_churned_spectra_dir = config_red["data_dirs"]["DIR_REZNS_SPEC"],
+                                  bkgrnd_output_dir = config_red["data_dirs"]["DIR_REZNS_SPEC_NORM"],
+                                  final_dir = config_red["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"],
                                   verb=False):
     '''
     INPUTS:

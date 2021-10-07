@@ -34,14 +34,14 @@ def main():
                                                             input_spec_list_dir = config_apply["data_dirs"]["DIR_SRC"],
                                                             input_list = config_apply["data_dirs"]["DIR_SRC"] + config_apply["file_names"]["LIST_SPEC_APPLY"],
                                                             unnorm_empirical_spectra_dir = config_apply["data_dirs"]["DIR_SCI_SPECTRA"],
-                                                            unnorm_noise_churned_spectra_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC"],
-                                                            bkgrnd_output_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM"],
-                                                            final_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"])
+                                                            unnorm_noise_churned_spectra_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC"],
+                                                            bkgrnd_output_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC_NORM"],
+                                                            final_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"])
 
     # run_robospect on normalized spectra
     # (N.b. Robospect directory is with 'config' because that's where the program was installed)
     run_robo.main(
-                normzed_spec_source_dir = config_apply["data_dirs"]["DIR_SYNTH_SPEC_NORM_FINAL"],
+                normzed_spec_source_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"],
                 write_dir=config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
                 robo_dir=config["data_dirs"]["DIR_ROBO"]
                 )
