@@ -335,7 +335,7 @@ class RunEmcee():
 
         #THIS IS THE ORIGINAL, SINCE EWS WERE IN MILLIANG
         # EWs in table are in angstroms and are mislabeled as mA (2020 Jan 12)
-        name = df_choice['original_spec_file_name']
+        name = df_choice['orig_spec_file_name']
         #caii = np.divide(df_choice['K'], 1000.)
         caii = df_choice['EW_CaIIK']
         #ecaii = np.divide(df_choice['err_K'], 1000.)
@@ -346,8 +346,8 @@ class RunEmcee():
         eave = df_choice['err_EW_Balmer']
         #eave = np.divide(df_choice['err_balmer'], 1000.)
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
-        feh = df_choice['FeH']
-        efeh = df_choice['err_FeH']
+        feh = df_choice['feh']
+        efeh = df_choice['err_feh']
         #import ipdb; ipdb.set_trace()
 
         # non-zero starting points for coefficients fghk (i.e., those beyond the Layden

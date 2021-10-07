@@ -166,7 +166,7 @@ class Scraper():
 
             # names of original spectra
             ## ## improve the parsing later, to avoid having to update it repeatedly
-            #df['original_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
+            #df['orig_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
             #                                  index=df.index)
             #import ipdb; ipdb.set_trace()
 
@@ -216,13 +216,13 @@ def add_synthetic_meta_data(input_list = config_red["data_dirs"]["DIR_SRC"] + co
     # read in EW data
     all_data = pd.read_csv(read_in_filename)
 
-    import ipdb; ipdb.set_trace()
-
     # add rows of meta-data table to EW data table, based on matchings of original spectrum file names
-
+    combined_data = all_data.merge(input_data_arr,how="left",on="orig_spec_file_name")
 
     # write out
-    pruned_data.to_csv(write_out_filename,index=False)
+    combined_data.to_csv(write_out_filename,index=False)
+    logging.info("Table of EW info with meta-data written to " + str(write_out_filename))
+    import ipdb; ipdb.set_trace()
 
     return
 
@@ -307,7 +307,7 @@ def error_scatter_ew(df_pass):
     '''
 
     # get list of original file names with no repeats
-    orig_file_array = np.array((df_pass["original_spec_file_name"].drop_duplicates()))
+    orig_file_array = np.array((df_pass["orig_spec_file_name"].drop_duplicates()))
 
     # add new columns of nans
     df_pass["err_EW_Hbeta_from_EW_variation"] = np.nan
@@ -321,7 +321,7 @@ def error_scatter_ew(df_pass):
         # mask all rows that do not correspond to the original spectrum
 
         this_orig_spec = orig_file_array[orig_file_name_num]
-        df_masked = df_pass.where(df_pass["original_spec_file_name"] == this_orig_spec)
+        df_masked = df_pass.where(df_pass["orig_spec_file_name"] == this_orig_spec)
 
         # find stdev of EWs, as measured for all realizations of those file names
         '''
@@ -333,7 +333,7 @@ def error_scatter_ew(df_pass):
 
         # insert into columns of input table
         try:
-            idx = df_pass.index[df_pass["original_spec_file_name"] == this_orig_spec] # indices
+            idx = df_pass.index[df_pass["orig_spec_file_name"] == this_orig_spec] # indices
             df_pass.loc[idx, "err_EW_Hbeta_from_EW_variation"] = np.nanstd(df_masked["EW_Hbeta"])
             df_pass.loc[idx, "err_EW_Hgamma_from_EW_variation"] = np.nanstd(df_masked["EW_Hgamma"])
             df_pass.loc[idx, "err_EW_Hdelta_from_EW_variation"] = np.nanstd(df_masked["EW_Hdelta"])
@@ -498,7 +498,7 @@ def stack_spectra(
     num_indiv_spectra = len(list_indiv_spectra)
 
     df_poststack = pd.DataFrame(columns=["realization_spec_file_name",
-                                         "original_spec_file_name",
+                                         "orig_spec_file_name",
                                          "EW_Hbeta", "err_EW_Hbeta_from_robo",
                                          "EW_Hdelta", "err_EW_Hdelta_from_robo",
                                          "EW_Hgamma", "err_EW_Hgamma_from_robo",
@@ -547,7 +547,7 @@ def stack_spectra(
 
             # fill in that row in the dataframe
             df_poststack.iloc[t]["realization_spec_file_name"] = this_spectrum
-            df_poststack.iloc[t]["original_spec_file_name"] = orig_name
+            df_poststack.iloc[t]["orig_spec_file_name"] = orig_name
             df_poststack.iloc[t]["EW_Hbeta"] = Hbeta
             df_poststack.iloc[t]["err_EW_Hbeta_from_robo"] = err_Hbeta
             df_poststack.iloc[t]["EW_Hdelta"] = Hdelta
