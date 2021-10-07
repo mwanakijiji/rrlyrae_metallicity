@@ -18,7 +18,6 @@ from modules import (compile_normalization,
 def main():
 
     # make all the directories
-
     make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
 
     # compile the C spectral normalization script
@@ -28,7 +27,7 @@ def main():
     # Take list of unnormalized empirical spectra and noise-churned the
     # spectra, normalize them, and write out normalizations
     ## ## just 1 or 2 realizations for testing (default is 100)
-    '''
+
     create_spec_realizations.create_spec_realizations_main(num = 1, noise_level="None", spec_file_type="ascii.no_header")
 
     # run_robospect on normalized synthetic spectra
@@ -43,7 +42,7 @@ def main():
 
     # put the good EW data into a table with
     # rows corresponding to files and cols for the lines
-    '''
+
     data_stacked = scrape_ew_and_errew.stack_spectra()
 
     data_net_balmer = scrape_ew_and_errew.generate_net_balmer()
@@ -52,16 +51,18 @@ def main():
 
     data_add_metadata = scrape_ew_and_errew.add_synthetic_meta_data()
     '''
+    generate_temperature_balmer_trend() # to-do!
+
     # run_emcee with input data_table_winnowed
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]
-    '''
+
     emcee_instance = run_emcee.RunEmcee()
     #emcee_instance(model = 'abcd') # call instance
     emcee_instance(model = 'abcdfghk')
 
     posterior_sample = run_emcee.corner_plot(model = 'abcd')
-
+    '''
 
 # entry point
 if __name__ == '__main__':

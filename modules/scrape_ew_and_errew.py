@@ -222,7 +222,6 @@ def add_synthetic_meta_data(input_list = config_red["data_dirs"]["DIR_SRC"] + co
     # write out
     combined_data.to_csv(write_out_filename,index=False)
     logging.info("Table of EW info with meta-data written to " + str(write_out_filename))
-    import ipdb; ipdb.set_trace()
 
     return
 
@@ -348,7 +347,9 @@ def error_scatter_ew(df_pass):
 def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
                         write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"]):
     '''
-    Takes stacked spectra data and adds a column representing a net Balmer line
+    Takes stacked spectra data and adds a column representing a net Balmer line,
+    and populates another column for the error (based on propagation of the Robo
+    errors of constituent lines)
 
     INPUTS:
     read_in_filename: name of the file with stacked EW data from Robospect, and only including 'good' data
@@ -392,7 +393,7 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     piece3 = np.divide(np.power(err_m,2),np.power(m,2))
     #err_rHgam = np.multiply(EW_rHgam,np.sqrt(np.subtract(np.divide(piece1,piece2),piece3)))
     # fill with placeholder nans for now
-    err_rHgam = np.nan
+    err_rHgam = EW_Hgamma*np.sqrt(np.add(np.divide(piece1,piece2),piece3))
 
     # test: a line of best fit to the Hdelta and rHgamma should be a 1-to-1 line
     idx_good_test = np.logical_and(np.isfinite(EW_Hdelta),np.isfinite(EW_rHgam))
@@ -404,7 +405,7 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
 
     # add column of rescaled Hgamma to DataFrame
     df_poststack["EW_Balmer"] = EW_rHgam
-    df_poststack["err_EW_Balmer"] = err_rHgam
+    df_poststack["err_EW_Balmer_based_Robo"] = err_rHgam
 
     # write out
     df_poststack.to_csv(write_out_filename,index=False)
