@@ -58,20 +58,6 @@ def test_create_norm_spec():
 
 def test_read_spec():
 
-    # FITS format
-    spec_name_fits = config_red["data_dirs"]["TEST_DIR_SRC"] + "575030m20.fits"
-    test_spec_tab_fits, test_hdr_fits = create_spec_realizations.read_spec(spec_name=spec_name_fits, format="fits")
-
-    # for FITS data, there should be 3 columns of floats, and a header
-    assert test_hdr_fits
-    assert len(test_spec_tab_fits.colnames) == 3 # 3 columns
-    assert isinstance(test_spec_tab_fits["wavelength"][0],np.float64)
-    assert isinstance(test_spec_tab_fits["flux"][0],np.float64)
-    assert isinstance(test_spec_tab_fits["error"][0],np.float64)
-    #assert (test_spec_tab_fits["wavelength"].info.dtype == np.float64)
-    #assert (test_spec_tab_fits["flux"].info.dtype == np.float64)
-    #assert (test_spec_tab_fits["error"].info.dtype == np.float64)
-
     # ascii format
     spec_name_ascii = config_red["data_dirs"]["TEST_DIR_SRC"] + "700025m20.smo"
     test_spec_tab_ascii, test_hdr_ascii = create_spec_realizations.read_spec(spec_name=spec_name_ascii, format="ascii.no_header")
@@ -93,6 +79,7 @@ def test_generate_realizations():
     noise_choice = 0.01
 
     # test on FITS files
+    '''
     test_spec_list_fits = [
                             abs_stem_src+"575030m20.fits",
                             abs_stem_src+"spec-3480-54999-0629g003.fits"
@@ -113,6 +100,7 @@ def test_generate_realizations():
                                                num=2,
                                                noise_level=noise_choice)
         returned_filenames_fits.extend(return_names_one_spec)
+    '''
 
     # test on ascii files
     test_spec_list_ascii = [
@@ -141,11 +129,11 @@ def test_generate_realizations():
     #returned_filenames_ascii = [item for sublist in t for item in sublist]
 
     # check if elements in list 1 are in list 2
-    result_fits =  all(elem in returned_filenames_fits for elem in expected_filenames_fits)
+    #result_fits =  all(elem in returned_filenames_fits for elem in expected_filenames_fits)
     result_ascii =  all(elem in returned_filenames_ascii for elem in expected_filenames_ascii)
 
     # test: are the file names right?
-    assert result_fits
+    #assert result_fits
     assert result_ascii
 
     # test: are the original spectra divided by the realizations equivalent
