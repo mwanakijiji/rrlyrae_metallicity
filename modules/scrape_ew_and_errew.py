@@ -371,15 +371,18 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     # better names for clarity below
     err_Hgamma = df_poststack["err_EW_Hgamma_from_robo"].values
 
-    print("fyi EW_Hdelta")
-    print(EW_Hdelta)
-    print("fyi EW_Hgamma")
-    print(EW_Hgamma)
+
 
     # safety check that both pairs of coordinates used for the fit are simultaneously finite
     # (otherwise a skipped 'nan' may cause a phase shift between the two series)
     idx_good = np.logical_and(np.isfinite(EW_Hdelta),np.isfinite(EW_Hgamma))
     # polyfit (x, y)
+    print("fyi EW_Hdelta")
+    print(EW_Hdelta)
+    print(EW_Hdelta[idx_good])
+    print("fyi EW_Hgamma")
+    print(EW_Hgamma)
+    print(EW_Hgamma[idx_good])
     coeff, cov = np.polyfit(EW_Hdelta[idx_good], EW_Hgamma[idx_good], 1, full=False, cov=True)
     m = coeff[0]
     b = coeff[1]
