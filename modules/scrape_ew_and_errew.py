@@ -379,10 +379,10 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     # polyfit (x, y)
     print("fyi EW_Hdelta")
     print(EW_Hdelta)
-    print(EW_Hdelta[idx_good])
+    print(len(EW_Hdelta[idx_good]))
     print("fyi EW_Hgamma")
     print(EW_Hgamma)
-    print(EW_Hgamma[idx_good])
+    print(len(EW_Hgamma[idx_good]))
     coeff, cov = np.polyfit(EW_Hdelta[idx_good], EW_Hgamma[idx_good], 1, full=False, cov=True)
     m = coeff[0]
     b = coeff[1]
