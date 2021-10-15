@@ -10,6 +10,7 @@ current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../"))
 sys.path.insert(0, target_dir)
 
+'''
 # import more things with changed system path
 from modules import *
 from modules import run_robo
@@ -22,7 +23,7 @@ config_red = configparser.ConfigParser() # for parsing values in .init file
 # config for reduction to find a, b, c, d
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
-'''
+
 # this test removed to avoid testing problems in cloud
 def test_RunRobo():
 
