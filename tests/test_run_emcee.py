@@ -18,7 +18,7 @@ import numpy as np
 import glob
 
 # configuration data for reduction
-config_red = configparser.ConfigParser(interpolation=ExtendedInterpolation()) # for parsing values in .init file
+config_red = ConfigParser(interpolation=ExtendedInterpolation()) # for parsing values in .init file
 # config for reduction to find a, b, c, d
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
