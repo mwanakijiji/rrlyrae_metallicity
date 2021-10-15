@@ -13,13 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from . import *
 
-# name of csv file with EWs as produced by pipeline
-ew_good_data_poststack_file_name = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/ew_products/restacked_ew_w_metadata.csv"
 
-# read in
-df_poststack = pd.read_csv(ew_good_data_poststack_file_name)
-
-def line_fit(x_data_pass, y_data_pass):
+def line_fit_temp_range(x_data_pass, y_data_pass, t_min=5900, t_max=7350):
     '''
     Find line of best fit
 
@@ -37,8 +32,8 @@ def line_fit(x_data_pass, y_data_pass):
     # remove the stuff outside of 6000-7250 K
     #x_data_rrl = x_data_pass.where(np.logical_and(x_data_pass>=5900,x_data_pass<=7350))
     #y_data_rrl = x_data_pass.where(np.logical_and(x_data_pass>=5900,x_data_pass<=7350))
-    x_data_rrl = x_data_pass[np.where(np.logical_and(y_data_pass>=5900,y_data_pass<=7350))]
-    y_data_rrl = y_data_pass[np.where(np.logical_and(y_data_pass>=5900,y_data_pass<=7350))]
+    x_data_rrl = x_data_pass[np.where(np.logical_and(y_data_pass>=t_min,y_data_pass<=t_max))]
+    y_data_rrl = y_data_pass[np.where(np.logical_and(y_data_pass>=t_min,y_data_pass<=t_max))]
 
     coeff, cov = np.polyfit(x_data_rrl, y_data_rrl, 1, full=False, cov=True)
     m = coeff[0]
@@ -46,16 +41,8 @@ def line_fit(x_data_pass, y_data_pass):
     err_m = np.sqrt(np.diag(cov))[0]
     err_b = np.sqrt(np.diag(cov))[1]
 
-    print("---------")
-    print("Note stuff outside of 6000-7350 K is not being considered")
-    print("m:")
-    print(m)
-    print("err_m:")
-    print(err_m)
-    print("b:")
-    print(b)
-    print("err_b:")
-    print(err_b)
+    logging.info("Fitting a Teff vs. Balmer line trend. Temperature range "+\
+                    "restricted to " + str(int(t_min)) + ", " + str(int(t_max)) +" K")
 
     return m, err_m, b, err_b
 
@@ -69,11 +56,20 @@ def temp_vs_balmer(df_poststack_file_name = config_red["data_dirs"]["DIR_EW_PROD
     teff = df_poststack["teff"].values.astype(float)
     # fit a straight line: net Balmer
     ews_Balmer = df_poststack["EW_Balmer"].values.astype(float)
-    m, err_m, b, err_b = line_fit(x_data_pass=ews_Balmer,y_data_pass=teff)
+
+    print("teff")
+    print(teff)
+    print("ews_Balmer")
+    print(ews_Balmer)
+
+    m, err_m, b, err_b = line_fit_temp_range(x_data_pass=ews_Balmer,
+                                                y_data_pass=teff,
+                                                t_min=5900,
+                                                t_max=7350)
 
 
     # plot: how do Balmer lines scale with Teff?
-
+    '''
     plt.clf()
     plt.title("Scaling of lines with Hdelta")
     plt.plot(ews_Balmer,np.add(np.multiply(m,ews_Balmer),b), linestyle='--')
@@ -84,3 +80,5 @@ def temp_vs_balmer(df_poststack_file_name = config_red["data_dirs"]["DIR_EW_PROD
     plt.title("Teff from the Balmer EW")
     plt.show()
     #plt.savefig("junk_balmer_rescalings.pdf")
+    '''
+    return m, err_m, b, err_b
