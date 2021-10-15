@@ -160,14 +160,6 @@ class Scraper():
             df['realization_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0],
                                               index=df.index)
 
-            # names of original spectra
-            ## ## improve the parsing later, to avoid having to update it repeatedly
-            #df['orig_spec_file_name'] = pd.Series(self.file_list[t].split(".robolines")[0].split("_")[0],
-            #                                  index=df.index)
-            #import ipdb; ipdb.set_trace()
-
-            #df['star_name'] = pd.Series(self.file_list[t].split("__")[0], index=df.index)
-
             # names of the absorption lines
             df['line_name'] = ['CaIIK', 'Heps', 'Hdel', 'Hgam', 'Hbet']
 
