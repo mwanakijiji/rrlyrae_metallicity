@@ -32,20 +32,7 @@ import sys
 import numpy as np
 import pandas as pd
 from pathlib import *
-'''
-# TROUBLESHOOTING HERE
-current_dir = os.path.dirname(__file__)
-print(current_dir)
-print("error above")
 
-current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-sys.path.insert(0, target_dir)
-print("Current dir:")
-print(current_dir)
-print("Target dir:")
-print(target_dir)
-'''
 current_dir = os.path.dirname(__file__)
 print("Current dir:")
 print(current_dir)

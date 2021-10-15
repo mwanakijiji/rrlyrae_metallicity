@@ -93,10 +93,6 @@ class Scraper():
 
         df_master = pd.DataFrame() # initialize
 
-        #print('FILE LIST')
-        #print(self.file_list)
-        #print(self.file_list[116])
-
         # loop over all filenames of realizations of empirical spectra, extract line data
         #import ipdb; ipdb.set_trace()
         for t in range(0, len(self.file_list)):
@@ -255,6 +251,7 @@ def quality_check(
     where_red_flag = np.where(np.array(red_flag_array) != '0')
     # identify the synthetic spectrum names which have at least one line with a bad fit
     bad_robo_spectra = all_data["realization_spec_file_name"][np.squeeze(where_red_flag)]
+
     # remove duplicate names
     bad_robo_spectra_uniq = bad_robo_spectra.drop_duplicates()
     # flag as bad the spectra with those names
@@ -518,11 +515,15 @@ def stack_spectra(
         ## ## inelegant; determine original spectrum name later in better way
         #for orig_num in range(0,len(original_names)):
         condition_array = []
+
+        # this appears to be obsolete
         for this_name in original_names["orig_spec_file_name"]:
             condition_array.append(this_name.split(".")[0] in this_spectrum)
-        orig_name = original_names[condition_array]["orig_spec_file_name"].values[0]
-        # sanity check: if strings are not shared, abort
-        if orig_name.split(".")[0] not in this_spectrum:
+
+        try:
+            orig_name = original_names[condition_array]["orig_spec_file_name"].values[0]
+        except:
+            # sanity check: if strings are not shared, abort
             input("Spectrum file strings don't match!!")
 
         # select data from table relevant to this spectrum
@@ -562,7 +563,7 @@ def stack_spectra(
 
         except:
             logging.error("Data stacking error in data for " + this_spectrum)
-            print("Data anomaly; skipping " + this_spectrum)
+            logging.error("Data anomaly; skipping " + this_spectrum)
 
     # save intermediary table of data, before adding rescaled Balmer line
     logging.info("Writing out intermediary file of stacked Robospect EWs and rescaled Balmer lines to " + write_out_filename)

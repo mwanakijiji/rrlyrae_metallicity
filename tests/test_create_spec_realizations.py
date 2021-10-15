@@ -59,7 +59,7 @@ def test_create_norm_spec():
 def test_read_spec():
 
     # ascii format
-    spec_name_ascii = config_red["data_dirs"]["TEST_DIR_SRC"] + "700025m20.smo"
+    spec_name_ascii = config_red["data_dirs"]["TEST_DIR_SRC"] + "raw_spec/575020m05.smo"
     test_spec_tab_ascii, test_hdr_ascii = create_spec_realizations.read_spec(spec_name=spec_name_ascii, format="ascii.no_header")
 
     # for ascii data, there should be 3 columns of floats, and NO header
@@ -69,52 +69,32 @@ def test_read_spec():
     assert isinstance(test_spec_tab_ascii["flux"][0],np.float64)
     assert isinstance(test_spec_tab_ascii["error"][0],np.float64)
 
+
 def test_generate_realizations():
 
-    # use a pair of test spectra for each format (FITS or ascii)
-    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
+    # use some test spectra
+    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"] + "raw_spec/"
     abs_stem_bin = config_red["data_dirs"]["TEST_DIR_BIN"]
 
     # set fractional noise level for these tests
     noise_choice = 0.01
 
-    # test on FITS files
-    '''
-    test_spec_list_fits = [
-                            abs_stem_src+"575030m20.fits",
-                            abs_stem_src+"spec-3480-54999-0629g003.fits"
-                            ]
-    # expected names
-    # (note these should just be basenames)
-    expected_filenames_fits = [
-                            "575030m20_noise_ver_000.fits",
-                            "575030m20_noise_ver_001.fits",
-                            "spec-3480-54999-0629g003_noise_ver_000.fits",
-                            "spec-3480-54999-0629g003_noise_ver_001.fits"
-                            ]
-    returned_filenames_fits = []
-    for spec_num in range(0,len(test_spec_list_fits)):
-        return_names_one_spec = create_spec_realizations.generate_realizations(spec_name=test_spec_list_fits[spec_num],
-                                               outdir=abs_stem_bin,
-                                               spec_file_format="fits",
-                                               num=2,
-                                               noise_level=noise_choice)
-        returned_filenames_fits.extend(return_names_one_spec)
-    '''
-
     # test on ascii files
     test_spec_list_ascii = [
-                            abs_stem_src+"700025m20.smo",
-                            abs_stem_src+"spec-3478-55008-0186g002.dat"
+                            abs_stem_src+"575020m05.smo",
+                            abs_stem_src+"575020m10.smo",
+                            abs_stem_src+"575020m15.smo"
                             ]
     # expected names
     # (note these should just be basenames)
     expected_filenames_ascii = [
-                            "700025m20_noise_ver_000.smo",
-                            "700025m20_noise_ver_001.smo",
-                            "spec-3478-55008-0186g002_noise_ver_000.dat",
-                            "spec-3478-55008-0186g002_noise_ver_001.dat"
-                            ]
+                                "575020m05_noise_ver_000.smo",
+                                "575020m05_noise_ver_001.smo",
+                                "575020m10_noise_ver_000.smo",
+                                "575020m10_noise_ver_001.smo",
+                                "575020m15_noise_ver_000.smo",
+                                "575020m15_noise_ver_001.smo"
+                                ]
     returned_filenames_ascii = []
     for spec_num in range(0,len(test_spec_list_ascii)):
         return_names_one_spec = create_spec_realizations.generate_realizations(spec_name=test_spec_list_ascii[spec_num],
@@ -146,45 +126,29 @@ def test_generate_realizations():
     expected_filenames_ascii.sort()
 
     orig_spec_0 = pd.read_csv(test_spec_list_ascii[0], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
-    orig_spec_1 = pd.read_csv(test_spec_list_ascii[1], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
+    #orig_spec_1 = pd.read_csv(test_spec_list_ascii[1], names=["wavel", "abs_flux", "error"], delim_whitespace=True)
 
     # read in the realizations based off of the original spectra
     # realizations of orig spec 0
     realzn_spec_0_0 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[0], names=["wavel", "abs_flux"], delim_whitespace=True)
     realzn_spec_0_1 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[1], names=["wavel", "abs_flux"], delim_whitespace=True)
     # realizations of orig spec 1
-    realzn_spec_1_0 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[2], names=["wavel", "abs_flux"], delim_whitespace=True)
-    realzn_spec_1_1 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[3], names=["wavel", "abs_flux"], delim_whitespace=True)
+    #realzn_spec_1_0 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[2], names=["wavel", "abs_flux"], delim_whitespace=True)
+    #realzn_spec_1_1 = pd.read_csv(abs_stem_bin + expected_filenames_ascii[3], names=["wavel", "abs_flux"], delim_whitespace=True)
 
     # do the division
     div_spec_0_by_0 = np.divide(orig_spec_0["abs_flux"],realzn_spec_0_0["abs_flux"])
     div_spec_0_by_1 = np.divide(orig_spec_0["abs_flux"],realzn_spec_0_1["abs_flux"])
-    div_spec_1_by_0 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_0["abs_flux"])
-    div_spec_1_by_1 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_1["abs_flux"])
+    #div_spec_1_by_0 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_0["abs_flux"])
+    #div_spec_1_by_1 = np.divide(orig_spec_1["abs_flux"],realzn_spec_1_1["abs_flux"])
 
     # are the original and realization spectra really of the same amplitude?
     assert round(np.median(div_spec_0_by_0), 1) == 1.0
     assert round(np.median(div_spec_0_by_1), 1) == 1.0
-    assert round(np.median(div_spec_1_by_0), 1) == 1.0
-    assert round(np.median(div_spec_1_by_1), 1) == 1.0
+    #assert round(np.median(div_spec_1_by_0), 1) == 1.0
+    #assert round(np.median(div_spec_1_by_1), 1) == 1.0
 
     ## ## noise injection level not well tested yet
-
-
-def test_read_bkgrnd_spec():
-    # just ascii for now
-
-    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
-
-    # this is a file that looks like what it should after bkgrnd has done its thing
-    file_name_test = abs_stem_src + "spec-0266-51630-0197g001_noise_ver_000.dat"
-
-    # choose a random spectrum from these four
-    returned_table = create_spec_realizations.read_bkgrnd_spec(file_name_test)
-
-    # is returned table a non-empty numpy table?
-    assert isinstance(returned_table, astropy.table.table.Table)
-    assert len(returned_table) > 0
 
 
 def test_read_list():
@@ -197,10 +161,23 @@ def test_read_list():
 
     # is a numpy array with the expected first element returned?
     assert isinstance(returned_list, np.ndarray)
-    assert returned_list[0] == "spec-0266-51630-0197g001.dat"
+    assert returned_list[0] == "575020m05.smo"
 
 
 def test_write_bckgrnd_input():
+    '''
+    Test for function to create input file for the bckgrnd program
+
+    Arguments:
+        name_list: List of Realization file names (no path info)
+        indir: The working directory with files to be fed into bkgrnd routine
+        normdir: The output directory for normalized files
+    Returns:
+       A string with the background input filename; the filename itself which
+       has been written out lists the input and output directories, and a
+       list of the FITS files which are the spectrum realizations in the input
+       directory
+    '''
 
     indir_test = config_red["data_dirs"]["TEST_DIR_SRC"]
     normdir_test = config_red["data_dirs"]["TEST_DIR_BIN"]
@@ -215,3 +192,24 @@ def test_write_bckgrnd_input():
     # note this doesn't test whether the file itself is written, but that
     # would be easy to isolate
     assert bgrnd_input_filename_test == indir_test + "bckgrnd_input.txt"
+
+
+def test_read_bkgrnd_spec():
+    # can spectra written by background routine be written in as astropy tables?
+
+    abs_stem_src = config_red["data_dirs"]["TEST_DIR_SRC"]
+
+    # loop over a few files
+    # (note they should have 3 columns: 1.) wavelength, 2.) flux, 3.) background flux)
+    file_name_array = ["575020m05_noise_ver_000.smo","575020m05_noise_ver_001.smo","575020m10_noise_ver_000.smo"]
+    for i in range(0,len(file_name_array)):
+        # this is a file that looks like what it should after bkgrnd has done its thing
+        # (it should have 3 columns)
+        file_name_test = abs_stem_src + file_name_array[i]
+
+        # choose a random spectrum from these four
+        returned_table = create_spec_realizations.read_bkgrnd_spec(file_name_test)
+
+        # is returned table a non-empty numpy table?
+        assert isinstance(returned_table, astropy.table.table.Table)
+        assert len(returned_table) > 0
