@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import sys, os
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import pandas as pd
 import astropy
 
@@ -17,7 +17,7 @@ from conf import *
 import numpy as np
 
 # configuration data for reduction
-config_red = configparser.ConfigParser() # for parsing values in .init file
+config_red = ConfigParser(interpolation=ExtendedInterpolation()) # for parsing values in .init file
 # config for reduction to find a, b, c, d
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 

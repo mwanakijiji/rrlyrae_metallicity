@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import sys, os
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import pandas as pd
 import astropy
 
@@ -18,7 +18,7 @@ import numpy as np
 import glob
 
 # configuration data for reduction
-config_red = configparser.ConfigParser() # for parsing values in .init file
+config_red = ConfigParser(interpolation=ExtendedInterpolation()) # for parsing values in .init file
 # config for reduction to find a, b, c, d
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
@@ -27,7 +27,7 @@ def test_Scraper():
 
     '''
     write_dir_test = config_red["data_dirs"]["TEST_DIR_BIN"]
-    robo_dir = config_red["data_dirs"]["DIR_ROBO"]
+    robo_dir = config_red["sys_dirs"]["DIR_ROBO"]
     file_names_test = glob.glob(config_red["data_dirs"]["TEST_DIR_SRC"] + "spec_norm_final/*")
     '''
 

@@ -21,7 +21,7 @@ class Scraper():
     '''
 
     def __init__(self,
-                 subdir=config_red["sys_dirs"]["DIR_ROBO_OUTPUT"],
+                 subdir=config_red["data_dirs"]["DIR_ROBO_OUTPUT"],
                  file_scraped_info=config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["SCRAPED_EW_ALL_DATA"],
                  orig_spec_list = config_red["data_dirs"]["DIR_SRC"] + config_red["file_names"]["LIST_SPEC_PHASE"],
                  verbose=False):

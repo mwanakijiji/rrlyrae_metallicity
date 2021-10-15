@@ -2,7 +2,7 @@
 Initialization
 '''
 
-import configparser
+from configparser import ConfigParser, ExtendedInterpolation
 import os
 import sys
 import multiprocessing
@@ -25,12 +25,12 @@ logging.basicConfig(
 )
 
 # configuration data for reduction
-config_red = configparser.ConfigParser() # for parsing values in .init file
+config_red = ConfigParser(interpolation=ExtendedInterpolation()) # for parsing values in .init file
 # config for reduction to find a, b, c, d
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
 # config for applying a calibration
-config_apply = configparser.ConfigParser()
+config_apply = ConfigParser(interpolation=ExtendedInterpolation())
 #config_apply.read("rrlyrae_metallicity/modules/config_apply.ini")
 config_apply.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_apply.ini'))
 
