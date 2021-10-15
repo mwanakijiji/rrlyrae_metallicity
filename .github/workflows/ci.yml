@@ -33,6 +33,10 @@ jobs:
           pip install
           build
           --user
+      - name: Upload coverage data to coveralls.io
+        run: coveralls --service=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build a binary wheel and a source tarball
         run: >-
           python -m
@@ -40,27 +44,6 @@ jobs:
           --sdist
           --wheel
           --outdir dist/
-
-      # the below is for Coveralls
-
-      - uses: actions/checkout@v2
-      - name: Use Node.js 10.x
-        uses: actions/setup-node@master
-        with:
-          version: 10.x
-
-      - name: npm install
-        run: npm install
-
-      - name: Test ${{ matrix.test_number }}
-        run: make test-coverage-${{ matrix.test_number }}
-      - name: Coveralls Parallel
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.test_number }}
-          parallel: true
-
 
 
       # commented out below to avoid new build every time
