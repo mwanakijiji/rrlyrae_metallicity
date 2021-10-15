@@ -2,7 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import sys, os
-import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser, ExtendedInterpolation
 import pandas as pd
 import astropy
 
