@@ -305,7 +305,7 @@ class RunEmcee():
     '''
 
     def __init__(self,
-                 scraped_ews_good_only_file_name = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+                 scraped_ews_good_only_file_name = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY_TEFFFIT"],
                  mcmc_text_output_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["MCMC_OUTPUT"]
                  ):
 

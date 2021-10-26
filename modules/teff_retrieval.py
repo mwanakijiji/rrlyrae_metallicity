@@ -14,7 +14,7 @@ import numpy as np
 from . import *
 
 
-def line_fit_temp_range(x_data_pass, y_data_pass, t_min=5900, t_max=7350):
+def line_fit_temp_range(x_data_pass, y_data_pass, t_min, t_max):
     '''
     Find line of best fit
 
@@ -47,38 +47,71 @@ def line_fit_temp_range(x_data_pass, y_data_pass, t_min=5900, t_max=7350):
     return m, err_m, b, err_b
 
 
-def temp_vs_balmer(df_poststack_file_name = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_METADATA"]):
+def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_METADATA"],
+                    df_poststack_file_name_write = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY_TEFFFIT"],
+                    plot_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["TEFF_VS_BALMER"],
+                    t_min=5900,
+                    t_max=7350):
+    '''
+    Finds a linear Teff vs. Balmer EW relation. This is an ancillary step before
+    running the MCMC further downstream in the pipeline.
+
+    INPUTS:
+    df_poststack_file_name_read: name of file that contains all the data from the upstream
+        pipeline and will be read in for the fit; it should contain columns with 'teff'
+        and 'EW_Balmer', with which a simple linear fit is made
+    df_poststack_file_name_write: name of file to write; this file is the same as
+        the one read in, except that now it also includes the best-fit values of the Teff
+    plot_write: file name of Teff vs Balmer plot to write
+    t_min: the minimum Teff of spectra that the linear fit will be made to
+    t_max: the maximum "  "  "  "
+
+    OUTPUTS:
+    m:      slope
+    err_m:  error in slope
+    b:      y-intercept
+    err_b:  error in y-intercept
+    '''
 
     # read in data
-    df_poststack = pd.read_csv(df_poststack_file_name)
+    df_poststack = pd.read_csv(df_poststack_file_name_read)
 
-    # find linear trends of {net Balmer, Hdelta, and Hgamma} EW with Teff, entire Teff range
+    # find linear trend of net Balmer EW with Teff
     teff = df_poststack["teff"].values.astype(float)
     # fit a straight line: net Balmer
     ews_Balmer = df_poststack["EW_Balmer"].values.astype(float)
 
-    print("teff")
-    print(teff)
-    print("ews_Balmer")
-    print(ews_Balmer)
-
     m, err_m, b, err_b = line_fit_temp_range(x_data_pass=ews_Balmer,
                                                 y_data_pass=teff,
-                                                t_min=5900,
-                                                t_max=7350)
+                                                t_min=t_min,
+                                                t_max=t_max)
 
+    logging.info("Best-fit line for Teff=m*EW_Balmer + b is [m, err_m, b, err_b] = " +
+                "[" + str(m) + ", " + str(err_m) + ", " + str(b) + ", " + str(err_b) + "]")
 
-    # plot: how do Balmer lines scale with Teff?
-    '''
+    # add the best-fit Teffs to dataframe
+    teffs_bestfit = np.add(np.multiply(m,ews_Balmer),b)
+    df_poststack["teff_bestfit"] = teffs_bestfit
+
+    # write to file
+    df_poststack.to_csv(df_poststack_file_name_write,index=False)
+    logging.info("Wrote out data file including linear-best-fit Teffs to " + df_poststack_file_name_write)
+
+    # save an FYI plot
     plt.clf()
-    plt.title("Scaling of lines with Hdelta")
-    plt.plot(ews_Balmer,np.add(np.multiply(m,ews_Balmer),b), linestyle='--')
-    plt.scatter(ews_Balmer,teff, s=3)
+    plt.title("Teff from the Balmer EW\n[m, err_m, b, err_b] = \n" +
+                "[" + str(np.round(m,2)) + ", " + str(np.round(err_m,2)) + ", " + str(np.round(b,2)) + ", " + str(np.round(err_b,2)) + "]")
+    plt.axhline(y=t_max, color="k", alpha=0.4)
+    plt.axhline(y=t_min, color="k", alpha=0.4)
+    plt.plot(ews_Balmer, teffs_bestfit, linestyle='--')
+    plt.scatter(ews_Balmer, teff, color="k", s=3)
     #plt.ylim([0,70])
+
     plt.ylabel("Teff (K)")
     plt.xlabel("EW (Angstr)")
-    plt.title("Teff from the Balmer EW")
-    plt.show()
-    #plt.savefig("junk_balmer_rescalings.pdf")
-    '''
-    return m, err_m, b, err_b
+    plt.tight_layout()
+    plt.savefig(plot_write)
+    plt.clf()
+    logging.info("Wrote out plot of Teffs vs. Balmer EW to " + plot_write)
+
+    return df_poststack

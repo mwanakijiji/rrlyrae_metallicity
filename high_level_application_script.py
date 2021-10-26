@@ -42,13 +42,13 @@ def main():
     # (N.b. Robospect directory is with 'config' because that's where the program was installed)
     run_robo.main(
                 normzed_spec_source_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"],
-                write_dir=config_apply["sys_dirs"]["DIR_ROBO_OUTPUT"],
+                write_dir=config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
                 robo_dir=config["sys_dirs"]["DIR_ROBO"]
                 )
 
     # scrape_ew_from_robo and calculate EWs + err_EW
     '''
-    scraper_instance = scrape_ew_and_errew.Scraper(subdir = config_apply["sys_dirs"]["DIR_ROBO_OUTPUT"],
+    scraper_instance = scrape_ew_and_errew.Scraper(subdir = config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
                                                    file_scraped_info = config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"])
     scraper_instance() # call instance
     '''
