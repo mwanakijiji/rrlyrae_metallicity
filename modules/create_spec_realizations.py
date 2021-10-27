@@ -165,7 +165,7 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
 
         try:
             outfile = open(new_name_ascii, 'w')
-        except IOError:
+        except IOError: # pragma: no cover
             logging.info("File {} could not be opened!".format(new_name_ascii))
 
         #import ipdb; ipdb.set_trace()
@@ -178,14 +178,6 @@ def generate_realizations(spec_name, outdir, spec_file_format, num, noise_level)
         c1=fits.Column(name="wavelength", format='D', array=spec_tab["wavelength"])
         c2=fits.Column(name="new_flux", format='D', array=new_flux)
         t = fits.BinTableHDU.from_columns([c1, c2], header=hdr)
-
-        ## first format: FITS format with updated history in header (if the original file was FITS too)
-        if (spec_file_format == "fits"):
-            hdr["HISTORY"] = "-------------"
-            hdr["HISTORY"] = "Realization made from " + os.path.basename(spec_name)
-            logging.info("Writing out FITS realization file " + new_name_fits + \
-                " with noise level stdev " + str(np.std(noise_to_add)))
-            t.writeto(new_name_fits, overwrite=True)
 
         ## second format: ascii, so bkgrnd can read it in
         logging.info("Writing out ascii realization file " + new_name_ascii + \
@@ -277,21 +269,15 @@ def read_spec(spec_name, format):
 
     logging.info("Reading spectrum " + spec_name)
 
-    if (format == "fits"):
-        # read in table info
-        spec_tab = Table.read(spec_name, format='fits')
-        # read in header info
-        hdul = fits.open(spec_name)
-        hdr = hdul[0].header
-    elif (format == "ascii.no_header"):
+    if (format == "ascii.no_header"):
         # this option is antiquated; we want to preserve FITS header info
         spec_tab = Table.read(spec_name, format='ascii.no_header',
                           names=['wavelength', 'flux', 'error'])
         hdr = np.nan
 
-    else:
+    else: # pragma: no cover
         logging.info("File format unknown!!!")
-    #import ipdb; ipdb.set_trace()
+
     return(spec_tab, hdr)
 
 
@@ -455,16 +441,3 @@ def create_spec_realizations_main(noise_level,
     logging.info("-------------------------------------------")
     logging.info("Wrote final normalized spectra to directory")
     logging.info(final_dir)
-
-if __name__ == '__main__':
-    # below is obsolete --E.S.
-    parser = argparse.ArgumentParser(description='Generates normalized spectra realizations using Gaussian Error')
-    parser.add_argument('input_list', help='List of spectra to process.')
-    parser.add_argument('-o', default='tmpdir', metavar='Output_Dir', help='Output directory (Default tmpdir).')
-    parser.add_argument('-n', type=int, default=100, metavar='Num', help='Number of Realizations (Default 100).')
-    parser.add_argument('-v', action='store_true', help='Turn on verbosity')
-    #Put this in a dictionary
-    args = vars(parser.parse_args())
-    #print("afds")
-    #print(args['input_list'])
-    ret = create_spec_realizations_main(args['input_list'], args['o'], args['n'], args['v'])

@@ -522,7 +522,7 @@ def stack_spectra(
 
         try:
             orig_name = original_names[condition_array]["orig_spec_file_name"].values[0]
-        except:
+        except: # pragma: no cover
             # sanity check: if strings are not shared, abort
             input("Spectrum file strings don't match!!")
 
@@ -561,7 +561,7 @@ def stack_spectra(
             df_poststack.iloc[t]["EW_CaIIK"] = CaIIK
             df_poststack.iloc[t]["err_EW_CaIIK_from_robo"] = err_CaIIK
 
-        except:
+        except: # pragma: no cover
             logging.error("Data stacking error in data for " + this_spectrum)
             logging.error("Data anomaly; skipping " + this_spectrum)
 

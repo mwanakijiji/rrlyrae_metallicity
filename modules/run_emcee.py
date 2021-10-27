@@ -108,7 +108,7 @@ def corner_plot(model,
         logging.info("coeff k: " + " ".join(map(str,k_mcmc)))
 
 
-    else:
+    else: # pragma: no cover
 
         logging.error("Error! No calibration model chosen for the MCMC posteriors!")
 
@@ -239,7 +239,7 @@ def sigma_Km_sqd(coeffs_pass,Bal_pass,err_Bal_pass,Feh_pass,err_Feh_pass):
         dKdF = coeffs_pass[2] + coeffs_pass[3]*Bal_pass + 2.*coeffs_pass[5]*Feh_pass + \
                     coeffs_pass[6]*np.power(Bal_pass,2.) + 2.*coeffs_pass[7]*Bal_pass*Feh_pass
 
-    else:
+    else: # pragma: no cover
         logging.error("Number of coefficients does not make sense!")
 
     # 'sigma_Km squared'
