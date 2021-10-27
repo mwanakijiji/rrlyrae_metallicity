@@ -10,6 +10,7 @@ import pandas as pd
 import emcee
 import corner
 import logging
+from scipy.optimize import least_squares
 from . import *
 
 
@@ -221,6 +222,12 @@ def function_K(coeffs_pass,Bal_pass,F_pass):
     return K_pass
 
 
+def K_residual():
+    # for the Levenberg-Marquardt fit
+
+    return y - function_K(coeffs_pass,Bal_pass,F_pass):
+
+
 def sigma_Km_sqd(coeffs_pass,Bal_pass,err_Bal_pass,Feh_pass,err_Feh_pass):
     # def of model CaIIK error squared (this is general, regardless of number of coeffs):
     # sigma_Km^2 = (del_K/del_H)^2 * sig_H^2 + (del_K/del_F)^2 * sig_F^2
@@ -301,7 +308,7 @@ def chi_sqd_fcn(Bal_pass,
 
 class RunEmcee():
     '''
-    Run the emcee MCMC to obtain coefficients a, b, c, d
+    Run the emcee MCMC to obtain coefficients a, b, c, d (+ f, g, h, k)
     '''
 
     def __init__(self,
@@ -388,6 +395,11 @@ class RunEmcee():
                             float(g_init),
                             float(h_init),
                             float(k_init)]
+
+        ################# do a Levenberg-Marquardt fit to check consistency #################
+        ## ## CONTINUE HERE; GET THIS TO WORK
+        # this is for abcd or abcdfghk calibrations, whichever is being done by the MCMC
+        popt, pcov = least_squares(K_residual, p0=param_array_0, args=(x, y), method="lm")
 
         ################# MCMC setup #################
 
