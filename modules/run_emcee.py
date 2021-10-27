@@ -196,7 +196,7 @@ def function_K(coeffs_pass,Bal_pass,F_pass):
     F_pass: [Fe/H]
 
     OUTPUTS:
-    K_pasS: CaIIK EW
+    K_pass: CaIIK EW
     '''
 
     if (len(coeffs_pass) == 4):
@@ -222,10 +222,12 @@ def function_K(coeffs_pass,Bal_pass,F_pass):
     return K_pass
 
 
-def K_residual():
-    # for the Levenberg-Marquardt fit
+def K_residual(coeffs_pass,Bal_pass,F_pass,y):
+    # residual function, which we want to minimize for the Levenberg-Marquardt fit
+    # ('y' here is the CaIIK EW)
+    #import ipdb; ipdb.set_trace()
 
-    return y - function_K(coeffs_pass,Bal_pass,F_pass):
+    return y.values - function_K(coeffs_pass,Bal_pass,F_pass).values
 
 
 def sigma_Km_sqd(coeffs_pass,Bal_pass,err_Bal_pass,Feh_pass,err_Feh_pass):
@@ -340,7 +342,6 @@ class RunEmcee():
         ## ## make df_choice.Spectrum -> df_choice["Spectrum etc.
         df_choice = pd.read_csv(self.scraped_ew_filename,delim_whitespace=False)
 
-        #THIS IS THE ORIGINAL, SINCE EWS WERE IN MILLIANG
         # EWs in table are in angstroms and are mislabeled as mA (2020 Jan 12)
         name = df_choice['orig_spec_file_name']
         #caii = np.divide(df_choice['K'], 1000.)
@@ -350,12 +351,11 @@ class RunEmcee():
         #ecaii = df_choice['err_EW_CaIIK']
         #ave = np.divide(df_choice['balmer'], 1000.)
         ave = df_choice['EW_Balmer']
-        eave = df_choice['err_EW_Balmer']
+        eave = df_choice['err_EW_Balmer_based_Robo']
         #eave = np.divide(df_choice['err_balmer'], 1000.)
         ## ## THE BELOW FEH VALUES NEED TO BE CHECKED/FIXED
         feh = df_choice['feh']
         efeh = df_choice['err_feh']
-        #import ipdb; ipdb.set_trace()
 
         # non-zero starting points for coefficients fghk (i.e., those beyond the Layden
         # model)
@@ -397,9 +397,11 @@ class RunEmcee():
                             float(k_init)]
 
         ################# do a Levenberg-Marquardt fit to check consistency #################
-        ## ## CONTINUE HERE; GET THIS TO WORK
         # this is for abcd or abcdfghk calibrations, whichever is being done by the MCMC
-        popt, pcov = least_squares(K_residual, p0=param_array_0, args=(x, y), method="lm")
+        lstsq_soln = least_squares(K_residual, param_array_0, args=(ave, feh, caii), method="lm")
+        logging.info("--------------------------")
+        logging.info("Levenberg-Marquardt soln made. Vector array: ")
+        logging.info(lstsq_soln.x)
 
         ################# MCMC setup #################
 
