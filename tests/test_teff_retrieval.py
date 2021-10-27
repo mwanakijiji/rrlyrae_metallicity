@@ -28,10 +28,32 @@ config_red = ConfigParser(interpolation=ExtendedInterpolation()) # for parsing v
 config_red.read(os.path.join(os.path.dirname(__file__), '../conf', 'config_red.ini'))
 
 
-def test_temp_vs_balmer(df_poststack_file_name = config_red["data_dirs"]["TEST_DIR_SRC"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_W_METADATA_STANDALONE"]):
+def test_temp_vs_balmer(test_df_poststack_file_name_read = config_red["data_dirs"]["TEST_DIR_SRC"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_W_METADATA_STANDALONE"],
+                        test_df_poststack_file_name_write = config_red["data_dirs"]["TEST_DIR_SRC"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_GOOD_ONLY_TEFFFIT"]):
 
 
-    m_test, err_m_test, b_test, err_b_test = teff_retrieval.temp_vs_balmer(df_poststack_file_name=df_poststack_file_name)
+    df_test = teff_retrieval.temp_vs_balmer(df_poststack_file_name_read = test_df_poststack_file_name_read,
+                                                                            df_poststack_file_name_write = test_df_poststack_file_name_write,
+                                                                            plot_write = "dummy.png",
+                                                                            plot=False)
 
+    # check that returned filetype is a pandas dataframe, and that new column 'teff_bestfit' exists
+    assert isinstance(df_test, pd.DataFrame)
+    assert 'teff_bestfit' in df_test.keys()
+
+
+def test_line_fit_temp_range(test_df_poststack_file_name_read = config_red["data_dirs"]["TEST_DIR_SRC"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_W_METADATA_STANDALONE"]):
+
+    # read in data
+    df_poststack = pd.read_csv(test_df_poststack_file_name_read)
+
+    # find linear trend of net Balmer EW with Teff
+    teff_test = df_poststack["teff"].values.astype(float)
+    # fit a straight line: net Balmer
+    ews_Balmer_test = df_poststack["EW_Balmer"].values.astype(float)
+
+    m_test, err_m_test, b_test, err_b_test = teff_retrieval.line_fit_temp_range(x_data_pass=ews_Balmer_test, y_data_pass=teff_test, t_min=5900, t_max=7350)
+
+    # check line is being fit correctly
     assert round(m_test, 2) == 3530.67
     assert round(b_test, 2) == 12.34
