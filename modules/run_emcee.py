@@ -224,10 +224,9 @@ def function_K(coeffs_pass,Bal_pass,F_pass):
 
 def K_residual(coeffs_pass,Bal_pass,F_pass,y):
     # residual function, which we want to minimize for the Levenberg-Marquardt fit
-    # ('y' here is the CaIIK EW)
-    #import ipdb; ipdb.set_trace()
+    # ('y' here is the measured CaIIK EW)
 
-    return y.values - function_K(coeffs_pass,Bal_pass,F_pass).values
+    return y - function_K(coeffs_pass,Bal_pass,F_pass)
 
 
 def sigma_Km_sqd(coeffs_pass,Bal_pass,err_Bal_pass,Feh_pass,err_Feh_pass):
