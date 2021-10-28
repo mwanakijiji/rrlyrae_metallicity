@@ -338,16 +338,18 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     '''
     Takes stacked spectra data and adds a column representing a net Balmer line,
     and populates another column for the error (based on propagation of the Robo
-    errors of constituent lines)
+    errors of constituent lines, and then some error propagation)
 
     INPUTS:
-    read_in_filename: name of the file with stacked EW data from Robospect, and only including 'good' data
+    read_in_filename: name of the file with stacked EW data from Robospect, and
+        only including 'good' data
     write_out_filename: name of the file to be written out; identical to the file read in,
         except that additional columns contain info on a net Balmer line
 
     OUTPUTS:
     (writes out csv with net Balmer line EWs)
-    [m, err_m, b, err_b], [m_1to1, err_m_1to1, b_1to1, err_b_1to1], df_poststack: info used in test functions
+    [m, err_m, b, err_b], [m_1to1, err_m_1to1, b_1to1, err_b_1to1], df_poststack:
+        info used in test functions
     '''
 
     # read in
@@ -415,22 +417,25 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
 def generate_addl_ew_errors(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"],
                             write_out_filename = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"]):
     '''
-    Calculates errors in EW, using two methods
+    Calculates errors in EW using the method of finding the stdev of EWs across
+    a set of spectra that are realizations of the same single, original spectrum.
+    This supplements the errors produced directly by Robospect.
     '''
 
-    # skip this for now
-
-    # old text below
-    # calculate line errors using
-    ## calculate line errors using
-    # method 1: values directly from Robospect
-
-    # method 2: stdev of line EWs
     #df_poststack = error_scatter_ew(df_poststack)
     df_postbalmer = pd.read_csv(read_in_filename)
+
+    orig_specs_nonrepeating = df_postbalmer["orig_spec_file_name"].drop_duplicates().values
+    df_postbalmer["err_EW_Balmer_based_noise_churning"] = np.nan # initialize
+    for orig_spec in orig_specs_nonrepeating:
+        # loop over the parent spectra, and get stdev of Balmer EWs from each set
+        # of spectra with the same parent
+        stdev_this_set = np.nanstd(df_postbalmer.where(df_postbalmer["orig_spec_file_name"] == orig_spec)["EW_Balmer"])
+        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Balmer_based_noise_churning"] = stdev_this_set
+
     df_postbalmer_errors = df_postbalmer.to_csv(write_out_filename, index=False)
 
-    logging.info("Skipping the calculation of additional EW errors for now; just writing out same data again")
+    logging.info("Adding column of Balmer EW errors based on stdev across noise-churned spectra")
     logging.info("Wrote table out to " + str(write_out_filename))
 
     '''
