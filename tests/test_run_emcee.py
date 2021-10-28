@@ -131,11 +131,11 @@ def test_LM_fit():
     # these are arrays of fake data (as opposed to single values), to make
     # sure the residuals are in array form, and to fit functions in the first place
 
-    ## ## SET ARBITRARY BALMER, FEH ARRAYS
+    # set arbitrary Balmer, FeH arrays
     test_balmer_ew_array = np.array([4.7, 6.2, 7.8, 9.1, 10.3, 11.2, 14.6, 15.05, 17.2])
     test_feh_array = np.array([-1.5, -1.1, -0.9, -0.4, 0.1, 0.25, 0.3, 0.35, 0.4])
 
-    ## ## GENERATE THEORETICAL CAIIKS WITH FUNCTIONS AND COEFF ARRAYS
+    # generate theoretical values with chosen coefficients and fake EW and FeH data
     test_caiik_ew_array_4 = run_emcee.function_K(coeffs_pass=coeffs_4_test,
                                         Bal_pass=test_balmer_ew_array,
                                         F_pass=test_feh_array)
@@ -143,36 +143,30 @@ def test_LM_fit():
                                         Bal_pass=test_balmer_ew_array,
                                         F_pass=test_feh_array)
 
-    '''
-    print("test_caiik_ew_array_4_pre")
-    print(test_caiik_ew_array_4)
-    print("test_caiik_ew_array_8_pre")
-    print(test_caiik_ew_array_8)
-    '''
-    ## ## ADD SOME NOISE
+    # add some noise
     test_caiik_ew_array_4 = np.add(test_caiik_ew_array_4,np.random.normal(loc=0.0, scale=0.001, size=len(test_balmer_ew_array)))
     test_caiik_ew_array_8 = np.add(test_caiik_ew_array_8,np.random.normal(loc=0.0, scale=0.001, size=len(test_balmer_ew_array)))
-    '''
-    print("test_caiik_ew_array_4_post")
-    print(test_caiik_ew_array_4)
-    print("test_caiik_ew_array_8_post")
-    print(test_caiik_ew_array_8)
-    '''
 
-    ## ## DO THE FITTING (DO WE EVEN NEED THE EXPLICIT RESIDUAL FUNCTION HERE?)
-    coeffs_4_test_fitted = least_squares(run_emcee.K_residual, [1,1,1,1],
+    # do the fitting
+    coeffs_4_test_fitted = least_squares(run_emcee.K_residual, x0=[1,1,1,1],
                                         args=(test_balmer_ew_array, test_feh_array, test_caiik_ew_array_4),
                                         method="lm")
-    coeffs_8_test_fitted = least_squares(run_emcee.K_residual, [1,1,1,1,1,1,1,1],
+    coeffs_8_test_fitted = least_squares(run_emcee.K_residual, x0=[1,1,1,1,1,1,1,1],
                                         args=(test_balmer_ew_array, test_feh_array, test_caiik_ew_array_8),
                                         method="lm")
 
-    print("test_caiik_ew_array_4_post")
-    print(test_caiik_ew_array_4)
-    print(coeffs_4_test_fitted)
-
-    assert np.round(coeffs_4_test_fitted.x, decimals=1) == coeffs_4_test
-    assert np.round(coeffs_8_test_fitted.x, decimals=1) == coeffs_8_test
+    # assert that the fitted coefficients are effectively the same as the ones
+    # which were chosen for generating the test data
+    assert np.allclose(
+                        np.round(coeffs_4_test_fitted.x, decimals=1),
+                        np.round(coeffs_4_test, decimals=1),
+                        atol=0.1
+                        )
+    assert np.allclose(
+                        np.round(coeffs_8_test_fitted.x, decimals=1),
+                        np.round(coeffs_8_test, decimals=1),
+                        atol=0.1
+                        )
 
 
 def test_sigma_Km_sqd():
