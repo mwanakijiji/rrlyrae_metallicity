@@ -11,6 +11,9 @@ from astropy.io.fits import getdata
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import os.path
+import csv
+import git
 from . import *
 
 
@@ -49,9 +52,8 @@ def line_fit_temp_range(x_data_pass, y_data_pass, t_min, t_max):
 
 def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW_PRODS"]+config_red["file_names"]["RESTACKED_EW_DATA_W_METADATA"],
                     df_poststack_file_name_write = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY_TEFFFIT"],
-                    t_min=5900,
-                    t_max=7350,
-                    plot_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["TEFF_VS_BALMER"],
+                    plot_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["PLOT_TEFF_VS_BALMER"],
+                    teff_data_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["TREND_TEFF_VS_BALMER"],
                     plot=True):
     '''
     Finds a linear Teff vs. Balmer EW relation. This is an ancillary step before
@@ -63,9 +65,9 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
         and 'EW_Balmer', with which a simple linear fit is made
     df_poststack_file_name_write: name of file to write; this file is the same as
         the one read in, except that now it also includes the best-fit values of the Teff
-    t_min: the minimum Teff of spectra that the linear fit will be made to
-    t_max: the maximum "  "  "  "
+    teff_data_write: file name of txt file containing info on the lienar trend
     plot_write: file name of Teff vs Balmer plot to write
+    teff_data_write:
     plot: flag whether to write plot or not
 
     OUTPUTS:
@@ -74,6 +76,10 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
     b:      y-intercept
     err_b:  error in y-intercept
     '''
+
+    # the min and max Teff of spectra that the linear fit will be made to
+    t_min = int(config_red["teff_linear"]["MIN_TEFF"])
+    t_max = int(config_red["teff_linear"]["MAX_TEFF"])
 
     # read in data
     df_poststack = pd.read_csv(df_poststack_file_name_read)
@@ -95,9 +101,46 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
     teffs_bestfit = np.add(np.multiply(m,ews_Balmer),b)
     df_poststack["teff_bestfit"] = teffs_bestfit
 
-    # write to file
+    # write all the data to file
     df_poststack.to_csv(df_poststack_file_name_write,index=False)
     logging.info("Wrote out data file including linear-best-fit Teffs to " + df_poststack_file_name_write)
+
+    # retrieve hash
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+
+    # arrange info into dictionary
+
+    linfit_info={
+                "Hash" :   sha,
+                "m" :      m,
+                "err_m" :  err_m,
+                "b" :      b,
+                "err_b" :  err_b
+                }
+
+    # write the Teff trend parameters alone to a separate text file
+    # (note this overwrites any previous existing file)
+    if os.path.exists(teff_data_write):
+
+        input("Text file containing Teff linear fit trend already exists! \nDo " +\
+                "what you want with that file and hit [ENTER] (will overwrite)")
+
+    with open(teff_data_write, 'w') as file1:
+
+        # header
+        #output_head = csv.writer(file1)
+        file1.write("Linear fit to Teff vs Balmer EW\n")
+
+        # data
+        for key, value in linfit_info.items():
+            print(linfit_info)
+            print(type(key))
+            print(type(value))
+            file1.write('%s:%s\n' % (key, value))
+
+    file1.close()
+    logging.info("Wrote out text file with linear-best-fit params to " + teff_data_write)
 
     # save an FYI plot
     if plot: # pragma: no cover
