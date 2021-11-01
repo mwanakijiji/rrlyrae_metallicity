@@ -471,7 +471,8 @@ def generate_addl_ew_errors(read_in_filename = config_red["data_dirs"]["DIR_EW_P
     plt.savefig("junk_KH_plot.pdf")
     '''
 
-    return
+    # return dataframe for test function
+    return df_postbalmer
 
 
 def stack_spectra(

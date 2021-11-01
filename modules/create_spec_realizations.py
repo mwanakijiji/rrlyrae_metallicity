@@ -101,7 +101,7 @@ def calc_noise(noise_level, spectrum_df):
         noise_to_add = np.random.standard_normal(len(spectrum_df))*spectrum_df['error']
         logging.info("Injecting Gaussian noise based on error column in file.")
     elif (noise_level == "None"):
-        # don't inject noise at all
+        # don't inject noise at all (note this doesn't make sense if multiple spectra are being realized)
         noise_to_add = 0
         logging.info("Injecting no noise at all")
     else:
@@ -348,6 +348,10 @@ def create_spec_realizations_main(noise_level,
 
     logging.info("--------------------------")
     logging.info("Making "+str(num)+" realizations of each input spectrum")
+
+    if (num > 1) and (noise_level == "None"):
+        logging.warning("Realizing multiple spectra but noise level is zero")
+        input("Hit [Enter] to continue")
 
     # Read list of input spectra
     # input_list ALREADY SET IN DEFAULTS ## input_list = input_spec_list_dir + config_red["file_names"]["LIST_SPEC_PHASE"]

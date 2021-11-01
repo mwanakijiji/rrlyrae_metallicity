@@ -143,12 +143,25 @@ def test_generate_net_balmer():
 def test_generate_addl_ew_errors():
     # placeholder for now, until more decisions about how to calculate EW errors
 
-    #dummy = scrape_ew_and_errew.generate_addl_ew_errors()
+    test_df_postbalmer_errors = scrape_ew_and_errew.generate_addl_ew_errors(read_in_filename=config_red["data_dirs"]["TEST_DIR_SRC"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_W_NET_BALMER"],
+                                                        write_out_filename=config_red["data_dirs"]["TEST_DIR_BIN"]+config_red["file_names"]["TEST_RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"])
 
-    assert 1<2
+    # loop through batches of rows corresponding to an individual spectrum, and
+    # make sure the errors are consistent and the value expected
+    array_1 = test_df_postbalmer_errors["err_EW_Balmer_based_noise_churning"].where(test_df_postbalmer_errors["orig_spec_file_name"]=="575020m10.smo").dropna().values
+    array_2 = test_df_postbalmer_errors["err_EW_Balmer_based_noise_churning"].where(test_df_postbalmer_errors["orig_spec_file_name"]=="575020m15.smo").dropna().values
+    array_3 = test_df_postbalmer_errors["err_EW_Balmer_based_noise_churning"].where(test_df_postbalmer_errors["orig_spec_file_name"]=="575020m20.smo").dropna().values
+    # check that error values are same
+    assert np.all(array_1)
+    assert np.all(array_2)
+    assert np.all(array_3)
+    # check that one value has expected value
+    assert round(array_1[0], 3) == 0.023
+    assert round(array_2[0], 3) == 0.020
+    assert round(array_3[0], 3) == 0.048
 
 
-def add_synthetic_meta_data():
+def test_add_synthetic_meta_data():
     # placeholder for now, until more decisions about how to calculate EW errors
 
     #dummy = scrape_ew_and_errew.generate_addl_ew_errors()
