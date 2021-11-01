@@ -154,7 +154,9 @@ def test_LM_fit():
     coeffs_8_test_fitted = least_squares(run_emcee.K_residual, x0=[1,1,1,1,1,1,1,1],
                                         args=(test_balmer_ew_array, test_feh_array, test_caiik_ew_array_8),
                                         method="lm")
-
+    print("coeffs8")
+    print(coeffs_8_test_fitted.x)
+    print(coeffs_8_test)
     # assert that the fitted coefficients are effectively the same as the ones
     # which were chosen for generating the test data
     assert np.allclose(

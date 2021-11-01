@@ -371,12 +371,6 @@ def generate_net_balmer(read_in_filename = config_red["data_dirs"]["DIR_EW_PRODS
     # (otherwise a skipped 'nan' may cause a phase shift between the two series)
     idx_good = np.logical_and(np.isfinite(EW_Hdelta),np.isfinite(EW_Hgamma))
     # polyfit (x, y)
-    print("fyi EW_Hdelta")
-    print(EW_Hdelta)
-    print(len(EW_Hdelta[idx_good]))
-    print("fyi EW_Hgamma")
-    print(EW_Hgamma)
-    print(len(EW_Hgamma[idx_good]))
     coeff, cov = np.polyfit(EW_Hdelta[idx_good], EW_Hgamma[idx_good], 1, full=False, cov=True)
     m = coeff[0]
     b = coeff[1]
