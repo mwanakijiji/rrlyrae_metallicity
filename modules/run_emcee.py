@@ -4,6 +4,7 @@ calibration to equivalent widths of RR Lyrae spectra
 '''
 
 import sys
+import git
 import time
 import numpy as np
 import pandas as pd
@@ -11,6 +12,7 @@ import emcee
 import corner
 import logging
 from scipy.optimize import least_squares
+from astropy.io import fits
 from . import *
 
 
@@ -305,6 +307,86 @@ def chi_sqd_fcn(Bal_pass,
     val = np.sum(i_element)
 
     return val
+
+
+def write_soln_to_fits(model,
+                        mcmc_text_output_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["MCMC_OUTPUT"],
+                        teff_data_retrieve_file_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["TREND_TEFF_VS_BALMER"],
+                        soln_write_name = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["CALIB_SOLN"]):
+    '''
+    Takes the full reduction solution and writes it to a FITS file with
+    1) The MCMC posteriors in tabular form
+    2) Meta-data in FITS header
+    '''
+
+    # initialize FITS header and append keys
+    hdr = fits.Header()
+
+    # retrieve git hash
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    hdr["HASH"] = (sha, "Hash of rrlfe pipeline")
+
+    # get Teff vs Balmer line info
+    # set compound datatype
+    dtype=np.rec.fromrecords([['string_key', 189.6752158]]).dtype
+    # load data, skipping header and hash corresponding to that file
+    teff_data = np.loadtxt(teff_data_retrieve_file_name, skiprows=2, usecols=(0,1), delimiter=':', dtype=dtype)
+
+    dict_teff_data = {}
+    for key, val in teff_data:
+        dict_teff_data.update({key: val})
+
+    hdr["MODEL"] = (model, "Calibration type")
+    hdr["TEFF_MIN"] = (dict_teff_data["Teff_min"], "Minimum Teff for linear Teff vs. Balmer EW fit")
+    hdr["TEFF_MAX"] = (dict_teff_data["Teff_max"], "Maximum Teff for linear Teff vs. Balmer EW fit")
+    hdr["SLOPE_M"] = (dict_teff_data["m"], "Slope of Teff vs. Balmer EW")
+    hdr["ESLOPE_M"] = (dict_teff_data["err_m"], "Error in slope of Teff vs. Balmer EW")
+    hdr["YINT_B"] = (dict_teff_data["Teff_max"], "Y-intercept of Teff vs. Balmer EW")
+    hdr["EYINT_B"] = (dict_teff_data["err_b"], "Error in y-intercept of Teff vs. Balmer EW")
+    # comment explaining the solution
+    hdr["COMMENT"] = "Coefficients are defined as "
+    hdr["COMMENT"] = "K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2)"
+
+    # read in posterior in csv form
+    if (model == "abcd"):
+
+        # corner plot (requires 'storechain=True' in enumerate above)
+        samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4), names=["a", "b", "c", "d"])
+        c1 = fits.Column(name="a", array=np.array(samples.iloc[:,0].values), format="D")
+        c2 = fits.Column(name="b", array=np.array(samples.iloc[:,1].values), format="D")
+        c3 = fits.Column(name="c", array=np.array(samples.iloc[:,2].values), format="D")
+        c4 = fits.Column(name="d", array=np.array(samples.iloc[:,3].values), format="D")
+        table_hdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4], header=hdr)
+
+
+    elif (model == "abcdfghk"):
+        # corner plot (requires 'storechain=True' in enumerate above)
+        # just first few lines to test
+        samples = pd.read_csv(mcmc_text_output_file_name, delim_whitespace=True, usecols=(1,2,3,4,5,6,7,8), names=["a", "b", "c", "d", "f", "g", "h", "k"])
+        c1 = fits.Column(name="a", array=np.array(samples.iloc[:,0].values), format="D")
+        c2 = fits.Column(name="b", array=np.array(samples.iloc[:,1].values), format="D")
+        c3 = fits.Column(name="c", array=np.array(samples.iloc[:,2].values), format="D")
+        c4 = fits.Column(name="d", array=np.array(samples.iloc[:,3].values), format="D")
+        c5 = fits.Column(name="a", array=np.array(samples.iloc[:,4].values), format="D")
+        c6 = fits.Column(name="b", array=np.array(samples.iloc[:,5].values), format="D")
+        c7 = fits.Column(name="c", array=np.array(samples.iloc[:,6].values), format="D")
+        c8 = fits.Column(name="d", array=np.array(samples.iloc[:,7].values), format="D")
+        table_hdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5, c6, c7, c8], header=hdr)
+
+
+    # write out
+    if os.path.exists(soln_write_name):
+
+        input("A calibration solution file already exists! \nDo " +\
+                "what you want with that file and hit [ENTER] (will overwrite)")
+
+    table_hdu.writeto(soln_write_name, overwrite=True)
+    logging.info("Full calibration MCMC posterior written to " + soln_write_name)
+
+    # return FITS table for testing
+    return table_hdu
+
 
 
 class RunEmcee():

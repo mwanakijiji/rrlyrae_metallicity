@@ -1,40 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 # This makes plots showing the effective temperature retrievals based on synthetic spectra
 # produced by R.W.
 
 # Created from parent restacking_scraped_data.ipynb 2021 March 17 by E.S.
 
-
-# In[1]:
-
-
 import pandas as pd
-#from astropy.io import fits
 from astropy.io.fits import getdata
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-
-
-# In[2]:
-
-
 # name of csv file with EWs as produced by pipeline
-ew_good_data_poststack_file_name = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/rrlyrae_metallicity/ew_products/20210225_restacked_ew_info_good_only.csv"
+ew_good_data_poststack_file_name = "/Users/bandari/Documents/git.repos/rrlyrae_metallicity/ew_products/restacked_ew_w_metadata.csv"
 
 # read in
 df_poststack = pd.read_csv(ew_good_data_poststack_file_name)
-
-
-# In[49]:
-
 
 def line_fit(x_data_pass, y_data_pass):
 
@@ -64,18 +46,15 @@ def line_fit(x_data_pass, y_data_pass):
     return m, b
 
 
-# In[44]:
-
-
 # plot: how do Balmer lines scale with Teff?
 
 plt.clf()
 plt.title("Scaling of lines with Hdelta")
-plt.scatter(df_poststack["Teff"],df_poststack["EW_Hbeta"], s=3, label="Hbeta")
-plt.scatter(df_poststack["Teff"],np.add(df_poststack["EW_Hgamma"],6), s=3, label="Hgamma+6")
-plt.scatter(df_poststack["Teff"],np.add(df_poststack["EW_Hdelta"],12), s=3, label="Hdel+12")
-plt.scatter(df_poststack["Teff"],np.add(df_poststack["EW_Balmer"],18), s=3, label="Net Balmer+18")
-plt.scatter(df_poststack["Teff"],np.add(df_poststack["EW_Heps"],24), s=3, label="Heps+24")
+plt.scatter(df_poststack["teff"],df_poststack["EW_Hbeta"], s=3, label="Hbeta")
+plt.scatter(df_poststack["teff"],np.add(df_poststack["EW_Hgamma"],6), s=3, label="Hgamma+6")
+plt.scatter(df_poststack["teff"],np.add(df_poststack["EW_Hdelta"],12), s=3, label="Hdel+12")
+plt.scatter(df_poststack["teff"],np.add(df_poststack["EW_Balmer"],18), s=3, label="Net Balmer+18")
+plt.scatter(df_poststack["teff"],np.add(df_poststack["EW_Heps"],24), s=3, label="Heps+24")
 #plt.ylim([0,70])
 plt.xlabel("Teff (K)")
 plt.ylabel("EW (Angstr)")
@@ -84,32 +63,12 @@ plt.legend(ncol=5)
 plt.show()
 #plt.savefig("junk_balmer_rescalings.pdf")
 
-
-# In[55]:
-
-
+'''
 y_data_metalrich = df_poststack["Teff"].where(df_poststack["FeH"] > -2.9).dropna().values.astype(float)
-
-
-# In[61]:
-
-
 x_data_Balmer_metalrich = df_poststack["EW_Balmer"].where(df_poststack["FeH"] > -2.9).dropna()
 
-
-# In[62]:
-
-
 x_data_Balmer_metalrich
-
-
-# In[56]:
-
-
 y_data_metalrich
-
-
-# In[63]:
 
 
 # find linear trends of {net Balmer, Hdelta, and Hgamma} EW with Teff, entire Teff range
@@ -131,9 +90,6 @@ m_Hdelta, b_Hdelta = line_fit(x_data_Hdelta,y_data)
 # fit a straight line: Hgamma
 x_data_Hgamma = df_poststack["EW_Hgamma"].values.astype(float)
 m_Hgamma, b_Hgamma = line_fit(x_data_Hgamma,y_data)
-
-
-# In[67]:
 
 
 # calculate retrieved Teff and add new columns to DataFrame to make the plotting easier
@@ -179,11 +135,11 @@ a1.scatter(df_poststack["Teff"],
             c=df_poststack["FeH"],
             cmap=colormap, norm=norm, edgecolor="k",zorder=2)
 
-'''
+
 # annotation to check the color mapping
-for t in range(0,len(df_poststack["FeH"])):
-    plt.annotate(str(df_poststack["FeH"][t]), (df_poststack["Teff"][t],df_poststack["Teff_retrieved_Balmer"][t]))
-'''
+#for t in range(0,len(df_poststack["FeH"])):
+#    plt.annotate(str(df_poststack["FeH"][t]), (df_poststack["Teff"][t],df_poststack["Teff_retrieved_Balmer"][t]))
+
 # kludge to add legend while mapping colors correctly
 for i in range(0,len(feh_values)):
     # indices reversed to get the order descending in the legend
@@ -208,26 +164,4 @@ print("USE NOTEBOOK VERSION OF THIS! OTHERWISE THE LEGEND DOESN'T HAVE RIGHT HAN
 #plt.savefig("junk.pdf")
 #import ipdb; ipdb.set_trace()
 f.savefig("junk.pdf")
-
-
-# In[ ]:
-
-
-# calculate BIC to find best model
-
-
-# In[ ]:
-
-'''
-def pred_teff(EW_pass,m_pass,b_pass):
-
-    teff_pass = np.add(np.multiply(EW_pass,m_pass),b_pass)
-
-    return teff_pass
-
-
-# In[ ]:
-
-
-Teff_model = pred_teff(df_poststack["EW_Balmer"])
 '''

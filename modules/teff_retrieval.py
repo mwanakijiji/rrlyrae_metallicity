@@ -112,11 +112,13 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
     # arrange info into dictionary
 
     linfit_info={
-                "Hash" :   sha,
-                "m" :      m,
-                "err_m" :  err_m,
-                "b" :      b,
-                "err_b" :  err_b
+                "Hash"      :   sha,
+                "Teff_min"  :   t_min,
+                "Teff_max"  :   t_max,
+                "m"         :      m,
+                "err_m"     :  err_m,
+                "b"         :      b,
+                "err_b"     :  err_b
                 }
 
     # write the Teff trend parameters alone to a separate text file
@@ -129,7 +131,6 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
     with open(teff_data_write, 'w') as file1:
 
         # header
-        #output_head = csv.writer(file1)
         file1.write("Linear fit to Teff vs Balmer EW\n")
 
         # data
