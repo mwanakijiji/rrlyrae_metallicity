@@ -54,7 +54,8 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
                     df_poststack_file_name_write = config_red["data_dirs"]["DIR_EW_PRODS"] + config_red["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY_TEFFFIT"],
                     plot_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["PLOT_TEFF_VS_BALMER"],
                     teff_data_write = config_red["data_dirs"]["DIR_BIN"] + config_red["file_names"]["TREND_TEFF_VS_BALMER"],
-                    plot=True):
+                    testing = False,
+                    plot = True):
     '''
     Finds a linear Teff vs. Balmer EW relation. This is an ancillary step before
     running the MCMC further downstream in the pipeline.
@@ -67,7 +68,9 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
         the one read in, except that now it also includes the best-fit values of the Teff
     teff_data_write: file name of txt file containing info on the lienar trend
     plot_write: file name of Teff vs Balmer plot to write
-    teff_data_write:
+    teff_data_write: name of file to write Teff data to
+    testing: flag whether this function is being run as part of a unit test; if
+        True, then do not prompt user if writeout file already exists
     plot: flag whether to write plot or not
 
     OUTPUTS:
@@ -123,10 +126,12 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
 
     # write the Teff trend parameters alone to a separate text file
     # (note this overwrites any previous existing file)
-    if os.path.exists(teff_data_write):
+    if (os.path.exists(teff_data_write) and testing==False):
 
-        input("Text file containing Teff linear fit trend already exists! \nDo " +\
-                "what you want with that file and hit [ENTER] (will overwrite)")
+        print(teff_data_write)
+        input("Text file containing Teff linear fit trend already exists! \n" + \
+                teff_data_write + "\n" + \
+                "Do what you want with that file and hit [ENTER] (will overwrite)")
 
     with open(teff_data_write, 'w') as file1:
 
@@ -135,9 +140,6 @@ def temp_vs_balmer(df_poststack_file_name_read = config_red["data_dirs"]["DIR_EW
 
         # data
         for key, value in linfit_info.items():
-            print(linfit_info)
-            print(type(key))
-            print(type(value))
             file1.write('%s:%s\n' % (key, value))
 
     file1.close()

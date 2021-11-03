@@ -538,19 +538,4 @@ class RunEmcee():
                                                         int(elapsed_time), "sec"))
         logging.info("--------------------------")
         sys.stdout.write("MCMC chain data written out to\n")
-        sys.stdout.write(str(self.mcmc_text_output))
-
-        # print marginalized posteriors to screen
-        # This code snippet from Foreman-Mackey's emcee documentation, v2.2.1 of
-        # https://emcee.readthedocs.io/en/stable/user/line.html#results
-        ## ## note this is just for abcd right now; change later
-        a_mcmc, b_mcmc, c_mcmc, d_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
-                                             zip(*np.percentile(samples, [16, 50, 84], axis=0)))
-
-        logging.info("--------------------------")
-        logging.info("Coefficients a, b, c, d, and errors (see corner plot):")
-        logging.info(a_mcmc, '\n', b_mcmc, '\n', c_mcmc, '\n', d_mcmc)
-
-        logging.info("--------------------------")
-        logging.info("MCMC data written to ")
         logging.info(self.mcmc_text_output)
