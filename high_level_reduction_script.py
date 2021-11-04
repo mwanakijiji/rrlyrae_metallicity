@@ -18,11 +18,11 @@ from modules import (compile_normalization,
 
 def main():
 
-    model_choice = "abcd"
-
-    # make all the directories
-    make_dirs(objective = "find_abcd") ## find_abcd as opposed to apply_abcd
+    model_choice = "abcdfghk"
     '''
+    # make all the directories
+    make_dirs(objective = "find_calib") ## find_calib as opposed to apply_calib
+
     # compile the C spectral normalization script
 
     compile_normalization.compile_bkgrnd()
@@ -31,7 +31,7 @@ def main():
     # spectra, normalize them, and write out normalizations
     ## ## just 1 or 2 realizations for testing (default is 100)
 
-    create_spec_realizations.create_spec_realizations_main(num = 1, noise_level=0.01, spec_file_type="ascii.no_header")
+    create_spec_realizations.create_spec_realizations_main(num = 1, noise_level="None", spec_file_type="ascii.no_header")
 
     # run_robospect on normalized synthetic spectra
     run_robo.main()
@@ -59,16 +59,14 @@ def main():
     # coeff defs: K = a + bH + cF + dHF + f(H^2) + g(F^2) + h(H^2)F + kH(F^2) + m(H^3) + n(F^3)
     # where K is CaII K EW; H is Balmer EW; F is [Fe/H]
 
-
     emcee_instance = run_emcee.RunEmcee()
     #emcee_instance(model = 'abcd') # call instance
     emcee_instance(model = model_choice)
     '''
     posterior_write = run_emcee.write_soln_to_fits(model = model_choice)
 
-    '''
     posterior_sample = run_emcee.corner_plot(model = model_choice)
-    '''
+
 
 # entry point
 if __name__ == '__main__':

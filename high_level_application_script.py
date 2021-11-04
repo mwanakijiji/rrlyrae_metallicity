@@ -4,27 +4,27 @@ This is the reduction pipeline for applying the updated Layden coefficients
 '''
 
 import sys
+from conf import *
 from modules import *
 from modules import (compile_normalization,
                       create_spec_realizations,
                       run_robo,
                       scrape_ew_and_errew,
-                      error_propagation_and_mapping,
                       find_feh)
 
 def main():
 
     # set the objective
-    # "apply_abcd": apply pre-determined coefficients to spectra to find Fe/H
+    # "apply_calib": apply pre-determined coefficients to spectra to find Fe/H
     # "find_abcd": determine coefficients [a,b,c,d] in the first place
-    objective_choice = "apply_abcd"
+    objective_choice = "apply_calib"
 
     # Make all the directories
     make_dirs(objective = objective_choice)
-
+    '''
     # Compile the C spectral normalization script
     compile_normalization.compile_bkgrnd()
-    '''
+
     # Take list of unnormalized empirical science spectra and normalize them
     # (N.b. for application of solution, only make 1 realization, with 0 noise;
     # note also that application of the calibration uses non-default directories)
@@ -43,17 +43,18 @@ def main():
     run_robo.main(
                 normzed_spec_source_dir = config_apply["data_dirs"]["DIR_REZNS_SPEC_NORM_FINAL"],
                 write_dir=config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
-                robo_dir=config["sys_dirs"]["DIR_ROBO"]
+                robo_dir=config_apply["sys_dirs"]["DIR_ROBO"]
                 )
 
     # scrape_ew_from_robo and calculate EWs + err_EW
-    '''
+
     scraper_instance = scrape_ew_and_errew.Scraper(subdir = config_apply["data_dirs"]["DIR_ROBO_OUTPUT"],
-                                                   file_scraped_info = config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"])
+                                                   file_scraped_info = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"])
     scraper_instance() # call instance
-    '''
+
     # follow-up functions
     data_checked = scrape_ew_and_errew.quality_check(
+                    read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_SCIENCE_SPECTRA_FILE_NAME"],
                     write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"]
                     )
 
@@ -62,19 +63,24 @@ def main():
     data_stacked = scrape_ew_and_errew.stack_spectra(
         read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["SCRAPED_EW_DATA_GOOD_ONLY"],
         write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-        objective = objective_choice)
+        input_list = config_apply["data_dirs"]["DIR_SRC"]+config_apply["file_names"]["LIST_SPEC_APPLY"])
 
+
+    data_net_balmer = scrape_ew_and_errew.generate_net_balmer(
+        read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
+        write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"])
+
+    data_errors = scrape_ew_and_errew.generate_addl_ew_errors(
+        read_in_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER"],
+        write_out_filename = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"])
+    '''
     # find Fe/H values, sampling from the a, b, c, d posteriors and while
     # incorporating equivalent width errors
-    find_feh_instance = find_feh.find_feh(
-                                        model = 'abcdfghk',
-                                        good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-                                        mcmc_posteriors_file = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"]+config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"]
-                                        )
+    find_feh_instance = find_feh.findFeH()
 
-    # find Fe/H and pickle
-    find_feh_instance.pickle_feh_retrieval()
-
+    # find Fe/H and write
+    find_feh_instance.pickle_feh_retrieval(write_out_filename = config_apply["data_dirs"]["DIR_BIN"]+config_apply["file_names"]["RETRIEVED_VALS"])
+    '''
     # retrieve pickle files and compare values (only for case of synthetic values with injected and retrieved Fe/H)
     find_feh_instance.compare_feh_synthetic()
     '''
