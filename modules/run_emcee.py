@@ -342,7 +342,7 @@ def write_soln_to_fits(model,
     hdr["TEFF_MAX"] = (dict_teff_data["Teff_max"], "Maximum Teff for linear Teff vs. Balmer EW fit")
     hdr["SLOPE_M"] = (dict_teff_data["m"], "Slope of Teff vs. Balmer EW")
     hdr["ESLOPE_M"] = (dict_teff_data["err_m"], "Error in slope of Teff vs. Balmer EW")
-    hdr["YINT_B"] = (dict_teff_data["Teff_max"], "Y-intercept of Teff vs. Balmer EW")
+    hdr["YINT_B"] = (dict_teff_data["b"], "Y-intercept of Teff vs. Balmer EW")
     hdr["EYINT_B"] = (dict_teff_data["err_b"], "Error in y-intercept of Teff vs. Balmer EW")
     # comment explaining the solution
     hdr["COMMENT"] = "Coefficients are defined as "
@@ -368,10 +368,10 @@ def write_soln_to_fits(model,
         c2 = fits.Column(name="b", array=np.array(samples.iloc[:,1].values), format="D")
         c3 = fits.Column(name="c", array=np.array(samples.iloc[:,2].values), format="D")
         c4 = fits.Column(name="d", array=np.array(samples.iloc[:,3].values), format="D")
-        c5 = fits.Column(name="a", array=np.array(samples.iloc[:,4].values), format="D")
-        c6 = fits.Column(name="b", array=np.array(samples.iloc[:,5].values), format="D")
-        c7 = fits.Column(name="c", array=np.array(samples.iloc[:,6].values), format="D")
-        c8 = fits.Column(name="d", array=np.array(samples.iloc[:,7].values), format="D")
+        c5 = fits.Column(name="f", array=np.array(samples.iloc[:,4].values), format="D")
+        c6 = fits.Column(name="g", array=np.array(samples.iloc[:,5].values), format="D")
+        c7 = fits.Column(name="h", array=np.array(samples.iloc[:,6].values), format="D")
+        c8 = fits.Column(name="k", array=np.array(samples.iloc[:,7].values), format="D")
         table_hdu = fits.BinTableHDU.from_columns([c1, c2, c3, c4, c5, c6, c7, c8], header=hdr)
 
 
@@ -406,7 +406,7 @@ class RunEmcee():
         self.mcmc_text_output = mcmc_text_output_file_name
 
 
-    def __call__(self, model, post_burn_in_links = 3e3):
+    def __call__(self, model, post_burn_in_links = 8e3):
         '''
         INPUTS
 

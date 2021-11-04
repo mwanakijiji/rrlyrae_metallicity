@@ -488,6 +488,9 @@ def stack_spectra(
     # read in the list of original file names
     original_names = pd.read_csv(input_list)
 
+    logging.info("--------------")
+    logging.info("Reading in spectra as listed in " + input_list)
+
     # make list of individual spectra for which we have EW data, and
     # initialize DataFrame to hold the re-cast data
 

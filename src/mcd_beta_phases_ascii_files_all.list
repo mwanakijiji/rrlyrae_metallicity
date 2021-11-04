@@ -1,4 +1,4 @@
-spectrum,subtype,phase,feh,err_feh
+orig_spec_file_name,subtype,phase,feh,err_feh
 AR_Per_01.dat,,,,
 AR_Per_02.dat,,,,
 AR_Per_03.dat,,,,

@@ -6,43 +6,37 @@ import sys
 import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
+from astropy.table import Table
+from astropy.io import fits
 from rrlyrae_metallicity.modules2 import *
 from . import *
 
-class find_feh():
+class findFeH():
     '''
     Sample the a, b, c, d posteriors as found via the MCMC, to find Fe/H given the equivalent widths
     of the science spectra
     '''
 
     def __init__(self,
-                model,
-                good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_GOOD_ONLY"],
-                mcmc_posteriors_file = config_apply["data_dirs"]["DIR_ABCD_POSTERIORS"]+config_apply["file_names"]["ABCD_POSTERIORS_FILE_NAME"],
+                good_ew_info_file = config_apply["data_dirs"]["DIR_EW_PRODS"]+config_apply["file_names"]["RESTACKED_EW_DATA_W_NET_BALMER_ERRORS"],
+                calib_read_file = config_apply["data_dirs"]["DIR_SRC"] + config_apply["file_names"]["CALIB_SOLN"],
                  write_pickle_dir = config_apply["data_dirs"]["DIR_PICKLE"],
                  verbose = False):
 
-        self.model = model
-        self.good_ew_info_file = good_ew_info_file
-        self.mcmc_posteriors_file = mcmc_posteriors_file
+        self.ew_file = good_ew_info_file
+        self.calib_file = calib_read_file
         self.write_pickle_dir = write_pickle_dir
 
-        # the file containing the MCMC posterior chains of a,b,c,d
-        self.ew_data = pd.read_csv(self.good_ew_info_file)
+        # the table with the EW data
+        self.ew_data = pd.read_csv(self.ew_file).copy(deep=True)
+        # the file containing the MCMC posterior chains of coefficients
+        # (note this does not distinguish yet between 4 or 8 coefficients)
+        self.mcmc_chain = Table.read(self.calib_file, hdu=1)
 
-        if (self.model == "abcd"):
-            # read in the chain data for model {a,b,c,d}
-            self.mcmc_chain = pd.read_csv(self.mcmc_posteriors_file,
-                                      usecols = [1, 2, 3, 4],
-                                      names = ["a", "b", "c", "d"],
-                                      delim_whitespace = True)
-        elif (self.model == "abcdfghk"):
-            # read in the chain data for model {a,b,c,d,f,g,h,k}
-            self.mcmc_chain = pd.read_csv(self.mcmc_posteriors_file,
-                                      usecols = [1, 2, 3, 4, 5, 6, 7, 8],
-                                      names = ["a", "b", "c", "d", "f", "g", "h", "k"],
-                                      delim_whitespace = True)
-
+        # retrieve Teff vs. Balmer EW coefficients
+        # (note file is being read in a second time; not elegant)
+        hdul = fits.open(self.calib_file)
+        self.soln_header = hdul[1].header
 
     def __call__(self):
 
@@ -76,11 +70,18 @@ class find_feh():
         return F_pos, F_neg
 
 
-    def pickle_feh_retrieval(self):
+    def pickle_feh_retrieval(self, write_out_filename):
         '''
         Find a Fe/H value for a combination of coefficients
         from the MCMC chain, and sample from the Balmer and
         CaIIK EWs, given their errors
+
+        INPUTS:
+        write_out_filename: the file name of everything, incl. retrieved Teff and Fe/H
+
+        OUTPUTS:
+        (csv is written to disk)
+        final_table: dataframe equivalent of the written csv file, for unit testing
         '''
 
         ## ## find/input EWs for a single spectrum here; use stand-in EWs for the moment
@@ -98,6 +99,11 @@ class find_feh():
             logging.info(self.write_pickle_dir)
             logging.info("------------------------------")
             input("Do what you want with those files, then hit [Enter]")
+
+        # add columns to data table to include retrieved Fe/H values
+        self.ew_data["feh_retrieved"] = np.nan
+        self.ew_data["err_feh_retrieved"] = np.nan
+        self.ew_data["teff_retrieved"] = np.nan
 
         # loop over the rows of the table of good EW data, with each row
         # corresponding to a spectrum
@@ -123,14 +129,14 @@ class find_feh():
                     offset_K = 0 # np.random.normal(loc = 0.0, scale = err_CaIIK_EW)
 
                     # find one value of Fe/H given those samples in Balmer and CaIIK EWs
-                    if (self.model == "abcd"):
+                    if (len(self.mcmc_chain.columns)==4):
                         feh_1sample = self.feh_layden(coeff_a = self.mcmc_chain["a"][t],
                                           coeff_b = self.mcmc_chain["b"][t],
                                           coeff_c = self.mcmc_chain["c"][t],
                                           coeff_d = self.mcmc_chain["d"][t],
                                           H = Balmer_EW + offset_H,
                                           K = CaIIK_EW + offset_K)
-                    elif (self.model == "abcdfghk"):
+                    elif (len(self.mcmc_chain.columns)==8):
                         feh_1sample = self.feh_abcdfghk(coeff_a = self.mcmc_chain["a"][t],
                                           coeff_b = self.mcmc_chain["b"][t],
                                           coeff_c = self.mcmc_chain["c"][t],
@@ -150,30 +156,21 @@ class find_feh():
                 print("MCMC sample " + str(t) + " out of " + str(N_MCMC_samples))
                 print("-----")
 
-            # pickle the result (note this pickle file just corresponds to one spectrum)
+            # write the results (note this pickle file just corresponds to one spectrum)
+            self.ew_data.at[row_num,"feh_retrieved"] = np.median(feh_sample_array)
+            self.ew_data.at[row_num,"err_feh_retrieved"] = np.std(feh_sample_array)
+            self.ew_data.at[row_num,"teff_retrieved"] = np.add(
+                                                                np.multiply(self.ew_data.iloc[row_num]["EW_Balmer"],self.soln_header["SLOPE_M"]),
+                                                                self.soln_header["YINT_B"]
+                                                                )
 
-            file_name_stem = self.ew_data.iloc[row_num]["realization_spec_file_name"]
-            injected_feh = self.ew_data.iloc[row_num]["FeH"]
-            err_injected_feh = self.ew_data.iloc[row_num]["err_FeH"]
-            logg = self.ew_data.iloc[row_num]["logg"]
-            Teff = self.ew_data.iloc[row_num]["Teff"]
+        final_table = self.ew_data.copy()
 
-            data_all = {}
-            data_all["feh_sample_array"] = feh_sample_array
-            data_all["injected_feh"] = injected_feh
-            data_all["err_injected_feh"] = err_injected_feh
-            data_all["logg"] = logg
-            data_all["Teff"] = Teff
+        final_table.to_csv(write_out_filename, index=False)
+        logging.info("Wrote out retrieved [Fe/H] and Teff to " + write_out_filename)
 
-            pickle_file_name = str(self.write_pickle_dir) + str(file_name_stem) + ".p"
-            with open( pickle_file_name, "wb" ) as f:
-                pickle.dump(data_all, f)
-            '''
-            with open( pickle_file_name, "wb" ) as f:
-                for d in data_all:
-                    pickle.dump(d, f)
-            '''
-            logging.info("Pickled retrieved [Fe/H] info as " + pickle_file_name)
+        return final_table
+
 
     def compare_feh_synthetic(self):
         '''
@@ -227,7 +224,7 @@ class find_feh():
         # matplotlib to show error bars
 
         fig, axes = plt.subplots(2, 1, figsize=(15, 24), sharex=True)
-        fig.suptitle("Retrieval comparison, from MCMC file\n" + str(self.mcmc_posteriors_file))
+        fig.suptitle("Retrieval comparison, from MCMC file\n" + str(self.calib_file))
 
         # Fe/H difference
         df["feh_diff"] = np.subtract(df["retr_med_feh"],df["inj_feh"])

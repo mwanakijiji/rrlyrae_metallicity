@@ -72,18 +72,18 @@ def get_setuptools_script_dir():
     command.run()
     return dist.install_scripts
 
-def make_dirs(objective="apply_abcd"):
+def make_dirs(objective="apply_calib"):
     '''
     Make directories for housing files/info if they don't already exist
     '''
     logging.info("## Making directories ##")
 
     # make directories for
-    # 1. reduction of spectra to find a, b, c, d (objective = "find_abcd"), or
-    # 2. to apply the solution (objective = "apply_abcd"; default)
-    if (objective == "apply_abcd"):
+    # 1. reduction of spectra to find a, b, c, d (objective = "find_calib"), or
+    # 2. to apply the solution (objective = "apply_calib"; default)
+    if (objective == "apply_calib"):
         config_choice = config_apply
-    elif (objective == "find_abcd"):
+    elif (objective == "find_calib"):
         config_choice = config_red
 
     # loop over all directory paths we will need
