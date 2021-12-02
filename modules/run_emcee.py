@@ -406,7 +406,7 @@ class RunEmcee():
         self.mcmc_text_output = mcmc_text_output_file_name
 
 
-    def __call__(self, model, post_burn_in_links = 8e3):
+    def __call__(self, model, post_burn_in_links = 3e5):
         '''
         INPUTS
 
@@ -502,7 +502,7 @@ class RunEmcee():
                                         args=[Teff, ave, feh, caii, eave, efeh, ecaii])
 
         # burn-in
-        burn_in = 1e3
+        burn_in = 3e4
         posAfterBurn, prob, state = sampler.run_mcmc(p0, burn_in)
 
         # post-burn-in

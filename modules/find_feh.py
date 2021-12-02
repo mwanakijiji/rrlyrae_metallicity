@@ -43,29 +43,49 @@ class findFeH():
         pass
 
 
-    def feh_layden(self,coeff_a,coeff_b,coeff_c,coeff_d,H,K):
+    def feh_layden_vector(self,coeff_a,coeff_b,coeff_c,coeff_d,H,K):
         '''
         Finds Fe/H given equivalent widths (in angstroms), from
         K = a + b*H + c*[Fe/H] + d*H*[Fe/H]  (Layden 1994 Eqn. 7)
         '''
 
-        feh = np.divide(K-coeff_a-coeff_b*H,coeff_c+coeff_d*H)
+        feh = np.divide(np.subtract(K,np.subtract(coeff_a,np.multiply(coeff_b,H))),
+                        np.add(coeff_c,np.multiply(coeff_d,H)))
 
         return feh
 
-    def feh_abcdfghk(self,coeff_a,coeff_b,coeff_c,coeff_d,coeff_f,coeff_g,coeff_h,coeff_k,H,K):
+    def feh_abcdfghk_vector(self,coeff_a,coeff_b,coeff_c,coeff_d,coeff_f,coeff_g,coeff_h,coeff_k,H,K):
         '''
         Finds Fe/H given equivalent widths (in angstroms), from
         K = a + b*H + c*[Fe/H] + d*H*[Fe/H] + f*(H^2) + g*([Fe/H]^2) + h*(H^2)*[Fe/H] + k*H*([Fe/H]^2)
         '''
 
-        A_cap = coeff_g + coeff_k*H
-        B_cap = coeff_c + coeff_d*H + coeff_h*np.power(H,2)
-        C_cap = coeff_a + coeff_b*H + coeff_f*np.power(H,2) - K
 
+        #import ipdb; ipdb.set_trace()
+        A_cap = np.add(coeff_g,np.multiply(coeff_k,H))
+        B_cap = np.add(coeff_c,np.add(np.multiply(coeff_d,H),np.multiply(coeff_h,np.power(H,2))))
+        C_cap = np.add(coeff_a,np.add(np.multiply(coeff_b,H),np.subtract(np.multiply(coeff_f,np.power(H,2)),K)))
         # since this involves a quadratic, there are two roots
-        F_pos = np.divide(-B_cap + np.sqrt(np.power(B_cap,2.)-4*A_cap*C_cap),2*A_cap)
-        F_neg = np.divide(-B_cap - np.sqrt(np.power(B_cap,2.)-4*A_cap*C_cap),2*A_cap)
+        #import ipdb; ipdb.set_trace()
+        F_pos = np.divide(-np.add(
+                                B_cap,
+                                  np.sqrt(
+                                                np.subtract(np.power(B_cap,2.),
+                                                            4*np.multiply(A_cap,C_cap))
+                                               )
+                                 ),
+                          np.multiply(2,A_cap))
+        #print(F_pos)
+        #import ipdb; ipdb.set_trace()
+        F_neg = np.divide(-np.subtract(
+                                    B_cap,
+                                    np.sqrt(
+                                                np.subtract(np.power(B_cap,2.),
+                                                                 4*np.multiply(A_cap,C_cap))
+                                                )),
+                          np.multiply(2,A_cap))
+        #print(F_neg)
+        #import ipdb; ipdb.set_trace()
 
         return F_pos, F_neg
 
@@ -86,7 +106,7 @@ class findFeH():
 
         ## ## find/input EWs for a single spectrum here; use stand-in EWs for the moment
         # number of samples to take within the Gaussian errors around Balmer, CaIIK EWs
-        N_EW_samples = 1
+        #N_EW_samples = 1 # vestigial
 
         # loop over samples in the MCMC chain
         N_MCMC_samples = len(self.mcmc_chain)
@@ -107,8 +127,9 @@ class findFeH():
 
         # loop over the rows of the table of good EW data, with each row
         # corresponding to a spectrum
-        for row_num in range(0,len(self.ew_data)):
+        for row_num in range(0,4):#len(self.ew_data)):
 
+            print("-------------")
             logging.info("Finding Fe/H for spectrum " + str(self.ew_data.iloc[row_num]["realization_spec_file_name"]))
 
             Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
@@ -116,48 +137,61 @@ class findFeH():
             err_Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
             err_CaIIK_EW = self.ew_data.iloc[row_num]["EW_CaIIK"]
 
+            # set the offset (note mu=0; this is a relative offset)
+            # (vestigial)
+            offset_H = 0 # np.random.normal(loc = 0.0, scale = err_Balmer_EW)
+            offset_K = 0 # np.random.normal(loc = 0.0, scale = err_CaIIK_EW)
+
             # initialize array
-            feh_sample_array = np.nan*np.ones((N_MCMC_samples, N_EW_samples))
-            for t in range(0,N_MCMC_samples):
+            feh_sample_array = np.nan*np.ones((N_MCMC_samples, 1))
 
-                # loop over each sample within the Gaussian around the EW errors
-                for integral_piece in range(0,N_EW_samples):
+            # find one value of Fe/H given those samples in Balmer and CaIIK EWs
+            #import ipdb; ipdb.set_trace()
+            if (len(self.mcmc_chain.columns)==4):
+                feh_1sample = self.feh_layden_vector(coeff_a = self.mcmc_chain["a"],
+                                  coeff_b = self.mcmc_chain["b"],
+                                  coeff_c = self.mcmc_chain["c"],
+                                  coeff_d = self.mcmc_chain["d"],
+                                  H = Balmer_EW,
+                                  K = CaIIK_EW)
+            elif (len(self.mcmc_chain.columns)==8):
 
-                    ## ## MIGHT BE OVERKILL: USE OF ROBO ERROR AS GAUSSIAN WIDTH LEADS TO RIDICULOUSLY WIDE DISTRIBUTIONS
-                    # set the offset (note mu=0; this is a relative offset)
-                    offset_H = 0 # np.random.normal(loc = 0.0, scale = err_Balmer_EW)
-                    offset_K = 0 # np.random.normal(loc = 0.0, scale = err_CaIIK_EW)
+                try:
 
-                    # find one value of Fe/H given those samples in Balmer and CaIIK EWs
-                    if (len(self.mcmc_chain.columns)==4):
-                        feh_1sample = self.feh_layden(coeff_a = self.mcmc_chain["a"][t],
-                                          coeff_b = self.mcmc_chain["b"][t],
-                                          coeff_c = self.mcmc_chain["c"][t],
-                                          coeff_d = self.mcmc_chain["d"][t],
-                                          H = Balmer_EW + offset_H,
-                                          K = CaIIK_EW + offset_K)
-                    elif (len(self.mcmc_chain.columns)==8):
-                        feh_1sample = self.feh_abcdfghk(coeff_a = self.mcmc_chain["a"][t],
-                                          coeff_b = self.mcmc_chain["b"][t],
-                                          coeff_c = self.mcmc_chain["c"][t],
-                                          coeff_d = self.mcmc_chain["d"][t],
-                                          coeff_f = self.mcmc_chain["f"][t],
-                                          coeff_g = self.mcmc_chain["g"][t],
-                                          coeff_h = self.mcmc_chain["h"][t],
-                                          coeff_k = self.mcmc_chain["k"][t],
-                                          H = Balmer_EW + offset_H,
-                                          K = CaIIK_EW + offset_K)
-                        feh_1sample = feh_1sample[0] # just want positive answer
+                    feh_1sample = self.feh_abcdfghk_vector(coeff_a = self.mcmc_chain["a"],
+                                      coeff_b = self.mcmc_chain["b"],
+                                      coeff_c = self.mcmc_chain["c"],
+                                      coeff_d = self.mcmc_chain["d"],
+                                      coeff_f = self.mcmc_chain["f"],
+                                      coeff_g = self.mcmc_chain["g"],
+                                      coeff_h = self.mcmc_chain["h"],
+                                      coeff_k = self.mcmc_chain["k"],
+                                      H = Balmer_EW,
+                                      K = CaIIK_EW)
 
+                    ## ## CONTINUE HERE; GO THROUGH EACH INDIVIDUAL STEP (WHY DOES CONVERGENCE FAIL FOR EACH SENSICAL VALUE??)
+
+                    # figure out indentation
+                    feh_1sample = feh_1sample[1] # just one of the answers
+
+                    print("Nanmedian of retrieved:")
+                    print(np.nanmedian(feh_1sample))
+
+                    print("to be added feh sample array:")
                     feh_sample_array[t][integral_piece] = feh_1sample
+                    print(feh_1sample)
 
 
-                print("Spectrum number " + str(row_num) + " out of " + str(len(self.ew_data)))
-                print("MCMC sample " + str(t) + " out of " + str(N_MCMC_samples))
-                print("-----")
+                    print("Spectrum number " + str(row_num) + " out of " + str(len(self.ew_data)))
+                    print("MCMC sample " + str(t) + " out of " + str(N_MCMC_samples))
+                    print("-----")
+
+                except:
+
+                    print("Convergence failed")
 
             # write the results (note this pickle file just corresponds to one spectrum)
-            self.ew_data.at[row_num,"feh_retrieved"] = np.median(feh_sample_array)
+            self.ew_data.at[row_num,"feh_retrieved"] = np.nanmedian(feh_sample_array)
             self.ew_data.at[row_num,"err_feh_retrieved"] = np.std(feh_sample_array)
             self.ew_data.at[row_num,"teff_retrieved"] = np.add(
                                                                 np.multiply(self.ew_data.iloc[row_num]["EW_Balmer"],self.soln_header["SLOPE_M"]),
