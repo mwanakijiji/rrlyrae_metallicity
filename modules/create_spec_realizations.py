@@ -97,7 +97,7 @@ def calc_noise(noise_level, spectrum_df):
 
     if (noise_level == "file"):
         # add Gaussian error to the empirical flux, taking sigma to be the
-        # 'error' column in an input file
+        # 'error' column in an input file; note this is an ABSOLUTE error
         noise_to_add = np.random.standard_normal(len(spectrum_df))*spectrum_df['error']
         logging.info("Injecting Gaussian noise based on error column in file.")
     elif (noise_level == "None"):
@@ -105,8 +105,10 @@ def calc_noise(noise_level, spectrum_df):
         noise_to_add = 0
         logging.info("Injecting no noise at all")
     else:
-        # noise is a set value, representing a Gaussian sigma
-        noise_to_add = np.random.standard_normal(len(spectrum_df))*noise_level
+        # noise is a set value, representing a Gaussian sigma; this is normalized,
+        # so a '0.01' means 'Gaussian-distributed random number with sigma=0.01*flux_input';
+        # note this is a RELATIVE error
+        noise_to_add = np.random.standard_normal(len(spectrum_df))*noise_level*spectrum_df["flux"]
         logging.info("Injecting Gaussian noise based on fixed value.")
 
     return noise_to_add
