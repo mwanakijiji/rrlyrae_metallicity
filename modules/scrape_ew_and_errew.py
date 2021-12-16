@@ -435,19 +435,19 @@ def generate_addl_ew_errors(read_in_filename = config_red["data_dirs"]["DIR_EW_P
 
         # Hbeta
         stdev_this_set_Hbeta = np.nanstd(df_postbalmer.where(df_postbalmer["orig_spec_file_name"] == orig_spec)["EW_Hbeta"])
-        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hbeta_based_noise_churning"] = stdev_this_set_balmer
+        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hbeta_based_noise_churning"] = stdev_this_set_Hbeta
 
         # Hdelta
         stdev_this_set_Hdelta = np.nanstd(df_postbalmer.where(df_postbalmer["orig_spec_file_name"] == orig_spec)["EW_Hdelta"])
-        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hdelta_based_noise_churning"] = stdev_this_set_balmer
+        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hdelta_based_noise_churning"] = stdev_this_set_Hdelta
 
         # Hgamma
         stdev_this_set_Hgamma = np.nanstd(df_postbalmer.where(df_postbalmer["orig_spec_file_name"] == orig_spec)["EW_Hgamma"])
-        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hgamma_based_noise_churning"] = stdev_this_set_balmer
+        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Hgamma_based_noise_churning"] = stdev_this_set_Hgamma
 
         # Hepsilon
         stdev_this_set_Heps = np.nanstd(df_postbalmer.where(df_postbalmer["orig_spec_file_name"] == orig_spec)["EW_Heps"])
-        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Heps_based_noise_churning"] = stdev_this_set_balmer
+        df_postbalmer.loc[(df_postbalmer["orig_spec_file_name"] == orig_spec),"err_EW_Heps_based_noise_churning"] = stdev_this_set_Heps
 
     df_postbalmer_errors = df_postbalmer.to_csv(write_out_filename, index=False)
 
