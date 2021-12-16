@@ -127,9 +127,10 @@ class findFeH():
 
         # loop over the rows of the table of good EW data, with each row
         # corresponding to a spectrum
-        for row_num in range(0,100):#len(self.ew_data)):
+        for row_num in range(0,len(self.ew_data)):
 
             print("-------------")
+            print(row_num)
             logging.info("Finding Fe/H for spectrum " + str(self.ew_data.iloc[row_num]["realization_spec_file_name"]))
 
             Balmer_EW = self.ew_data.iloc[row_num]["EW_Balmer"]
@@ -151,7 +152,7 @@ class findFeH():
 
                 try:
 
-                    feh_1sample = self.feh_layden_vector(coeff_a = self.mcmc_chain["a"],
+                    feh_sample = self.feh_layden_vector(coeff_a = self.mcmc_chain["a"],
                                       coeff_b = self.mcmc_chain["b"],
                                       coeff_c = self.mcmc_chain["c"],
                                       coeff_d = self.mcmc_chain["d"],
@@ -165,37 +166,23 @@ class findFeH():
 
             elif (len(self.mcmc_chain.columns)==8):
 
-                try:
-
-                    feh_1sample = self.feh_abcdfghk_vector(coeff_a = self.mcmc_chain["a"],
-                                      coeff_b = self.mcmc_chain["b"],
-                                      coeff_c = self.mcmc_chain["c"],
-                                      coeff_d = self.mcmc_chain["d"],
-                                      coeff_f = self.mcmc_chain["f"],
-                                      coeff_g = self.mcmc_chain["g"],
-                                      coeff_h = self.mcmc_chain["h"],
-                                      coeff_k = self.mcmc_chain["k"],
-                                      H = Balmer_EW,
-                                      K = CaIIK_EW)
-                except:
-
-                    print("Convergence failed")
-                    continue
+                feh_sample = self.feh_abcdfghk_vector(coeff_a = self.mcmc_chain["a"],
+                                  coeff_b = self.mcmc_chain["b"],
+                                  coeff_c = self.mcmc_chain["c"],
+                                  coeff_d = self.mcmc_chain["d"],
+                                  coeff_f = self.mcmc_chain["f"],
+                                  coeff_g = self.mcmc_chain["g"],
+                                  coeff_h = self.mcmc_chain["h"],
+                                  coeff_k = self.mcmc_chain["k"],
+                                  H = Balmer_EW,
+                                  K = CaIIK_EW)
 
                 #import ipdb; ipdb.set_trace()
-                print("a")
-                # figure out indentation
-                feh_1sample = feh_1sample[1] # just one of the answers
-                print("b")
-                print("Nanmedian of retrieved:")
-                print(np.nanmedian(feh_1sample))
-                print("c")
-                #import ipdb; ipdb.set_trace()
-                print("to be added feh sample array:")
+
                 '''
-                feh_sample_array[t][integral_piece] = feh_1sample
+                feh_sample_array[t][integral_piece] = feh_sample
                 print("d")
-                print(feh_1sample)
+                print(feh_sample)
                 print("Spectrum number " + str(row_num) + " out of " + str(len(self.ew_data)))
                 print("e")
                 print("MCMC sample " + str(t) + " out of " + str(N_MCMC_samples))
@@ -203,23 +190,31 @@ class findFeH():
                 print(row_num)
                 '''
 
-                ## BEGIN TEST
-                x=feh_1sample
-                print("length of full thing:")
-                print(len(x))
-                x = x[~np.isnan(x)]
-                print("length of finites:")
-                print(len(x))
-                frac_finite = len(x)/len(feh_1sample)
-                ## END TEST
+                # just want one of the two roots
+                feh_sample = feh_sample[1]
+                #import ipdb; ipdb.set_trace()
 
+                # check for NaN answers
+                x=feh_sample
+                x = x[~np.isnan(x)]
+                frac_finite = len(x)/len(feh_sample)
+
+                # if less than 0.95 of the metallicities converged for this
+                # spectrum, consider it not to have converged
+                #import ipdb; ipdb.set_trace()
+                if (frac_finite < 0.95):
+
+                    print("Convergence failed")
+                    continue
 
                 print("-----")
-                import ipdb; ipdb.set_trace()
+
 
             # write the results (note this pickle file just corresponds to one spectrum)
-            self.ew_data.at[row_num,"feh_retrieved"] = np.nanmedian(feh_sample_array)
-            self.ew_data.at[row_num,"err_feh_retrieved"] = np.std(feh_sample_array)
+            #import ipdb; ipdb.set_trace()
+            print("feh", np.nanmedian(feh_sample))
+            self.ew_data.at[row_num,"feh_retrieved"] = np.nanmedian(feh_sample)
+            self.ew_data.at[row_num,"err_feh_retrieved"] = np.std(feh_sample)
             self.ew_data.at[row_num,"teff_retrieved"] = np.add(
                                                                 np.multiply(self.ew_data.iloc[row_num]["EW_Balmer"],self.soln_header["SLOPE_M"]),
                                                                 self.soln_header["YINT_B"]

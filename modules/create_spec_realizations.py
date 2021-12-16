@@ -107,7 +107,7 @@ def calc_noise(noise_level, spectrum_df):
     else:
         # noise is a set value, representing a Gaussian sigma; this is normalized,
         # so a '0.01' means 'Gaussian-distributed random number with sigma=0.01*flux_input';
-        # note this is a RELATIVE error
+        # note this 0.01 is a RELATIVE error
         noise_to_add = np.random.standard_normal(len(spectrum_df))*noise_level*spectrum_df["flux"]
         logging.info("Injecting Gaussian noise based on fixed value.")
 
