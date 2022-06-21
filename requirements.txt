@@ -7,7 +7,7 @@ setuptools==40.8.0
 emcee==2.2.1
 astropy==2.0.11
 matplotlib==2.2.3
-numpy==1.15.4
+numpy==1.22.0
 ipdb==0.10.1
 corner==2.0.1
 #ipython==7.3.0
